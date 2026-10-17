@@ -5,24 +5,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#030713">
-<title>Football Arena Pro</title>
+<title>Galatasaray vs Fenerbahçe | Arena Pro</title>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#030713;color:white;font-family:Arial,sans-serif}
 canvas{display:block;width:100%;height:100%;touch-action:manipulation}
 .hud{position:fixed;left:0;width:100%;text-align:center;pointer-events:none}
-.header{top:4.5%}
+.header{top:4%}
 .kicker{font-size:9px;letter-spacing:4px;color:#9bffe9}
-h1{margin:9px 0;font-size:clamp(24px,7vw,38px);font-style:italic;letter-spacing:2px;text-shadow:0 0 24px #00eacb}
-.score{top:15%;left:50%;transform:translateX(-50%);width:max-content;max-width:94%;display:flex;align-items:center;justify-content:center;gap:clamp(12px,4vw,25px);padding:11px 17px;background:#071526ed;border:1px solid #8affdf77;border-radius:16px;box-shadow:0 0 28px #00ffe41c}
-.team{font-size:10px;font-weight:bold;letter-spacing:1px}
-.num{display:block;font-size:29px;margin-top:3px}
+h1{margin:8px 0;font-size:clamp(23px,6.5vw,37px);font-style:italic;letter-spacing:1px;text-shadow:0 0 24px #00eacb}
+.score{top:15%;left:50%;transform:translateX(-50%);width:max-content;max-width:96%;display:flex;align-items:center;justify-content:center;gap:clamp(10px,3.5vw,23px);padding:12px 14px;background:#071526ed;border:1px solid #8affdf77;border-radius:16px;box-shadow:0 0 28px #00ffe41c}
+.team{font-size:9px;font-weight:bold;letter-spacing:.5px}
+.num{display:block;font-size:30px;margin-top:3px}
 .clock{font-size:10px;line-height:1.8;color:#b7d1e1;white-space:nowrap}
+.badge{width:36px;height:36px;margin:0 auto 4px;display:grid;place-items:center;font-size:18px;font-weight:900;clip-path:polygon(50% 0,95% 18%,87% 72%,50% 100%,13% 72%,5% 18%);border:0}
+.gs{color:#ffe16b;background:linear-gradient(90deg,#a80024 0 50%,#f5ce42 50%)}
+.fb{color:#fff;background:linear-gradient(90deg,#072d79 0 50%,#ffda28 50%)}
 .bottom{bottom:4.7%;left:7%;width:86%;padding:16px 8px;background:linear-gradient(110deg,#071a2aef,#11132bef);border:1px solid #75ffe455;border-radius:16px;box-shadow:0 0 28px #00ffe411}
 .bottom strong{font-size:12px;letter-spacing:2px}
 .bottom p{margin:8px 0 0;color:#9bb6c9;font-size:9px;letter-spacing:3px}
 .foot{bottom:1.3%;font-size:8px;letter-spacing:2px;color:#597a91}
-#goal{position:fixed;top:39%;left:0;width:100%;text-align:center;font-size:clamp(32px,10vw,60px);font-weight:900;font-style:italic;letter-spacing:5px;color:white;text-shadow:0 0 15px #fff,0 0 45px #00ffdc;opacity:0;pointer-events:none}
+#goal{position:fixed;top:40%;left:0;width:100%;text-align:center;font-size:clamp(30px,10vw,58px);font-weight:900;font-style:italic;letter-spacing:4px;color:white;text-shadow:0 0 15px #fff,0 0 45px #00ffdc;opacity:0;pointer-events:none}
 #goal.show{animation:goal .95s ease-out}
 @keyframes goal{0%{opacity:0;transform:scale(.6)}20%{opacity:1;transform:scale(1.12)}70%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.35)}}
 </style>
@@ -30,227 +33,242 @@ h1{margin:9px 0;font-size:clamp(24px,7vw,38px);font-style:italic;letter-spacing:
 <body>
 <canvas id="arena"></canvas>
 <div class="hud header">
- <div class="kicker">ULTIMATE MATCH EXPERIENCE</div>
- <h1>FOOTBALL ARENA</h1>
+ <div class="kicker">DERBİ GECESİ · CANLI ARENA</div>
+ <h1>GALATASARAY <span style="color:#ffe16b">VS</span> FENERBAHÇE</h1>
 </div>
 <div class="hud score">
- <div class="team" style="color:#ff5576">RED TEAM<span class="num" id="red">0</span></div>
- <div class="clock">LIVE MATCH<br><b id="timer">00:00</b></div>
- <div class="team" style="color:#55d8ff;text-align:right">BLUE TEAM<span class="num" id="blue">0</span></div>
+ <div class="team" style="color:#ff526b">
+  <div class="badge gs">GS</div>GALATASARAY
+  <span class="num" id="red">0</span>
+ </div>
+ <div class="clock">MAÇ SAATİ<br><b id="timer">00:00</b></div>
+ <div class="team" style="color:#ffe16b;text-align:center">
+  <div class="badge fb">FB</div>FENERBAHÇE
+  <span class="num" id="blue">0</span>
+ </div>
 </div>
-<div id="goal">GOAL!</div>
+<div id="goal">GOOOL!</div>
 <div class="hud bottom">
- <strong>⚡ THE BATTLE BEGINS ⚡</strong>
- <p>POWER · PRECISION · GLORY</p>
+ <strong>⚡ DERBİ BAŞLIYOR ⚡</strong>
+ <p>ASLAN · KANARYA · REKABET</p>
 </div>
-<div class="hud foot">ARENA PRO · LIVE SIMULATION</div>
+<div class="hud foot">FOOTBALL ARENA PRO · SIMÜLASYON</div>
 <script>
 (()=>{
-const canvas=document.getElementById('arena'),ctx=canvas.getContext('2d');
+'use strict';
+const canvas=document.getElementById('arena');
+const ctx=canvas.getContext('2d');
 const TAU=Math.PI*2;
-let W,H,DPR,last=0,elapsed=0,particles=[],stars=[],goalFlash=0;
-let scores=[0,0],lastGoal=-10000;
+let W=0,H=0,DPR=1,last=0,elapsed=0,particles=[],stars=[];
+let scores=[0,0],goalCooldown=0,collisionCooldown=0;
 function resize(){
- DPR=Math.min(devicePixelRatio||1,2);
- W=innerWidth;H=innerHeight;
- canvas.width=W*DPR;canvas.height=H*DPR;
+ DPR=Math.min(window.devicePixelRatio||1,2);
+ W=window.innerWidth;H=window.innerHeight;
+ canvas.width=Math.round(W*DPR);canvas.height=Math.round(H*DPR);
  ctx.setTransform(DPR,0,0,DPR,0,0);
- stars=Array.from({length:100},()=>({x:Math.random()*W,y:Math.random()*H*.65,r:Math.random()*1.4,p:Math.random()*TAU}));
+ stars=Array.from({length:110},()=>({
+  x:Math.random()*W,y:Math.random()*H*.7,
+  r:.4+Math.random()*1.2,p:Math.random()*TAU
+ }));
 }
-addEventListener('resize',resize);resize();
+window.addEventListener('resize',resize);
+resize();
 const balls=[
- {x:.37,y:.50,vx:.15,vy:.20,r:15,color:'#ff4169',dark:'#77152d',spin:0,trail:[]},
- {x:.63,y:.50,vx:-.17,vy:-.14,r:15,color:'#30ceff',dark:'#07517c',spin:1,trail:[]}
+ {x:.38,y:.49,vx:145,vy:112,r:15,color:'#e51c43',dark:'#650e27',spin:0,trail:[]},
+ {x:.62,y:.51,vx:-158,vy:-96,r:15,color:'#28bdff',dark:'#063d80',spin:1,trail:[]}
 ];
-function arenaGeom(){
- const rx=Math.min(W*.405,H*.215),ry=rx*.9;
- return {cx:W*.5,cy:H*.505,rx,ry};
+function geom(){
+ const rx=Math.min(W*.405,H*.215);
+ return {cx:W*.5,cy:H*.505,rx,ry:rx*.9};
 }
-function burst(x,y,color,count=24){
+function burst(x,y,color,count=22){
  for(let i=0;i<count;i++){
   const a=Math.random()*TAU,s=35+Math.random()*210;
-  particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5+Math.random()*.65,max:1,color,r:1+Math.random()*3});
+  particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,
+   life:.5+Math.random()*.55,max:1,color,r:1+Math.random()*2.5});
  }
 }
 function line(x1,y1,x2,y2,color,width=1){
  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);
  ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();
 }
-function background(t,dt){
- const bg=ctx.createLinearGradient(0,0,0,H);
- bg.addColorStop(0,'#030713');bg.addColorStop(.4,'#0b2337');bg.addColorStop(.72,'#0b1925');bg.addColorStop(1,'#02050b');
+function background(t){
+ let bg=ctx.createLinearGradient(0,0,0,H);
+ bg.addColorStop(0,'#030713');bg.addColorStop(.4,'#0b2337');
+ bg.addColorStop(.75,'#091725');bg.addColorStop(1,'#02050b');
  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
  stars.forEach(s=>{
-  ctx.globalAlpha=.2+.5*(.5+.5*Math.sin(t*.001+s.p));
+  ctx.globalAlpha=.2+.55*(.5+.5*Math.sin(t*.001+s.p));
   ctx.fillStyle='#c8fff8';ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,TAU);ctx.fill();
  });
  ctx.globalAlpha=1;
- // Stadium roof and distant stands
- ctx.beginPath();ctx.moveTo(0,H*.25);
- ctx.quadraticCurveTo(W*.5,H*.08,W,H*.25);
- ctx.lineTo(W,H*.43);ctx.quadraticCurveTo(W*.5,H*.24,0,H*.43);ctx.closePath();
- let roof=ctx.createLinearGradient(0,H*.15,0,H*.43);
+ ctx.beginPath();ctx.moveTo(0,H*.26);
+ ctx.quadraticCurveTo(W*.5,H*.08,W,H*.26);
+ ctx.lineTo(W,H*.44);ctx.quadraticCurveTo(W*.5,H*.24,0,H*.44);ctx.closePath();
+ let roof=ctx.createLinearGradient(0,H*.15,0,H*.44);
  roof.addColorStop(0,'#23394c');roof.addColorStop(1,'#08121f');
  ctx.fillStyle=roof;ctx.fill();
  for(let tier=0;tier<6;tier++){
   let y=H*(.30+tier*.022);
   for(let i=0;i<W/5;i++){
-   const n=(i*13+tier*17)%23;
+   let n=(i*13+tier*17)%23;
    ctx.globalAlpha=.12+(n%5)*.035;
    ctx.fillStyle=n%4===0?'#59ffe1':n%5===0?'#ff5b79':'#8da9bc';
    ctx.fillRect(i*5,y+(n%3)*2,2,2);
   }
  }
  ctx.globalAlpha=1;
- // Sweeping light beams
  ctx.save();ctx.globalCompositeOperation='screen';
  for(let i=0;i<5;i++){
-  const x=W*(.1+i*.2)+Math.sin(t*.00035+i*2)*W*.13;
-  const end=x+Math.sin(t*.00023+i)*W*.22;
-  const beam=ctx.createLinearGradient(x,H*.24,end,H*.62);
+  const sx=W*(.1+i*.2)+Math.sin(t*.00035+i*2)*W*.13;
+  const ex=sx+Math.sin(t*.00023+i)*W*.22;
+  const beam=ctx.createLinearGradient(sx,H*.24,ex,H*.62);
   beam.addColorStop(0,'#85fff51c');beam.addColorStop(1,'#47dfff00');
-  ctx.fillStyle=beam;ctx.beginPath();ctx.moveTo(x-5,H*.24);
-  ctx.lineTo(end-W*.09,H*.61);ctx.lineTo(end+W*.09,H*.61);ctx.closePath();ctx.fill();
+  ctx.fillStyle=beam;ctx.beginPath();ctx.moveTo(sx-5,H*.24);
+  ctx.lineTo(ex-W*.09,H*.61);ctx.lineTo(ex+W*.09,H*.61);
+  ctx.closePath();ctx.fill();
  }
  ctx.restore();
  let floor=ctx.createLinearGradient(0,H*.53,0,H);
  floor.addColorStop(0,'#0d2937');floor.addColorStop(1,'#02060d');
  ctx.fillStyle=floor;ctx.fillRect(0,H*.53,W,H*.47);
- for(let i=0;i<9;i++)line(0,H*(.55+i*i*.004),W,H*(.55+i*i*.004),'#5affdf0c');
+ for(let i=0;i<9;i++){
+  let y=H*(.55+i*i*.004);
+  line(0,y,W,y,'#5affdf0c');
+ }
 }
 function drawArena(t){
- const {cx,cy,rx,ry}=arenaGeom();
- let halo=ctx.createRadialGradient(cx,cy,rx*.15,cx,cy,rx*1.3);
- halo.addColorStop(0,'#0affd015');halo.addColorStop(1,'#0affd000');
+ const {cx,cy,rx,ry}=geom();
+ let halo=ctx.createRadialGradient(cx,cy,rx*.1,cx,cy,rx*1.4);
+ halo.addColorStop(0,'#0affd019');halo.addColorStop(1,'#0affd000');
  ctx.fillStyle=halo;ctx.fillRect(cx-rx*1.4,cy-ry*1.4,rx*2.8,ry*2.8);
  for(let i=5;i>=0;i--){
   ctx.beginPath();ctx.ellipse(cx,cy,rx*(.65+i*.067),ry*(.65+i*.067),0,0,TAU);
   ctx.strokeStyle=i===5?'#6bffeb':'rgba(54,226,218,'+(.06+i*.012)+')';
   ctx.lineWidth=i===5?2.5:1;
-  ctx.shadowColor='#00ffe0';ctx.shadowBlur=i===5?23:4;ctx.stroke();
+  ctx.shadowColor='#00ffe0';ctx.shadowBlur=i===5?22:4;ctx.stroke();
  }
  ctx.shadowBlur=0;
  for(let i=0;i<64;i++){
-  const a=i*TAU/64,major=i%8===0;
+  let a=i*TAU/64,major=i%8===0;
   line(cx+Math.cos(a)*rx*.66,cy+Math.sin(a)*ry*.66,
        cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,
        major?'#79fff277':'#3ad5d51c',major?1.5:1);
  }
  for(let j=0;j<3;j++){
-  const a=t*.00065+j*TAU/3;
+  let a=t*.00065+j*TAU/3;
   ctx.beginPath();ctx.ellipse(cx,cy,rx*.99,ry*.99,0,a,a+.65);
   ctx.strokeStyle=j===0?'#e1fff9':'#26cfff';ctx.lineWidth=j===0?4:2;
   ctx.shadowColor=j===0?'#39ffe3':'#00aaff';ctx.shadowBlur=j===0?24:13;ctx.stroke();
  }
  ctx.shadowBlur=0;
- // Goal gates
- for(const side of [-1,1]){
-  const gx=cx+side*rx*.94,gy=cy;
+ // Side goal frames
+ for(let side of [-1,1]){
+  const gx=cx+side*rx*.94,gy=cy,gh=ry*.36;
   ctx.strokeStyle='#d2fff4';ctx.lineWidth=2;
-  ctx.shadowColor='#4dffe1';ctx.shadowBlur=14;
-  ctx.strokeRect(gx-(side<0?10:0),gy-ry*.19,10,ry*.38);
-  ctx.shadowBlur=0;
+  ctx.shadowColor='#4dffe1';ctx.shadowBlur=12;
+  ctx.strokeRect(side<0?gx-10:gx,gy-gh/2,10,gh);
  }
+ ctx.shadowBlur=0;
 }
 function drawBall(b){
  const px=b.x*W,py=b.y*H,r=b.r;
- // speed trail
  b.trail.forEach((p,i)=>{
-  ctx.globalAlpha=(i/b.trail.length)*.25;
-  ctx.fillStyle=b.color;ctx.beginPath();ctx.arc(p.x,p.y,r*(i/b.trail.length)*.65,0,TAU);ctx.fill();
+  ctx.globalAlpha=(i+1)/b.trail.length*.23;
+  ctx.fillStyle=b.color;ctx.beginPath();
+  ctx.arc(p.x,p.y,r*(i+1)/b.trail.length*.7,0,TAU);ctx.fill();
  });
  ctx.globalAlpha=1;
  ctx.fillStyle='#0009';ctx.beginPath();ctx.ellipse(px+4,py+r*.9,r*1.1,r*.3,0,0,TAU);ctx.fill();
  ctx.save();ctx.translate(px,py);ctx.rotate(b.spin);
  let gr=ctx.createRadialGradient(-r*.4,-r*.4,1,0,0,r*1.2);
- gr.addColorStop(0,'#fff');gr.addColorStop(.17,'#e9f4ff');gr.addColorStop(.52,b.color);gr.addColorStop(1,b.dark);
- ctx.shadowColor=b.color;ctx.shadowBlur=21;ctx.fillStyle=gr;
+ gr.addColorStop(0,'#fff');gr.addColorStop(.17,'#e9f4ff');
+ gr.addColorStop(.52,b.color);gr.addColorStop(1,b.dark);
+ ctx.shadowColor=b.color;ctx.shadowBlur=20;ctx.fillStyle=gr;
  ctx.beginPath();ctx.arc(0,0,r,0,TAU);ctx.fill();ctx.shadowBlur=0;
  ctx.strokeStyle='#ffffffdd';ctx.lineWidth=1.4;
  for(let i=0;i<5;i++){
-  const a=i*TAU/5;
+  let a=i*TAU/5;
   ctx.beginPath();ctx.moveTo(Math.cos(a)*r*.14,Math.sin(a)*r*.14);
   ctx.lineTo(Math.cos(a+.45)*r*.52,Math.sin(a+.45)*r*.52);ctx.stroke();
  }
  ctx.beginPath();ctx.arc(0,0,r*.55,0,TAU);ctx.stroke();
  ctx.restore();
 }
-function goal(team,b){
- if(elapsed-lastGoal<1800)return;
- lastGoal=elapsed;scores[team]++;
+function scoreGoal(team,b){
+ if(elapsed<goalCooldown)return;
+ goalCooldown=elapsed+1800;
+ scores[team]++;
  document.getElementById(team===0?'red':'blue').textContent=scores[team];
- const label=document.getElementById('goal');
- label.textContent='GOAL!';label.classList.remove('show');void label.offsetWidth;label.classList.add('show');
- goalFlash=1;burst(b.x*W,b.y*H,b.color,75);
- b.x=team===0?.37:.63;b.y=.5;
- b.vx=(team===0?1:-1)*(125+Math.random()*55);
- b.vy=(Math.random()-.5)*150;
+ const el=document.getElementById('goal');
+ el.textContent=team===0?'GOOOL! GALATASARAY':'GOOOL! FENERBAHÇE';
+ el.classList.remove('show');void el.offsetWidth;el.classList.add('show');
+ burst(b.x*W,b.y*H,b.color,65);
+ b.x=team===0?.38:.62;b.y=.5;
+ b.vx=team===0?145:-158;b.vy=(Math.random()-.5)*180;
 }
 function update(dt){
- const {cx,cy,rx,ry}=arenaGeom();
- const sec=dt/1000;
- balls.forEach((b,i)=>{
-  b.trail.push({x:b.x*W,y:b.y*H});if(b.trail.length>9)b.trail.shift();
-  b.x+=b.vx*sec/W;b.y+=b.vy*sec/H;
-  b.spin+=dt*.002;
-  // Bounce at upper/lower boundary
-  if(b.y*H<cy-ry+b.r){b.y=(cy-ry+b.r)/H;b.vy=Math.abs(b.vy);burst(b.x*W,b.y*H,b.color,7)}
-  if(b.y*H>cy+ry-b.r){b.y=(cy+ry-b.r)/H;b.vy=-Math.abs(b.vy);burst(b.x*W,b.y*H,b.color,7)}
-  // Side openings count as goals
+ const {cx,cy,rx,ry}=geom(),sec=dt/1000;
+ balls.forEach(b=>{
+  b.trail.push({x:b.x*W,y:b.y*H});
+  if(b.trail.length>9)b.trail.shift();
+  b.x+=b.vx*sec/W;b.y+=b.vy*sec/H;b.spin+=dt*.002;
+  if(b.y*H<cy-ry+b.r){
+   b.y=(cy-ry+b.r)/H;b.vy=Math.abs(b.vy);burst(b.x*W,b.y*H,b.color,7);
+  }
+  if(b.y*H>cy+ry-b.r){
+   b.y=(cy+ry-b.r)/H;b.vy=-Math.abs(b.vy);burst(b.x*W,b.y*H,b.color,7);
+  }
   if(b.x*W<cx-rx-b.r){
-   if(Math.abs(b.y*H-cy)<ry*.2)goal(1,b);
-   else {b.x=(cx-rx+b.r)/W;b.vx=Math.abs(b.vx);burst(b.x*W,b.y*H,b.color,9)}
+   if(Math.abs(b.y*H-cy)<ry*.2)scoreGoal(1,b);
+   else{b.x=(cx-rx+b.r)/W;b.vx=Math.abs(b.vx);burst(b.x*W,b.y*H,b.color,9);}
   }
   if(b.x*W>cx+rx+b.r){
-   if(Math.abs(b.y*H-cy)<ry*.2)goal(0,b);
-   else {b.x=(cx+rx-b.r)/W;b.vx=-Math.abs(b.vx);burst(b.x*W,b.y*H,b.color,9)}
+   if(Math.abs(b.y*H-cy)<ry*.2)scoreGoal(0,b);
+   else{b.x=(cx+rx-b.r)/W;b.vx=-Math.abs(b.vx);burst(b.x*W,b.y*H,b.color,9);}
   }
-  // Mild air drag and bounded speed
   b.vx*=Math.pow(.999,dt/16);b.vy*=Math.pow(.999,dt/16);
-  b.vx=Math.max(-230,Math.min(230,b.vx));b.vy=Math.max(-230,Math.min(230,b.vy));
  });
- const a=balls[0],b=balls[1],dx=(a.x-b.x)*W,dy=(a.y-b.y)*H,dist=Math.hypot(dx,dy),min=a.r+b.r;
+ const a=balls[0],b=balls[1],dx=(a.x-b.x)*W,dy=(a.y-b.y)*H;
+ const dist=Math.hypot(dx,dy),min=a.r+b.r;
  if(dist>0&&dist<min){
   const nx=dx/dist,ny=dy/dist;
   const rel=(a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
   if(rel<0){
-   a.vx-=rel*nx;b.vx+=rel*nx;a.vy-=rel*ny;b.vy+=rel*ny;
-   const push=(min-dist)/2/W;
-   a.x+=nx*push;b.x-=nx*push;
-   particleBurstCollision((a.x+b.x)*W/2,(a.y+b.y)*H/2);
+   a.vx-=rel*nx;b.vx+=rel*nx;
+   a.vy-=rel*ny;b.vy+=rel*ny;
+   const push=(min-dist)/2;
+   a.x+=nx*push/W;b.x-=nx*push/W;
+   if(elapsed-collisionCooldown>180){
+    collisionCooldown=elapsed;burst((a.x+b.x)*W/2,(a.y+b.y)*H/2,'#dfffff',18);
+   }
   }
  }
  particles.forEach(p=>{
-  p.x+=p.vx*sec;p.y+=p.vy*sec;p.vx*=Math.pow(.97,dt/16);p.vy*=Math.pow(.97,dt/16);p.life-=sec;
+  p.x+=p.vx*sec;p.y+=p.vy*sec;
+  p.vx*=Math.pow(.97,dt/16);p.vy*=Math.pow(.97,dt/16);p.life-=sec;
  });
  particles=particles.filter(p=>p.life>0);
- goalFlash=Math.max(0,goalFlash-sec*1.4);
-}
-let collisionCooldown=0;
-function particleBurstCollision(x,y){
- if(elapsed-collisionCooldown<180)return;
- collisionCooldown=elapsed;burst(x,y,'#dfffff',18);
 }
 function drawParticles(){
  particles.forEach(p=>{
-  ctx.globalAlpha=Math.max(0,p.life/p.max);ctx.fillStyle=p.color;
-  ctx.shadowColor=p.color;ctx.shadowBlur=10;
+  ctx.globalAlpha=Math.max(0,p.life/p.max);
+  ctx.fillStyle=p.color;ctx.shadowColor=p.color;ctx.shadowBlur=9;
   ctx.beginPath();ctx.arc(p.x,p.y,p.r*Math.max(.15,p.life),0,TAU);ctx.fill();
  });
  ctx.globalAlpha=1;ctx.shadowBlur=0;
 }
 function frame(now){
  const dt=Math.min(now-last||16,32);last=now;elapsed+=dt;
- background(elapsed,dt);drawArena(elapsed);update(dt);
+ background(elapsed);drawArena(elapsed);update(dt);
  drawParticles();balls.forEach(drawBall);
- if(goalFlash>0){ctx.fillStyle='rgba(120,255,230,'+(goalFlash*.12)+')';ctx.fillRect(0,0,W,H)}
  document.getElementById('timer').textContent=
-  String(Math.floor(elapsed/60000)).padStart(2,'0')+':'+String(Math.floor(elapsed/1000)%60).padStart(2,'0');
+  String(Math.floor(elapsed/60000)).padStart(2,'0')+':'+
+  String(Math.floor(elapsed/1000)%60).padStart(2,'0');
  requestAnimationFrame(frame);
 }
+canvas.addEventListener('pointerdown',e=>burst(e.clientX,e.clientY,'#9bfff0',18));
 requestAnimationFrame(frame);
-// Tap arena to add a small burst of energy
-canvas.addEventListener('pointerdown',e=>burst(e.clientX,e.clientY,'#7effe8',20));
 })();
 </script>
 </body>
