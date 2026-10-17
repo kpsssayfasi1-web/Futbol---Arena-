@@ -3,130 +3,203 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Football Arena</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Football Arena | Cinematic Edition</title>
 <style>
 *{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#050b16;font-family:Arial,sans-serif;color:white}
-canvas{display:block;width:100vw;height:100dvh}
-#tag{position:fixed;top:4%;left:50%;transform:translateX(-50%);text-align:center;width:90%;pointer-events:none}
-#tag small{letter-spacing:5px;color:#8fffd1;font-size:10px}
-#tag h1{margin:8px 0;font-size:clamp(22px,6vw,38px);font-style:italic;letter-spacing:2px;text-shadow:0 0 20px #16e8bb}
-#score{position:fixed;top:17%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:18px;padding:12px 20px;background:#081627d9;border:1px solid #5bfbd577;border-radius:18px;box-shadow:0 0 28px #00ffc022;white-space:nowrap}
-.team{font-size:12px;font-weight:bold;letter-spacing:1px}
-.num{font-size:30px;font-weight:900}
-#clock{font-size:11px;color:#a9c4d7;text-align:center}
-#bottom{position:fixed;bottom:4%;left:50%;transform:translateX(-50%);width:86%;max-width:420px;text-align:center;padding:15px;background:linear-gradient(110deg,#0b2033ed,#10132bed);border:1px solid #7bffe155;border-radius:18px;box-shadow:0 0 30px #00ffc018}
-#bottom strong{letter-spacing:2px;font-size:13px}
-#bottom p{margin:7px 0 0;color:#9bb5c7;font-size:10px;letter-spacing:2px}
-#hint{position:fixed;bottom:1%;width:100%;text-align:center;color:#55758a;font-size:9px;letter-spacing:2px}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#020611;color:white;font-family:Arial,sans-serif}
+canvas{display:block;width:100%;height:100%;touch-action:manipulation}
+.hud{position:fixed;left:0;width:100%;text-align:center;pointer-events:none}
+.top{top:4.5%}
+.kicker{font-size:9px;letter-spacing:5px;color:#85ffe5;text-shadow:0 0 14px #00ffd0}
+h1{font-size:clamp(25px,7vw,40px);font-style:italic;letter-spacing:2px;margin:8px 0;text-shadow:0 0 25px #00e8c6}
+.score{top:16%;left:50%;transform:translateX(-50%);width:max-content;max-width:94%;display:flex;align-items:center;gap:clamp(13px,4vw,28px);padding:12px 20px;background:linear-gradient(130deg,#09192aee,#10162bee);border:1px solid #6cffe366;border-radius:16px;box-shadow:0 0 32px #00ffd018,inset 0 0 18px #70ffe90a}
+.team{font-size:10px;letter-spacing:2px;font-weight:bold}
+.num{font-size:30px;line-height:1.2;display:block}
+.clock{font-size:10px;color:#9cb9cd;line-height:1.8;white-space:nowrap}
+.bottom{bottom:5%;width:84%;left:8%;padding:17px 10px;background:linear-gradient(110deg,#071728ee,#11152bed);border:1px solid #7dffe344;border-radius:16px;box-shadow:0 0 28px #00ffc014}
+.bottom strong{font-size:12px;letter-spacing:2px}
+.bottom p{font-size:9px;letter-spacing:3px;color:#90b3c4;margin:8px 0 0}
+.foot{bottom:1.5%;font-size:8px;letter-spacing:3px;color:#54778b}
 </style>
 </head>
 <body>
-<canvas id="c"></canvas>
-<div id="tag"><small>ULTIMATE MATCH EXPERIENCE</small><h1>FOOTBALL ARENA</h1></div>
-<div id="score">
-  <div class="team"><span style="color:#ff5576">RED</span><br><span class="num" id="s1">0</span></div>
-  <div id="clock">LIVE MATCH<br><b id="time">00:00</b></div>
-  <div class="team" style="text-align:right"><span style="color:#54cfff">BLUE</span><br><span class="num" id="s2">0</span></div>
+<canvas id="arena"></canvas>
+<div class="hud top">
+ <div class="kicker">THE NEXT LEVEL OF FOOTBALL</div>
+ <h1>FOOTBALL ARENA</h1>
 </div>
-<div id="bottom"><strong>⚡ THE BATTLE BEGINS ⚡</strong><p>POWER • PRECISION • GLORY</p></div>
-<div id="hint">MOBILE ARENA · LIVE SIMULATION</div>
+<div class="hud score">
+ <div class="team" style="color:#ff5978">RED TEAM<span class="num" id="red">00</span></div>
+ <div class="clock">LIVE MATCH<br><b id="timer">00:00</b></div>
+ <div class="team" style="text-align:right;color:#56d8ff">BLUE TEAM<span class="num" id="blue">00</span></div>
+</div>
+<div class="hud bottom">
+ <strong>⚡ THE BATTLE BEGINS ⚡</strong>
+ <p>POWER · PRECISION · GLORY</p>
+</div>
+<div class="hud foot">CINEMATIC ARENA EXPERIENCE</div>
 <script>
-const c=document.getElementById('c'),x=c.getContext('2d');
-let W,H,dpr,t=0,last=0,score1=0,score2=0,particles=[];
+(()=>{
+const c=document.getElementById('arena'),g=c.getContext('2d');
+let w,h,dpr,last=0,elapsed=0,particles=[],stars=[],lights=[];
+const TAU=Math.PI*2;
 function resize(){
- dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
- c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);
+ dpr=Math.min(devicePixelRatio||1,2);
+ w=innerWidth;h=innerHeight;c.width=w*dpr;c.height=h*dpr;
+ g.setTransform(dpr,0,0,dpr,0,0);
+ stars=Array.from({length:100},()=>({x:Math.random()*w,y:Math.random()*h*.72,r:Math.random()*1.4,a:Math.random()}));
+ lights=Array.from({length:7},(_,i)=>({x:w*(.08+i*.14),a:Math.random()*TAU}));
 }
 addEventListener('resize',resize);resize();
 const balls=[
- {x:.36,y:.49,vx:.0024,vy:.0017,r:17,color:'#ff345d',glow:'#ff345d',spin:0},
- {x:.64,y:.49,vx:-.0021,vy:-.0015,r:17,color:'#28c8ff',glow:'#28c8ff',spin:0}
+ {x:.37,y:.49,vx:.00021,vy:.00025,r:16,color:'#ff3159',dark:'#72172e',spin:0},
+ {x:.63,y:.49,vx:-.00024,vy:-.00019,r:16,color:'#20cfff',dark:'#075080',spin:1}
 ];
-function burst(px,py,col){
- for(let i=0;i<24;i++){
-  let a=Math.random()*Math.PI*2,s=1+Math.random()*4;
-  particles.push({x:px,y:py,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col});
+function glow(color,blur){g.shadowColor=color;g.shadowBlur=blur}
+function line(x1,y1,x2,y2,color,width=1){
+ g.strokeStyle=color;g.lineWidth=width;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke();
+}
+function particleBurst(x,y,color,n=24){
+ for(let i=0;i<n;i++){
+  const a=Math.random()*TAU,s=1+Math.random()*4;
+  particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.6+Math.random()*.5,color,size:1+Math.random()*2.5});
  }
 }
-function ball(b){
- let px=b.x*W,py=b.y*H, r=b.r;
- x.save();x.translate(px,py);x.rotate(b.spin);
- x.shadowColor=b.glow;x.shadowBlur=24;
- let g=x.createRadialGradient(-r*.35,-r*.4,1,0,0,r);
- g.addColorStop(0,'#ffffff');g.addColorStop(.22,b.color);g.addColorStop(1,'#091321');
- x.fillStyle=g;x.beginPath();x.arc(0,0,r,0,Math.PI*2);x.fill();
- x.shadowBlur=0;x.strokeStyle='#ffffffcc';x.lineWidth=1.3;
- x.beginPath();x.arc(0,0,r*.55,0,Math.PI*2);x.stroke();
+function background(t){
+ let bg=g.createLinearGradient(0,0,0,h);
+ bg.addColorStop(0,'#020612');bg.addColorStop(.42,'#0b2033');bg.addColorStop(.72,'#081421');bg.addColorStop(1,'#01040a');
+ g.fillStyle=bg;g.fillRect(0,0,w,h);
+ for(const s of stars){
+  g.globalAlpha=.25+.6*(.5+.5*Math.sin(t*.001+s.a*8));
+  g.fillStyle='#b5fff5';g.beginPath();g.arc(s.x,s.y,s.r,0,TAU);g.fill();
+ }
+ g.globalAlpha=1;
+ // Distant stadium roof
+ g.beginPath();g.moveTo(0,h*.28);
+ g.quadraticCurveTo(w*.5,h*.08,w,h*.28);
+ g.lineTo(w,h*.42);g.quadraticCurveTo(w*.5,h*.22,0,h*.42);g.closePath();
+ let roof=g.createLinearGradient(0,h*.2,0,h*.43);
+ roof.addColorStop(0,'#1a3448');roof.addColorStop(1,'#07101c');
+ g.fillStyle=roof;g.fill();
+ // Crowd and tier lights
+ for(let tier=0;tier<5;tier++){
+  let yy=h*(.315+tier*.024);
+  for(let i=0;i<Math.ceil(w/5);i++){
+   const xx=i*5,seed=(i*17+tier*29)%19;
+   g.fillStyle=seed%4===0?'#4bd9cb':seed%5===0?'#ff5478':'#52677a';
+   g.globalAlpha=.12+(seed%6)*.035;
+   g.fillRect(xx,yy+(seed%3)*2,2,2);
+  }
+ }
+ g.globalAlpha=1;
+ // Sweeping spotlights
+ g.save();g.globalCompositeOperation='screen';
+ lights.forEach((l,i)=>{
+  const px=l.x+Math.sin(t*.00045+i)*w*.12,py=h*.23;
+  const end=px+Math.sin(t*.0003+i*1.8)*w*.22;
+  g.beginPath();g.moveTo(px-4,py);g.lineTo(end-w*.1,h*.57);g.lineTo(end+w*.1,h*.57);g.closePath();
+  const beam=g.createLinearGradient(px,py,end,h*.57);
+  beam.addColorStop(0,'#7affed20');beam.addColorStop(1,'#45dfff00');
+  g.fillStyle=beam;g.fill();
+ });
+ g.restore();
+ // Stadium floor
+ let floor=g.createLinearGradient(0,h*.53,0,h);
+ floor.addColorStop(0,'#0c2733');floor.addColorStop(1,'#02070d');
+ g.fillStyle=floor;g.fillRect(0,h*.53,w,h*.47);
+ for(let i=0;i<10;i++){
+  let yy=h*.56+i*i*h*.004;
+  line(0,yy,w,yy,'#58d5c00b',1);
+ }
+}
+function arena(t){
+ const cx=w*.5,cy=h*.505,rx=Math.min(w*.405,h*.225),ry=rx*.91;
+ // floor shadow
+ let sh=g.createRadialGradient(cx,cy,rx*.2,cx,cy,rx*1.6);
+ sh.addColorStop(0,'#14cdbb18');sh.addColorStop(1,'#00101a00');
+ g.fillStyle=sh;g.fillRect(0,cy-ry-25,w,ry*2+50);
+ // layered rings
+ for(let i=5;i>=0;i--){
+  g.beginPath();g.ellipse(cx,cy,rx*(.67+i*.066),ry*(.67+i*.066),0,0,TAU);
+  g.strokeStyle=i===5?'#6cfff0a0':`rgba(42,230,216,${.06+i*.012})`;
+  g.lineWidth=i===5?2:1;glow('#12ffdc',i===5?17:4);g.stroke();
+ }
+ g.shadowBlur=0;
+ // inner radial grid
+ for(let i=0;i<48;i++){
+  let a=i*TAU/48;
+  line(cx+Math.cos(a)*rx*.18,cy+Math.sin(a)*ry*.18,cx+Math.cos(a)*rx*.66,cy+Math.sin(a)*ry*.66,'#50e8da19',1);
+ }
+ for(let i=0;i<96;i++){
+  const a=i*TAU/96,major=i%8===0;
+  const r1=rx*(major?.91:.95),r2=rx;
+  line(cx+Math.cos(a)*r1,cy+Math.sin(a)*ry/rx*r1,cx+Math.cos(a)*r2,cy+Math.sin(a)*ry,'#a4fff0'+(major?'bb':'48'),major?2:1);
+ }
+ // rotating luminous arc
+ for(let j=0;j<3;j++){
+  const a=t*.00065+j*TAU/3;
+  g.beginPath();g.ellipse(cx,cy,rx*.99,ry*.99,0,a,a+.62);
+  g.strokeStyle=j===0?'#d0fff8':'#21d9ff';g.lineWidth=j===0?4:2;
+  glow(j===0?'#39ffe3':'#00aaff',j===0?22:12);g.stroke();
+ }
+ g.shadowBlur=0;
+ // center platform
+ let rg=g.createRadialGradient(cx,cy,2,cx,cy,rx*.55);
+ rg.addColorStop(0,'#18435355');rg.addColorStop(1,'#020a1300');
+ g.fillStyle=rg;g.beginPath();g.ellipse(cx,cy,rx*.55,ry*.55,0,0,TAU);g.fill();
+}
+function drawBall(b,t){
+ const px=b.x*w,py=b.y*h,r=b.r;
+ // ground shadow
+ g.fillStyle='#0009';g.beginPath();g.ellipse(px+4,py+r*.8,r*1.1,r*.32,0,0,TAU);g.fill();
+ g.save();g.translate(px,py);g.rotate(b.spin);
+ let grad=g.createRadialGradient(-r*.36,-r*.42,1,0,0,r*1.15);
+ grad.addColorStop(0,'#ffffff');grad.addColorStop(.15,'#f0f7ff');grad.addColorStop(.5,b.color);grad.addColorStop(1,b.dark);
+ glow(b.color,18);g.fillStyle=grad;g.beginPath();g.arc(0,0,r,0,TAU);g.fill();g.shadowBlur=0;
+ // pentagonal panels
+ g.strokeStyle='#ffffffc9';g.lineWidth=1.4;
  for(let i=0;i<5;i++){
-  let a=i*Math.PI*2/5;
-  x.beginPath();x.moveTo(Math.cos(a)*r*.2,Math.sin(a)*r*.2);
-  x.lineTo(Math.cos(a)*r*.52,Math.sin(a)*r*.52);x.stroke();
+  let a=i*TAU/5;
+  g.beginPath();g.moveTo(Math.cos(a)*r*.15,Math.sin(a)*r*.15);
+  g.lineTo(Math.cos(a+.45)*r*.48,Math.sin(a+.45)*r*.48);
+  g.stroke();
  }
- x.restore();
+ g.beginPath();g.arc(0,0,r*.55,0,TAU);g.stroke();
+ g.restore();
 }
-function draw(now){
- let dt=Math.min(now-last,32);last=now;t+=dt;
- x.clearRect(0,0,W,H);
- let bg=x.createLinearGradient(0,0,0,H);
- bg.addColorStop(0,'#071425');bg.addColorStop(.55,'#102b3d');bg.addColorStop(1,'#030811');
- x.fillStyle=bg;x.fillRect(0,0,W,H);
- // Stadium lights
- for(let i=0;i<18;i++){
-  let px=W*i/17,py=H*.28+Math.sin(i*2)*H*.025;
-  let g=x.createRadialGradient(px,py,1,px,py,W*.09);
-  g.addColorStop(0,'#78ffe522');g.addColorStop(1,'#78ffe500');
-  x.fillStyle=g;x.fillRect(px-W*.09,py-W*.09,W*.18,W*.18);
- }
- // Arena geometry
- let cx=W*.5,cy=H*.51,rx=Math.min(W*.42,H*.245),ry=rx*.92;
- x.save();x.translate(cx,cy);
- x.shadowColor='#13ffd0';x.shadowBlur=35;
- x.strokeStyle='#28f5d5';x.lineWidth=2;x.beginPath();x.ellipse(0,0,rx,ry,0,0,Math.PI*2);x.stroke();
- x.shadowBlur=0;
- for(let k=1;k<=5;k++){
-  x.strokeStyle=`rgba(66,235,220,${.15-k*.018})`;x.lineWidth=1;
-  x.beginPath();x.ellipse(0,0,rx*k/5,ry*k/5,0,0,Math.PI*2);x.stroke();
- }
- // Moving striped arc
- let a=t*.001;
- x.lineWidth=7;x.strokeStyle='#a0fff4';x.shadowColor='#25ffe2';x.shadowBlur=20;
- x.beginPath();x.ellipse(0,0,rx,ry,a,a+1.0);x.stroke();x.shadowBlur=0;
- // Orbit ticks
- for(let i=0;i<72;i++){
-  let q=i*Math.PI*2/72,inner=rx-((i%6===0)?12:5);
-  x.strokeStyle=i%6===0?'#9bfff0':'#3a8e94';
-  x.lineWidth=i%6===0?2:1;
-  x.beginPath();x.moveTo(Math.cos(q)*inner,Math.sin(q)*ry/rx*inner);
-  x.lineTo(Math.cos(q)*rx,Math.sin(q)*ry);x.stroke();
- }
- x.restore();
- // Ball movement
- for(let b of balls){
-  b.x+=b.vx*dt;b.y+=b.vy*dt;b.spin+=dt*.003;
-  let dx=(b.x-.5)*W,dy=(b.y-.51)*H;
-  if(Math.abs(dx)>rx-b.r){b.vx*=-1;b.x+=b.vx*dt*2;burst(b.x*W,b.y*H,b.color)}
-  if(Math.abs(dy)>ry-b.r){b.vy*=-1;b.y+=b.vy*dt*2;burst(b.x*W,b.y*H,b.color)}
- }
- let dx=(balls[0].x-balls[1].x)*W,dy=(balls[0].y-balls[1].y)*H;
+function frame(now){
+ let dt=Math.min(now-last,34)||16;last=now;elapsed+=dt;
+ background(elapsed);arena(elapsed);
+ const rx=Math.min(w*.405,h*.225),ry=rx*.91,cx=w*.5,cy=h*.505;
+ balls.forEach(b=>{
+  b.x+=b.vx*dt;b.y+=b.vy*dt;b.spin+=dt*.0018;
+  if(Math.abs(b.x*w-cx)>rx-b.r){
+   b.vx=-b.vx;b.x+=b.vx*dt*1.5;particleBurst(b.x*w,b.y*h,b.color,12);
+  }
+  if(Math.abs(b.y*h-cy)>ry-b.r){
+   b.vy=-b.vy;b.y+=b.vy*dt*1.5;particleBurst(b.x*w,b.y*h,b.color,12);
+  }
+ });
+ let dx=(balls[0].x-balls[1].x)*w,dy=(balls[0].y-balls[1].y)*h;
  if(Math.hypot(dx,dy)<balls[0].r+balls[1].r){
   [balls[0].vx,balls[1].vx]=[balls[1].vx,balls[0].vx];
   [balls[0].vy,balls[1].vy]=[balls[1].vy,balls[0].vy];
-  burst((balls[0].x+balls[1].x)*W/2,(balls[0].y+balls[1].y)*H/2,'#ffffff');
+  particleBurst((balls[0].x+balls[1].x)*w/2,(balls[0].y+balls[1].y)*h/2,'#caffff',32);
  }
- for(let p of particles){
-  p.x+=p.vx;p.y+=p.vy;p.vx*=.97;p.vy*=.97;p.life-=.025;
-  x.globalAlpha=Math.max(0,p.life);x.fillStyle=p.col;
-  x.shadowColor=p.col;x.shadowBlur=10;x.beginPath();x.arc(p.x,p.y,2.5*p.life,0,Math.PI*2);x.fill();
- }
- x.globalAlpha=1;x.shadowBlur=0;particles=particles.filter(p=>p.life>0);
- balls.forEach(ball);
- document.getElementById('time').textContent=
-  String(Math.floor(t/1000/60)).padStart(2,'0')+':'+String(Math.floor(t/1000)%60).padStart(2,'0');
- requestAnimationFrame(draw);
+ particles.forEach(p=>{
+  p.x+=p.vx;p.y+=p.vy;p.vx*=.98;p.vy*=.98;p.life-=dt*.001;
+  g.globalAlpha=Math.max(0,p.life);g.fillStyle=p.color;glow(p.color,8);
+  g.beginPath();g.arc(p.x,p.y,p.size*Math.max(.1,p.life),0,TAU);g.fill();
+ });
+ g.globalAlpha=1;g.shadowBlur=0;particles=particles.filter(p=>p.life>0);
+ balls.forEach(b=>drawBall(b,elapsed));
+ document.getElementById('timer').textContent=
+  String(Math.floor(elapsed/60000)).padStart(2,'0')+':'+String(Math.floor(elapsed/1000)%60).padStart(2,'0');
+ requestAnimationFrame(frame);
 }
-requestAnimationFrame(draw);
+requestAnimationFrame(frame);
+})();
 </script>
 </body>
 </html>
