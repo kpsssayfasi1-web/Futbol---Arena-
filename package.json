@@ -1,0 +1,26 @@
+{
+  "name": "futbol-arena",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Football Arena Animation - Remotion ile MP4 video üretimi",
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts FootballArena out/football-arena.mp4",
+    "render:short": "remotion render src/index.ts FootballArena out/football-arena-short.mp4 --frames=0-89",
+    "still": "remotion still src/index.ts FootballArena out/preview.png --frame=60",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test \"src/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.542",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.542"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}
