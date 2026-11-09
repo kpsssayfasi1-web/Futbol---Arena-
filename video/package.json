@@ -1,0 +1,22 @@
+{
+  "name": "futbol-arena-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Football Arena Remotion videoları",
+  "scripts": {
+    "dev": "remotion studio",
+    "render": "remotion render FutbolArenaIntro out/futbol-arena-intro.mp4",
+    "still": "remotion still FutbolArenaIntro out/thumbnail.png --frame=60",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.541",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.541"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "7.0.2"
+  }
+}
