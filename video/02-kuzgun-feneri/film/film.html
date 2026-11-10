@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Kuzgun Feneri — film</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script src="lib.js"></script>
+<script src="cizim.js"></script>
+<script src="sahne-dis.js"></script>
+<script src="sahne-ic.js"></script>
+<script>
+// Film motoru: zaman.json'daki çekim listesine göre her kareyi çizer.
+const canvas = document.getElementById('c');
+let ctx = canvas.getContext('2d');
+let TL, LOGO, GRAIN, CLOCK;
+const ERA_SETS = new Set(['lantern', 'rowboat', 'cave', 'rocks', 'photo']);
+const PRESENT_SETS = new Set(['station_int', 'deniz', 'enes', 'radio', 'radar', 'monitor', 'window', 'calendar', 'whistle']);
+
+window.setup = async () => {
+  TL = await (await fetch('zaman.json')).json();
+  LOGO = new Image(); LOGO.src = 'logo.png'; await LOGO.decode();
+  GRAIN = makeGrain(512, 6);
+  const L = (id) => TL.lines.find((l) => l.id === id);
+  CLOCK = { a: L('09').start + 11.7, b: L('51').start + 2.0 };
+};
+
+function shotAt(T) {
+  const s = TL.shots; let lo = 0, hi = s.length - 1;
+  while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (s[mid].t0 <= T) lo = mid; else hi = mid - 1; }
+  return s[lo];
+}
+
+function lineAt(T) {
+  for (const l of TL.lines) if (T >= l.start && T < l.start + l.dur) return l;
+  return null;
+}
+
+function envOf(l, T) {
+  if (!l) return 0;
+  const f = (T - l.start) * TL.fps, k = Math.floor(f);
+  const a = l.env[k] || 0, b = l.env[k + 1] || 0, c = l.env[k - 1] || 0;
+  return clamp((a * 2 + b + c) / 4, 0, 1.2);
+}
+
+function overlays(T, shot, line) {
+  // bölüm başlığı
+  const ch = shot.p.chapter;
+  if (ch) {
+    const t = T - shot.t0, a = range(t, 0.2, 0.7) * (1 - range(t, 3.2, 3.8));
+    if (a > 0) {
+      ctx.save(); ctx.globalAlpha = a; ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(80, 70, 560, 90);
+      ctx.fillStyle = '#ff5a3c'; ctx.fillRect(80, 70, 10, 90);
+      ctx.font = '400 60px "Bebas Neue"'; ctx.fillStyle = '#f3e2c6'; ctx.textBaseline = 'middle'; ctx.fillText(ch, 116, 118); ctx.restore();
+    }
+  }
+  // ekran yazısı
+  if (shot.p.cap) {
+    const t = T - shot.t0, a = range(t, 0.5, 0.9) * (1 - range(t, shot.t1 - shot.t0 - 0.6, shot.t1 - shot.t0 - 0.1));
+    ctx.save(); ctx.globalAlpha = a; ctx.font = '400 44px "Special Elite"';
+    const txt = typed(shot.p.cap, range(t, 0.5, 2.0)), w = ctx.measureText(shot.p.cap).width;
+    ctx.fillStyle = 'rgba(0,0,0,0.6)'; ctx.fillRect(90, H - 190, w + 60, 80);
+    ctx.fillStyle = '#f3e2c6'; ctx.fillText(txt, 120, H - 135); ctx.restore();
+  }
+  // hikâye saati
+  if (PRESENT_SETS.has(shot.set) && !shot.p.dawn && T >= CLOCK.a && T <= CLOCK.b + 30 && shot.p.mode !== 'broken') {
+    const m = Math.round(39 + clamp((T - CLOCK.a) / (CLOCK.b - CLOCK.a), 0, 1) * 22);
+    const hh = m >= 60 ? '03' : '02', mm = String(m % 60).padStart(2, '0');
+    ctx.save(); ctx.font = '700 40px "Courier Prime"'; ctx.shadowColor = 'rgba(255,60,40,0.9)'; ctx.shadowBlur = 14; ctx.fillStyle = '#ff5a3c';
+    ctx.fillText(`${hh}${Math.floor(T * 2) % 2 ? ':' : ' '}${mm}`, 80, H - 70); ctx.restore();
+  }
+  // kanal logosu: sağ üst köşe, şeffaf
+  ctx.save(); ctx.globalAlpha = 0.72; const lw = 118, lh = lw * LOGO.height / LOGO.width;
+  ctx.drawImage(LOGO, W - lw - 44, 40, lw, lh); ctx.restore();
+}
+
+window.renderFrame = (T) => {
+  const frame = Math.round(T * TL.fps);
+  const shot = shotAt(T), line = lineAt(T);
+  const info = {
+    T, t: T - shot.t0, dur: shot.t1 - shot.t0, p: shot.p,
+    mouth: (who) => (line && line.who === who ? Math.min(1, envOf(line, T) * 0.9) : 0),
+    envWho: (who) => (line && line.who === who ? envOf(line, T) : 0),
+    envAny: envOf(line, T),
+  };
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  const era = ERA_SETS.has(shot.set) || (shot.set === 'storm' && shot.p.era === 1987);
+  ctx.save();
+  if (era) ctx.translate(Math.sin(frame * 1.7) * 1.5, Math.cos(frame * 2.3) * 1.2); // film kayması
+  (SETS[shot.set] || SETS.void)(ctx, info);
+  ctx.restore();
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  if (era) { ctx.save(); ctx.globalCompositeOperation = 'color'; ctx.fillStyle = 'rgba(150,105,60,0.28)'; ctx.fillRect(0, 0, W, H); ctx.restore(); }
+  drawVignette(ctx, 0.78);
+  overlays(T, shot, line);
+  drawGrain(ctx, GRAIN, frame, era ? 0.13 : 0.07);
+  // geçişler: başlangıç, şafak öncesi karartma, son
+  const l52 = TL.lines.find((l) => l.id === '52'), l53 = TL.lines.find((l) => l.id === '53');
+  const dawnFade = T > l52.start + l52.dur && T < l53.start ? Math.sin(range(T, l52.start + l52.dur, l53.start) * Math.PI) : 0;
+  const fade = Math.max(1 - range(T, 0, 1.0), dawnFade, range(T, TL.total - 1.5, TL.total));
+  if (fade > 0) { ctx.globalAlpha = fade; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+};
+</script>
+</body>
+</html>

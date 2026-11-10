@@ -1,0 +1,567 @@
+1
+00:00:01,350 --> 00:00:05,009
+Telsizler bazen... yanlış zamanı yakalar.
+
+2
+00:00:05,559 --> 00:00:11,068
+Burası Kuzgun Feneri! Beni duyan var mı? Kuzeybatıda bir tekne batıyor! İçinde...
+
+3
+00:00:11,118 --> 00:00:12,509
+içinde bir çocuk var!
+
+4
+00:00:13,360 --> 00:00:20,900
+14 Kasım gecesi, saat iki kırkta, Kuzey Ege'deki küçük bir sahil güvenlik istasyonuna bu çağrı geldi.
+
+5
+00:00:20,950 --> 00:00:26,085
+Sorun şu ki... Kuzgun Feneri'nde otuz sekiz yıldır kimse yaşamıyordu.
+
+6
+00:00:26,135 --> 00:00:29,842
+Ve telsizdeki adam... otuz sekiz yıl önce ölmüştü.
+
+7
+00:00:29,892 --> 00:00:32,473
+O gece, o çağrıya biri cevap verdi.
+
+8
+00:00:32,523 --> 00:00:38,936
+Ve bu hikâyenin sonunda, o cevabın aslında kimin hayatını kurtardığını öğreneceksiniz.
+
+9
+00:00:44,986 --> 00:00:46,823
+Deniz yirmi dört yaşındaydı.
+
+10
+00:00:46,873 --> 00:00:51,340
+Çocukluğundan beri tek bir hayali vardı: sahil güvenlikte çalışmak.
+
+11
+00:00:51,390 --> 00:00:59,834
+Annesi ona hep aynı cümleyi söylerdi: "Denizde kalanların sesini, birinin duyması lazım." O gece, Deniz'in ilk gece nöbetiydi.
+
+12
+00:00:59,884 --> 00:01:05,228
+Dışarıda yılın en sert fırtınası vardı. Gece yarısını biraz geçe telefonu çaldı.
+
+13
+00:01:05,278 --> 00:01:06,644
+Arayan annesi Nur'du.
+
+14
+00:01:08,494 --> 00:01:14,870
+Kızım... uyanık mısın? Fırtına çok kötü. Ben bu geceyi hiç sevmem, biliyorsun.
+
+15
+00:01:15,270 --> 00:01:19,504
+Anne, nöbetteyim. Uyumak yasak zaten.
+
+16
+00:01:19,904 --> 00:01:25,228
+Biliyorum... Sadece... bu gece telsizin başından hiç ayrılma, olur mu?
+
+17
+00:01:25,278 --> 00:01:28,683
+Ne olursa olsun. Bir de... kolyeni taktın mı?
+
+18
+00:01:29,084 --> 00:01:31,881
+Taktım anne. Taktım.
+
+19
+00:01:32,431 --> 00:01:36,781
+Deniz'in boynunda küçük, eski bir pirinç düdük asılıydı.
+
+20
+00:01:36,831 --> 00:01:41,811
+Annesi onu çocukken vermişti. "Uğur getirir," demişti. Hepsi bu.
+
+21
+00:01:41,861 --> 00:01:44,482
+Deniz gülümseyip telefonu kapattı.
+
+22
+00:01:44,532 --> 00:01:50,455
+Annesinin her 14 Kasım'daki bu tuhaf korkusu, ailede çoktan şakaya dönmüştü.
+
+23
+00:01:50,505 --> 00:01:56,191
+Saat iki otuz dokuzda radar ekranı bomboştu. Denizde tek bir tekne yoktu.
+
+24
+00:01:56,241 --> 00:02:00,906
+Saat iki kırkta... telsiz kendiliğinden cızırdamaya başladı.
+
+25
+00:02:02,557 --> 00:02:06,216
+Burası Kuzgun Feneri! Beni duyan var mı? Tamam!
+
+26
+00:02:06,766 --> 00:02:11,966
+Kuzgun Feneri, burası Sahil Güvenlik. Sizi duyuyorum. Durumunuzu bildirin, tamam.
+
+27
+00:02:12,367 --> 00:02:17,527
+Şükür! Şükür ki biri var! Kızım, kuzeybatıda bir tekne batıyor! Mavi Yunus!
+
+28
+00:02:17,577 --> 00:02:22,113
+Işığını görüyorum, kayalara sürükleniyor! İçinde çocuk var, tamam!
+
+29
+00:02:22,763 --> 00:02:25,958
+Deniz radara baktı. Kuzeybatı... bomboş.
+
+30
+00:02:26,008 --> 00:02:31,150
+Tekne kayıt sistemine "Mavi Yunus" yazdı. Böyle bir tekne yoktu.
+
+31
+00:02:31,550 --> 00:02:36,907
+Kuzgun Feneri, radarımda hiçbir tekne görünmüyor. Kimliğinizi bildirin, tamam.
+
+32
+00:02:37,308 --> 00:02:41,337
+Hangi radardan bahsediyorsun kızım? Ben fener bekçisi Hasan Kaya!
+
+33
+00:02:41,387 --> 00:02:43,596
+Otuz yıldır bu feneri ben yakıyorum!
+
+34
+00:02:43,646 --> 00:02:47,863
+Limandaki Rüstem Reis'e haber verin, motorunu hemen çıkarsın, tamam!
+
+35
+00:02:48,513 --> 00:02:50,472
+Deniz ne diyeceğini bilemedi.
+
+36
+00:02:50,522 --> 00:02:54,906
+Protokol açıktı: asılsız çağrı kayda geçirilir, kanal kapatılır.
+
+37
+00:02:54,956 --> 00:02:56,430
+Ama arkadaki sesler...
+
+38
+00:02:56,480 --> 00:03:01,972
+Fırtınanın uğultusu, dalgaların kayalara vuruşu, adamın nefes nefese soluması...
+
+39
+00:03:02,022 --> 00:03:06,822
+Bunların hiçbiri sahte değildi. Tam o sırada istasyonun kapısı açıldı.
+
+40
+00:03:06,872 --> 00:03:09,524
+İçeri giren, istasyon komutanı Enes'ti.
+
+41
+00:03:09,574 --> 00:03:15,551
+Elli yedi yaşında, otuz yılını bu kıyılarda geçirmiş, hiçbir şeyden korkmayan bir adam.
+
+42
+00:03:16,102 --> 00:03:20,023
+Ne oluyor Deniz? Koridordan duydum, kiminle konuşuyorsun—
+
+43
+00:03:19,823 --> 00:03:25,651
+Duyan var mı?! Rüstem Reis nerede kaldı? Dalgalar çok büyük, ışık kayboluyor!
+
+44
+00:03:26,200 --> 00:03:30,511
+Enes olduğu yerde dondu. Yüzü bembeyaz oldu.
+
+45
+00:03:30,913 --> 00:03:37,789
+Rüstem Reis... O yıllarda limanın motorcusuydu. Öleli yirmi yıl oldu.
+
+46
+00:03:37,839 --> 00:03:41,703
+Ve bu ses... bu ses Hasan Reis'in sesi.
+
+47
+00:03:42,104 --> 00:03:43,856
+Tanıyor musunuz komutanım?
+
+48
+00:03:44,306 --> 00:03:49,191
+Deniz... Kuzgun Feneri otuz sekiz yıldır otomatik çalışıyor.
+
+49
+00:03:49,241 --> 00:03:53,798
+Orada kimse yaşamıyor. Hasan Kaya, son fener bekçisiydi.
+
+50
+00:03:53,848 --> 00:04:02,188
+Otuz sekiz yıl önce, 14 Kasım gecesi, batan bir tekneyi kurtarmak için kendi sandalıyla denize açıldı.
+
+51
+00:04:02,238 --> 00:04:03,587
+Bir daha dönmedi.
+
+52
+00:04:04,337 --> 00:04:07,605
+Deniz duvardaki takvime baktı. 14 Kasım.
+
+53
+00:04:08,254 --> 00:04:14,698
+O gece telsiz nöbetinde ben vardım. On dokuz yaşındaydım. Çağrısını duydum...
+
+54
+00:04:14,748 --> 00:04:18,832
+ama cevap veremedim. Fırtına antenimizi kırmıştı.
+
+55
+00:04:18,882 --> 00:04:24,567
+Ben onu duyuyordum, o beni duyamıyordu. Onu ölürken dinledim, Deniz.
+
+56
+00:04:24,617 --> 00:04:26,255
+Tek kelime edemeden.
+
+57
+00:04:27,105 --> 00:04:31,636
+Bir kayıt olmalıydı. Eski bir bant, bir şaka, bir arıza...
+
+58
+00:04:31,686 --> 00:04:36,929
+Deniz mikrofona eğildi ve ancak o anda bilinebilecek bir şey sordu.
+
+59
+00:04:37,329 --> 00:04:41,877
+Hasan Reis... fenerin ışığı şu an kaç saniyede bir dönüyor?
+
+60
+00:04:42,427 --> 00:04:46,840
+Ne biçim soru bu kızım? On saniyede bir! Ama motor tekliyor...
+
+61
+00:04:46,890 --> 00:04:48,568
+işte, bak, yine tekledi!
+
+62
+00:04:49,218 --> 00:04:53,076
+Tam o anda, pencereden görünen otomatik fenerin ışığı...
+
+63
+00:04:53,126 --> 00:04:57,752
+otuz sekiz yıldır ilk kez... bir kez tekledi. Bu bir kayıt değildi.
+
+64
+00:04:57,802 --> 00:05:02,428
+Hasan Reis, otuz sekiz yıl önceki o geceden... şu anda konuşuyordu.
+
+65
+00:05:02,478 --> 00:05:06,756
+Deniz titreyen elleriyle arşivi açtı. Mavi Yunus kazası, 1987.
+
+66
+00:05:06,806 --> 00:05:12,269
+Rapor ekrana geldi. "Mavi Yunus balıkçı teknesi Kuzgun Adası açıklarında battı.
+
+67
+00:05:12,319 --> 00:05:14,712
+Teknede üç mürettebat ve bir çocuk.
+
+68
+00:05:14,762 --> 00:05:18,691
+Fener bekçisi Hasan Kaya, kendi sandalıyla yardıma gitti.
+
+69
+00:05:18,741 --> 00:05:24,623
+Cesedi ertesi sabah Doğu Kayalıkları'nda bulundu." Ve en altta, iki satır daha vardı.
+
+70
+00:05:24,673 --> 00:05:26,019
+"Kurtulan: bir kişi.
+
+71
+00:05:26,069 --> 00:05:31,114
+Altı yaşında bir kız çocuğu, Doğu Kayalıkları'ndaki bir mağarada bulundu.
+
+72
+00:05:31,164 --> 00:05:36,628
+Çocuk ifadesinde, bekçiye yolu telsizdeki bir kadının gösterdiğini söylemiştir.
+
+73
+00:05:36,678 --> 00:05:38,722
+İfade, travmaya bağlanmıştır."
+
+74
+00:05:39,372 --> 00:05:44,537
+Telsizdeki kadın... O gece telsizde kadın yoktu. Sadece ben vardım.
+
+75
+00:05:44,587 --> 00:05:47,027
+Ve benim sesim ona hiç ulaşmadı.
+
+76
+00:05:47,678 --> 00:05:54,838
+Deniz mikrofona baktı. Sonra Enes'e. Sonra tekrar mikrofona. Telsizdeki kadın...
+
+77
+00:05:54,888 --> 00:05:55,830
+kendisiydi.
+
+78
+00:05:56,881 --> 00:06:02,405
+Tekne parçalandı! Işık söndü! Kızım, çocuğu göremiyorum! Nereye gideyim?
+
+79
+00:06:02,455 --> 00:06:03,257
+Söyle bana!
+
+80
+00:06:04,007 --> 00:06:07,403
+Cevap ekrandaydı. Doğu Kayalıkları. Mağara.
+
+81
+00:06:07,453 --> 00:06:12,532
+Ama aynı raporda bir şey daha yazıyordu: Hasan Reis'in cesedi...
+
+82
+00:06:12,582 --> 00:06:14,214
+tam orada bulunmuştu.
+
+83
+00:06:14,264 --> 00:06:20,305
+Eğer söylerse, Hasan Reis o kayalıklara gidecek ve ölecekti. Eğer susarsa...
+
+84
+00:06:20,355 --> 00:06:21,668
+o çocuk ölecekti.
+
+85
+00:06:22,318 --> 00:06:26,708
+Komutanım... ne yapacağım? Onu ölüme ben mi göndereceğim?
+
+86
+00:06:27,359 --> 00:06:31,477
+Ben otuz sekiz yıl önce susmak zorunda kaldım, kızım.
+
+87
+00:06:31,527 --> 00:06:34,622
+Ve o susuşla her gün yaşadım. Sen susma.
+
+88
+00:06:35,473 --> 00:06:41,922
+Hasan Reis... beni dinleyin. Çocuk Doğu Kayalıkları'nda. Bir mağarada. Lütfen...
+
+89
+00:06:41,972 --> 00:06:42,816
+acele edin.
+
+90
+00:06:43,566 --> 00:06:49,292
+Doğu Kayalıkları... Orası çok fena yerdir kızım. Oraya giden pek dönmez.
+
+91
+00:06:49,342 --> 00:06:55,390
+Ama bir çocuk varsa, gidilir. El telsizini yanıma alıyorum. Kanalı açık tut.
+
+92
+00:06:55,440 --> 00:06:55,871
+Tamam.
+
+93
+00:06:56,721 --> 00:07:01,568
+Sonraki dakikalar, Deniz'in hayatının en uzun dakikalarıydı.
+
+94
+00:07:01,618 --> 00:07:07,854
+Telsizden sadece rüzgâr geliyordu. Kürek sesleri. Hasan Reis'in boğuk soluğu.
+
+95
+00:07:07,904 --> 00:07:11,038
+Bir ara dua ettiğini duydular. Sonra...
+
+96
+00:07:12,689 --> 00:07:17,593
+Buldum! Kızı buldum! Mağaranın içinde, kayaya sarılmış! Yaşıyor!
+
+97
+00:07:17,643 --> 00:07:19,065
+Üşümüş ama yaşıyor!
+
+98
+00:07:19,615 --> 00:07:23,353
+Deniz ellerini ağzına kapadı. Enes gözlerini yumdu.
+
+99
+00:07:24,003 --> 00:07:29,693
+Korkma güzelim, korkma... Bak, sana bir şey vereceğim. Bu benim düdüğüm.
+
+100
+00:07:29,743 --> 00:07:34,636
+Pirinçten. Korkarsan üfle, seni hemen bulurlar. Adın ne senin?
+
+101
+00:07:35,037 --> 00:07:37,260
+Nur...
+
+102
+00:07:37,659 --> 00:07:39,882
+Nur mu? Ne güzel isim.
+
+103
+00:07:40,532 --> 00:07:45,080
+Deniz'in eli, farkında olmadan, boynundaki pirinç düdüğe gitti.
+
+104
+00:07:45,730 --> 00:07:51,056
+Kızım, dinle. Rüstem Reis'in motoru geliyor ama mağarayı bu karanlıkta göremez.
+
+105
+00:07:51,106 --> 00:07:56,364
+Kayalığın tepesine çıkıp işaret fişeği yakmam lazım. Yoksa bizi kimse bulamaz.
+
+106
+00:07:57,014 --> 00:07:58,830
+Deniz raporu hatırladı.
+
+107
+00:07:58,880 --> 00:08:04,513
+"Cesedi Doğu Kayalıkları'nda bulundu." Kayalığın tepesi... İşte orası.
+
+108
+00:08:05,063 --> 00:08:10,703
+Hayır! Hasan Reis, çıkmayın! Lütfen mağarada kalın! Siz...
+
+109
+00:08:10,753 --> 00:08:13,450
+siz oradan dönemeyeceksiniz.
+
+110
+00:08:14,301 --> 00:08:18,534
+Telsizde uzun bir sessizlik oldu. Sadece fırtına.
+
+111
+00:08:20,785 --> 00:08:26,506
+Sen bunu... nereden biliyorsun kızım? Neyse... Söyleme. Bilmesem de olur.
+
+112
+00:08:26,556 --> 00:08:29,511
+Ben çıkmazsam bu çocuğu kimse bulamaz.
+
+113
+00:08:29,561 --> 00:08:34,887
+Fener bekçisi dediğin, ışığı yakmak için vardır. Telsizdeki kızım...
+
+114
+00:08:34,937 --> 00:08:38,446
+senin adın ne? Bu çocuk sana hayatını borçlu.
+
+115
+00:08:39,096 --> 00:08:41,893
+Deniz. Benim adım Deniz.
+
+116
+00:08:42,543 --> 00:08:49,141
+Duydun mu Nur? Seni Deniz abla buldu. Bunu hiç unutma, olur mu? Deniz kızım...
+
+117
+00:08:49,191 --> 00:08:50,931
+nöbet sende. Tamam...
+
+118
+00:08:53,381 --> 00:08:56,325
+Ve telsiz sustu. Saat üçü bir geçiyordu.
+
+119
+00:08:56,375 --> 00:09:04,486
+Otuz sekiz yıl önce, tam o dakikada, Rüstem Reis'in motoru, kayalığın tepesinde yanan kırmızı bir ışık gördü.
+
+120
+00:09:04,536 --> 00:09:08,978
+Ve o ışığın altındaki mağaradan... bir düdük sesi geliyordu.
+
+121
+00:09:10,028 --> 00:09:16,509
+Otuz sekiz yıldır o çağrıya cevap verebilmeyi bekledim. Bu gece biri verdi.
+
+122
+00:09:20,559 --> 00:09:24,775
+Sabah, Deniz nöbeti devredip eve gitti. Annesi uyumamıştı.
+
+123
+00:09:24,825 --> 00:09:26,908
+Pencerenin önünde oturuyordu.
+
+124
+00:09:26,958 --> 00:09:30,880
+Önünde, her yıl bu gece yaktığı o küçük mum yanıyordu.
+
+125
+00:09:31,279 --> 00:09:34,625
+Anne... neden 14 Kasım'ı hiç sevmezsin?
+
+126
+00:09:35,275 --> 00:09:41,338
+Annesi uzun bir süre sustu. Sonra, Deniz'in hayatında ilk kez, anlattı.
+
+127
+00:09:41,988 --> 00:09:47,644
+Ben altı yaşındaydım. Babamın teknesi... Mavi Yunus... o gece battı.
+
+128
+00:09:47,694 --> 00:09:53,099
+Bir mağarada, bir kayaya sarılmıştım. Sonra yaşlı bir adam geldi.
+
+129
+00:09:53,149 --> 00:09:56,540
+Elinde bir fener... Bana bu düdüğü verdi.
+
+130
+00:09:57,090 --> 00:10:01,089
+Parmağıyla, Deniz'in boynundaki pirinç düdüğe dokundu.
+
+131
+00:10:01,639 --> 00:10:07,166
+Adamın telsizinden bir kadın sesi geliyordu. O adama yolu o gösterdi.
+
+132
+00:10:07,216 --> 00:10:12,664
+Kimse bana inanmadı, "travma" dediler. Ama ben o sesi hiç unutmadım.
+
+133
+00:10:12,714 --> 00:10:18,403
+Kendime söz verdim... bir kızım olursa, ona o kadının adını koyacaktım.
+
+134
+00:10:18,453 --> 00:10:21,233
+Telsizdeki kadının adı... Deniz'di.
+
+135
+00:10:22,483 --> 00:10:27,031
+Anne... sen bunu biliyordun. Dün gece o yüzden mi aradın?
+
+136
+00:10:27,681 --> 00:10:33,658
+Sana anlatamazdım kızım. Ya anlatırsam bir şey değişirse? Ya sen o gece...
+
+137
+00:10:33,708 --> 00:10:39,360
+o telsizin başında olmazsan? O zaman ben de olmazdım. Sen de olmazdın.
+
+138
+00:10:40,610 --> 00:10:45,812
+Deniz o gece bir çocuğun hayatını kurtardığını sanıyordu. Meğer...
+
+139
+00:10:45,862 --> 00:10:50,906
+kendi hayatını kurtarmıştı. Kuzgun Feneri hâlâ her gece yanıyor.
+
+140
+00:10:50,956 --> 00:10:53,055
+Otomatik, sessiz, kimsesiz.
+
+141
+00:10:53,105 --> 00:10:59,819
+Ama her 14 Kasım gecesi, saat iki kırkta, o istasyonun telsizi bir kez cızırdıyormuş.
+
+142
+00:10:59,869 --> 00:11:04,435
+Ve o gece nöbette kim varsa... telsizi asla kapatmıyormuş.
