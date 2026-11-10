@@ -4,17 +4,17 @@ HASAN: [shouting] [breathless] Burası Kuzgun Feneri! Beni duyan var mı? Kuzeyb
 
 ANLATICI: [slowly] 14 Kasım gecesi, saat iki kırkta, Kuzey Ege'deki küçük bir sahil güvenlik istasyonuna bu çağrı geldi. [pause] Sorun şu ki... Kuzgun Feneri'nde otuz sekiz yıldır kimse yaşamıyordu. [long pause] [whispers] Ve telsizdeki adam... otuz sekiz yıl önce ölmüştü. [pause] [dramatically] O gece, o çağrıya biri cevap verdi. Ve bu hikâyenin sonunda, o cevabın aslında kimin hayatını kurtardığını öğreneceksiniz.
 
-ANLATICI: [softly] Deniz yirmi dört yaşındaydı. Sahil Güvenlik'teki ilk gece nöbetiydi. Dışarıda yılın en sert fırtınası vardı; rüzgâr, istasyonun camlarını sanki içeri girmek istiyormuş gibi dövüyordu. Gece yarısını biraz geçe telefonu çaldı. Arayan annesi Nur'du.
+ANLATICI: [softly] Deniz yirmi dört yaşındaydı. Çocukluğundan beri tek bir hayali vardı: sahil güvenlikte çalışmak. Annesi ona hep aynı cümleyi söylerdi: "Denizde kalanların sesini, birinin duyması lazım." [pause] O gece, Deniz'in ilk gece nöbetiydi. Dışarıda yılın en sert fırtınası vardı. Gece yarısını biraz geçe telefonu çaldı. Arayan annesi Nur'du.
 
 NUR: [nervous] Kızım... uyanık mısın? Fırtına çok kötü. [pause] Ben bu geceyi hiç sevmem, biliyorsun.
 
 DENİZ: [chuckles softly] Anne, nöbetteyim. Uyumak yasak zaten.
 
-NUR: [softly] Biliyorum... Sadece... bu gece telsizin başından hiç ayrılma, olur mu? [pause] Bir de... kolyeni taktın mı?
+NUR: [softly] Biliyorum... Sadece... bu gece telsizin başından hiç ayrılma, olur mu? Ne olursa olsun. [pause] Bir de... kolyeni taktın mı?
 
 DENİZ: [sighs] Taktım anne. Taktım.
 
-ANLATICI: Deniz'in boynunda küçük, eski bir pirinç düdük asılıydı. Annesi onu çocukken vermişti. "Uğur getirir," demişti. Hepsi bu. [pause] Annesinin fırtına korkusu, ailede çoktan şakaya dönmüştü. [long pause] [nervous] Saat iki otuz dokuzda radar ekranı bomboştu. Denizde tek bir tekne yoktu. [pause] Saat iki kırkta... telsiz kendiliğinden cızırdamaya başladı.
+ANLATICI: Deniz'in boynunda küçük, eski bir pirinç düdük asılıydı. Annesi onu çocukken vermişti. "Uğur getirir," demişti. Hepsi bu. [pause] Deniz gülümseyip telefonu kapattı. Annesinin her 14 Kasım'daki bu tuhaf korkusu, ailede çoktan şakaya dönmüştü. [long pause] [nervous] Saat iki otuz dokuzda radar ekranı bomboştu. Denizde tek bir tekne yoktu. [pause] Saat iki kırkta... telsiz kendiliğinden cızırdamaya başladı.
 
 HASAN: [shouting] [breathless] Burası Kuzgun Feneri! Beni duyan var mı? Tamam!
 
@@ -26,49 +26,55 @@ ANLATICI: [curious] Deniz radara baktı. Kuzeybatı... bomboş. Tekne kayıt sis
 
 DENİZ: [cautiously] Kuzgun Feneri, radarımda hiçbir tekne görünmüyor. Kimliğinizi bildirin, tamam.
 
-HASAN: [angry] Hangi radardan bahsediyorsun kızım? Ben fener bekçisi Hasan Kaya! Otuz yıldır bu feneri ben yakıyorum! [nervous] Limandaki Rüstem Bey'e haber verin, motoru hemen çıkarsın, tamam!
+HASAN: [angry] Hangi radardan bahsediyorsun kızım? Ben fener bekçisi Hasan Kaya! Otuz yıldır bu feneri ben yakıyorum! [nervous] Limandaki Rüstem Reis'e haber verin, motorunu hemen çıkarsın, tamam!
 
-ANLATICI: [nervous] Deniz ne diyeceğini bilemedi. Bir şaka mıydı bu? Ama arkadaki sesler... Fırtınanın uğultusu, dalgaların kayalara vuruşu, adamın nefes nefese soluması... [pause] Bunların hiçbiri sahte değildi. [long pause] Tam o sırada istasyonun kapısı açıldı. İçeri giren, istasyon komutanı Yıldırım'dı. Elli yedi yaşında, otuz yılını bu kıyılarda geçirmiş, hiçbir şeyden korkmayan bir adam.
+ANLATICI: [nervous] Deniz ne diyeceğini bilemedi. Protokol açıktı: asılsız çağrı kayda geçirilir, kanal kapatılır. [pause] Ama arkadaki sesler... Fırtınanın uğultusu, dalgaların kayalara vuruşu, adamın nefes nefese soluması... Bunların hiçbiri sahte değildi. [long pause] Tam o sırada istasyonun kapısı açıldı. İçeri giren, istasyon komutanı Enes'ti. Elli yedi yaşında, otuz yılını bu kıyılarda geçirmiş, hiçbir şeyden korkmayan bir adam.
 
-YILDIRIM: [tired] Ne oluyor Deniz? Koridordan duydum, kiminle konuşuyor—
+ENES: [tired] Ne oluyor Deniz? Koridordan duydum, kiminle konuşuyorsun—
 
-HASAN: [shouting] Duyan var mı?! Dalgalar çok büyük, ışık kayboluyor!
+HASAN: [shouting] Duyan var mı?! Rüstem Reis nerede kaldı? Dalgalar çok büyük, ışık kayboluyor!
 
-ANLATICI: [slowly] Yıldırım olduğu yerde dondu. Yüzü bembeyaz oldu.
+ANLATICI: [slowly] Enes olduğu yerde dondu. Yüzü bembeyaz oldu.
 
-YILDIRIM: [trembling voice] Bu ses... [long pause] Bu ses Hasan Reis'in sesi.
+ENES: [trembling voice] Rüstem Reis... [pause] O yıllarda limanın motorcusuydu. Öleli yirmi yıl oldu. [long pause] Ve bu ses... bu ses Hasan Reis'in sesi.
 
 DENİZ: [curious] Tanıyor musunuz komutanım?
 
-YILDIRIM: [softly] Deniz... Kuzgun Feneri otuz sekiz yıldır otomatik çalışıyor. Orada kimse yaşamıyor. [pause] Hasan Kaya, son fener bekçisiydi. Otuz sekiz yıl önce, 14 Kasım gecesi, batan bir tekneyi kurtarmak için kendi sandalıyla denize açıldı. [long pause] Bir daha dönmedi.
+ENES: [softly] Deniz... Kuzgun Feneri otuz sekiz yıldır otomatik çalışıyor. Orada kimse yaşamıyor. [pause] Hasan Kaya, son fener bekçisiydi. Otuz sekiz yıl önce, 14 Kasım gecesi, batan bir tekneyi kurtarmak için kendi sandalıyla denize açıldı. [long pause] Bir daha dönmedi.
 
 ANLATICI: [whispers] Deniz duvardaki takvime baktı. 14 Kasım.
 
-YILDIRIM: [sad] O gece telsiz nöbetinde ben vardım. On dokuz yaşındaydım. Çağrısını duydum... ama cevap veremedim. Fırtına antenimizi kırmıştı. [pause] Onu ölürken dinledim, Deniz. Tek kelime edemeden.
+ENES: [sad] O gece telsiz nöbetinde ben vardım. On dokuz yaşındaydım. Çağrısını duydum... ama cevap veremedim. Fırtına antenimizi kırmıştı. Ben onu duyuyordum, o beni duyamıyordu. [pause] Onu ölürken dinledim, Deniz. Tek kelime edemeden.
 
-ANLATICI: [nervous] Bir kayıt olmalıydı. Eski bir bant, bir şaka, bir arıza... Ama Hasan Reis, Deniz'in her sorusuna cevap veriyordu. Canlı. Şu anda. [pause] Deniz titreyen elleriyle arşivi açtı. Mavi Yunus kazası. Rapor ekrana geldi. [slowly] "Mavi Yunus balıkçı teknesi, Kuzgun Adası açıklarında battı. Teknede üç mürettebat ve bir çocuk. Fener bekçisi Hasan Kaya, kendi sandalıyla yardıma gitti. Cesedi iki gün sonra Doğu Kayalıkları'nda bulundu." [pause] Ve en altta, iki satır daha vardı. [whispers] "Kurtulan: bir kişi. Altı yaşında bir kız çocuğu, Doğu Kayalıkları'ndaki bir mağarada bulundu. Çocuk ifadesinde, bekçiye yolu telsizdeki bir kadının gösterdiğini söylemiştir. İfade, travmaya bağlanmıştır."
+ANLATICI: [nervous] Bir kayıt olmalıydı. Eski bir bant, bir şaka, bir arıza... [pause] Deniz mikrofona eğildi ve ancak o anda bilinebilecek bir şey sordu.
 
-YILDIRIM: [whispers] Telsizdeki kadın... O gece telsizde kadın yoktu. Sadece ben vardım. Ve ben sesimi duyuramamıştım.
+DENİZ: [cautiously] Hasan Reis... fenerin ışığı şu an kaç saniyede bir dönüyor?
 
-ANLATICI: [dramatically] Deniz mikrofona baktı. Sonra Yıldırım'a. Sonra tekrar mikrofona. [long pause] [whispers] Telsizdeki kadın... kendisiydi.
+HASAN: [breathless] Ne biçim soru bu kızım? On saniyede bir! Ama motor tekliyor... işte, bak, yine tekledi!
+
+ANLATICI: [whispers] Tam o anda, pencereden görünen otomatik fenerin ışığı... otuz sekiz yıldır ilk kez... bir kez tekledi. [long pause] Bu bir kayıt değildi. Hasan Reis, otuz sekiz yıl önceki o geceden... şu anda konuşuyordu. [pause] Deniz titreyen elleriyle arşivi açtı. Mavi Yunus kazası, 1987. Rapor ekrana geldi. [slowly] "Mavi Yunus balıkçı teknesi Kuzgun Adası açıklarında battı. Teknede üç mürettebat ve bir çocuk. Fener bekçisi Hasan Kaya, kendi sandalıyla yardıma gitti. Cesedi ertesi sabah Doğu Kayalıkları'nda bulundu." [pause] Ve en altta, iki satır daha vardı. [whispers] "Kurtulan: bir kişi. Altı yaşında bir kız çocuğu, Doğu Kayalıkları'ndaki bir mağarada bulundu. Çocuk ifadesinde, bekçiye yolu telsizdeki bir kadının gösterdiğini söylemiştir. İfade, travmaya bağlanmıştır."
+
+ENES: [whispers] Telsizdeki kadın... O gece telsizde kadın yoktu. Sadece ben vardım. Ve benim sesim ona hiç ulaşmadı.
+
+ANLATICI: [dramatically] Deniz mikrofona baktı. Sonra Enes'e. Sonra tekrar mikrofona. [long pause] [whispers] Telsizdeki kadın... kendisiydi.
 
 HASAN: [shouting] [breathless] Tekne parçalandı! Işık söndü! Kızım, çocuğu göremiyorum! Nereye gideyim? Söyle bana!
 
-ANLATICI: [nervous] Cevap ekrandaydı. Doğu Kayalıkları. Mağara. [pause] Ama raporda bir şey daha yazıyordu: Hasan Reis'in cesedi... tam orada bulunmuştu. [slowly] Eğer söylerse, Hasan Reis ölecekti. Eğer söylemezse... o çocuk ölecekti.
+ANLATICI: [nervous] Cevap ekrandaydı. Doğu Kayalıkları. Mağara. [pause] Ama aynı raporda bir şey daha yazıyordu: Hasan Reis'in cesedi... tam orada bulunmuştu. [slowly] Eğer söylerse, Hasan Reis o kayalıklara gidecek ve ölecekti. Eğer susarsa... o çocuk ölecekti.
 
-DENİZ: [trembling voice] Komutanım... ne yapacağım?
+DENİZ: [trembling voice] Komutanım... ne yapacağım? Onu ölüme ben mi göndereceğim?
 
-YILDIRIM: [softly] Ben otuz sekiz yıl önce susmak zorunda kaldım, kızım. [pause] Sen susma.
+ENES: [softly] Ben otuz sekiz yıl önce susmak zorunda kaldım, kızım. Ve o susuşla her gün yaşadım. [pause] Sen susma.
 
 DENİZ: [crying] Hasan Reis... beni dinleyin. Çocuk Doğu Kayalıkları'nda. Bir mağarada. Lütfen... acele edin.
 
-HASAN: [softly] Doğu Kayalıkları... [chuckles softly] Orası çok fena yerdir kızım. Oraya giden pek dönmez. [pause] [warmly] Ama bir çocuk varsa, gidilir. Tamam.
+HASAN: [softly] Doğu Kayalıkları... [chuckles softly] Orası çok fena yerdir kızım. Oraya giden pek dönmez. [pause] [warmly] Ama bir çocuk varsa, gidilir. El telsizini yanıma alıyorum. Kanalı açık tut. Tamam.
 
-ANLATICI: [dramatically] Sonraki on bir dakika, Deniz'in hayatının en uzun on bir dakikasıydı. Telsizden sadece rüzgâr geliyordu. Kürek sesleri. Hasan Reis'in boğuk soluğu. Bir ara dua ettiğini duydular. [long pause] Sonra...
+ANLATICI: [dramatically] Sonraki dakikalar, Deniz'in hayatının en uzun dakikalarıydı. Telsizden sadece rüzgâr geliyordu. Kürek sesleri. Hasan Reis'in boğuk soluğu. Bir ara dua ettiğini duydular. [long pause] Sonra...
 
 HASAN: [excited] [breathless] Buldum! Kızı buldum! Mağaranın içinde, kayaya sarılmış! Yaşıyor! Üşümüş ama yaşıyor!
 
-ANLATICI: Deniz ellerini ağzına kapadı. Yıldırım gözlerini yumdu.
+ANLATICI: Deniz ellerini ağzına kapadı. Enes gözlerini yumdu.
 
 HASAN: [warmly] [softly] Korkma güzelim, korkma... Bak, sana bir şey vereceğim. Bu benim düdüğüm. Pirinçten. Korkarsan üfle, seni hemen bulurlar. [pause] Adın ne senin?
 
@@ -78,15 +84,23 @@ HASAN: [warmly] Nur mu? Ne güzel isim.
 
 ANLATICI: [whispers] Deniz'in eli, farkında olmadan, boynundaki pirinç düdüğe gitti.
 
-HASAN: [breathless] Telsizdeki kızım... Senin adın ne? Bu çocuk sana hayatını borçlu.
+HASAN: [nervous] Kızım, dinle. Rüstem Reis'in motoru geliyor ama mağarayı bu karanlıkta göremez. Kayalığın tepesine çıkıp işaret fişeği yakmam lazım. Yoksa bizi kimse bulamaz.
+
+ANLATICI: [nervous] Deniz raporu hatırladı. "Cesedi Doğu Kayalıkları'nda bulundu." [pause] Kayalığın tepesi... İşte orası.
+
+DENİZ: [crying] Hayır! Hasan Reis, çıkmayın! Lütfen mağarada kalın! Siz... [long pause] siz oradan dönemeyeceksiniz.
+
+ANLATICI: [long pause] Telsizde uzun bir sessizlik oldu. Sadece fırtına.
+
+HASAN: [softly] Sen bunu... nereden biliyorsun kızım? [pause] [warmly] Neyse... Söyleme. Bilmesem de olur. [pause] Ben çıkmazsam bu çocuğu kimse bulamaz. Fener bekçisi dediğin, ışığı yakmak için vardır. [pause] Telsizdeki kızım... senin adın ne? Bu çocuk sana hayatını borçlu.
 
 DENİZ: [crying] Deniz. Benim adım Deniz.
 
-HASAN: [warmly] Duydun mu Nur? Seni Deniz abla buldu. Bunu hiç unutma, olur mu? [long pause] [nervous] Dalga geliyor... çok büyük bir dalga... [softly] Deniz kızım... [whispers] nöbet sende. Tamam...
+HASAN: [warmly] Duydun mu Nur? Seni Deniz abla buldu. Bunu hiç unutma, olur mu? [long pause] [softly] Deniz kızım... [whispers] nöbet sende. Tamam...
 
-ANLATICI: [long pause] [sad] Ve telsiz sustu. [long pause] Saat üçü bir geçiyordu. Fırtına, sanki işi bitmiş gibi, dinmeye başladı.
+ANLATICI: [long pause] [sad] Ve telsiz sustu. [long pause] Saat üçü bir geçiyordu. [pause] Otuz sekiz yıl önce, tam o dakikada, Rüstem Reis'in motoru, kayalığın tepesinde yanan kırmızı bir ışık gördü. Ve o ışığın altındaki mağaradan... bir düdük sesi geliyordu.
 
-YILDIRIM: [trembling voice] Otuz sekiz yıldır o çağrıya cevap verebilmeyi bekledim. [pause] Bu gece biri verdi.
+ENES: [trembling voice] Otuz sekiz yıldır o çağrıya cevap verebilmeyi bekledim. [pause] Bu gece biri verdi.
 
 ANLATICI: [softly] Sabah, Deniz nöbeti devredip eve gitti. Annesi uyumamıştı. Pencerenin önünde oturuyordu. Önünde, her yıl bu gece yaktığı o küçük mum yanıyordu.
 
@@ -94,10 +108,14 @@ DENİZ: [softly] Anne... neden 14 Kasım'ı hiç sevmezsin?
 
 ANLATICI: Annesi uzun bir süre sustu. Sonra, Deniz'in hayatında ilk kez, anlattı.
 
-NUR: [sad] [softly] Ben altı yaşındaydım. Babamın teknesi batmıştı. Bir mağarada, bir kayaya sarılmıştım. Sonra yaşlı bir adam geldi. Elinde bir fener... [pause] Bana bu düdüğü verdi.
+NUR: [sad] [softly] Ben altı yaşındaydım. Babamın teknesi... Mavi Yunus... o gece battı. Bir mağarada, bir kayaya sarılmıştım. Sonra yaşlı bir adam geldi. Elinde bir fener... [pause] Bana bu düdüğü verdi.
 
 ANLATICI: [whispers] Parmağıyla, Deniz'in boynundaki pirinç düdüğe dokundu.
 
-NUR: [trembling voice] O gece telsizden bir kadın sesi gelmiş. O adama yolu o göstermiş. Kimse bana inanmadı, "travma" dediler. [pause] Ama ben o sesi hiç unutmadım. Kendime söz verdim... bir kızım olursa, ona o kadının adını koyacaktım. [long pause] [crying] Telsizdeki kadının adı... Deniz'di.
+NUR: [trembling voice] Adamın telsizinden bir kadın sesi geliyordu. O adama yolu o gösterdi. Kimse bana inanmadı, "travma" dediler. [pause] Ama ben o sesi hiç unutmadım. Kendime söz verdim... bir kızım olursa, ona o kadının adını koyacaktım. [long pause] [crying] Telsizdeki kadının adı... Deniz'di.
+
+DENİZ: [trembling voice] Anne... sen bunu biliyordun. Dün gece o yüzden mi aradın?
+
+NUR: [crying] Sana anlatamazdım kızım. Ya anlatırsam bir şey değişirse? Ya sen o gece... o telsizin başında olmazsan? [pause] [whispers] O zaman ben de olmazdım. Sen de olmazdın.
 
 ANLATICI: [long pause] [softly] Deniz o gece bir çocuğun hayatını kurtardığını sanıyordu. [pause] [whispers] Meğer... kendi hayatını kurtarmıştı. [long pause] [softly] Kuzgun Feneri hâlâ her gece yanıyor. Otomatik, sessiz, kimsesiz. [pause] Ama her 14 Kasım gecesi, saat iki kırkta, o istasyonun telsizi bir kez cızırdıyormuş. [long pause] [whispers] Ve o gece nöbette kim varsa... telsizi asla kapatmıyormuş.

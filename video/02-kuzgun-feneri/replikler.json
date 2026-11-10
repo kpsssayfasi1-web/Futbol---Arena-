@@ -1,0 +1,307 @@
+[
+ {
+  "id": "01",
+  "speaker": "ANLATICI",
+  "text": "[deep voice] [slowly] Telsizler bazen... yanlış zamanı yakalar."
+ },
+ {
+  "id": "02",
+  "speaker": "HASAN",
+  "text": "[shouting] [breathless] Burası Kuzgun Feneri! Beni duyan var mı? Kuzeybatıda bir tekne batıyor! İçinde... içinde bir çocuk var!"
+ },
+ {
+  "id": "03",
+  "speaker": "ANLATICI",
+  "text": "[slowly] 14 Kasım gecesi, saat iki kırkta, Kuzey Ege'deki küçük bir sahil güvenlik istasyonuna bu çağrı geldi. [pause] Sorun şu ki... Kuzgun Feneri'nde otuz sekiz yıldır kimse yaşamıyordu. [long pause] [whispers] Ve telsizdeki adam... otuz sekiz yıl önce ölmüştü. [pause] [dramatically] O gece, o çağrıya biri cevap verdi. Ve bu hikâyenin sonunda, o cevabın aslında kimin hayatını kurtardığını öğreneceksiniz."
+ },
+ {
+  "id": "04",
+  "speaker": "ANLATICI",
+  "text": "[softly] Deniz yirmi dört yaşındaydı. Çocukluğundan beri tek bir hayali vardı: sahil güvenlikte çalışmak. Annesi ona hep aynı cümleyi söylerdi: \"Denizde kalanların sesini, birinin duyması lazım.\" [pause] O gece, Deniz'in ilk gece nöbetiydi. Dışarıda yılın en sert fırtınası vardı. Gece yarısını biraz geçe telefonu çaldı. Arayan annesi Nur'du."
+ },
+ {
+  "id": "05",
+  "speaker": "NUR",
+  "text": "[nervous] Kızım... uyanık mısın? Fırtına çok kötü. [pause] Ben bu geceyi hiç sevmem, biliyorsun."
+ },
+ {
+  "id": "06",
+  "speaker": "DENİZ",
+  "text": "[chuckles softly] Anne, nöbetteyim. Uyumak yasak zaten."
+ },
+ {
+  "id": "07",
+  "speaker": "NUR",
+  "text": "[softly] Biliyorum... Sadece... bu gece telsizin başından hiç ayrılma, olur mu? Ne olursa olsun. [pause] Bir de... kolyeni taktın mı?"
+ },
+ {
+  "id": "08",
+  "speaker": "DENİZ",
+  "text": "[sighs] Taktım anne. Taktım."
+ },
+ {
+  "id": "09",
+  "speaker": "ANLATICI",
+  "text": "Deniz'in boynunda küçük, eski bir pirinç düdük asılıydı. Annesi onu çocukken vermişti. \"Uğur getirir,\" demişti. Hepsi bu. [pause] Deniz gülümseyip telefonu kapattı. Annesinin her 14 Kasım'daki bu tuhaf korkusu, ailede çoktan şakaya dönmüştü. [long pause] [nervous] Saat iki otuz dokuzda radar ekranı bomboştu. Denizde tek bir tekne yoktu. [pause] Saat iki kırkta... telsiz kendiliğinden cızırdamaya başladı."
+ },
+ {
+  "id": "10",
+  "speaker": "HASAN",
+  "text": "[shouting] [breathless] Burası Kuzgun Feneri! Beni duyan var mı? Tamam!"
+ },
+ {
+  "id": "11",
+  "speaker": "DENİZ",
+  "text": "[surprised] Kuzgun Feneri, burası Sahil Güvenlik. Sizi duyuyorum. Durumunuzu bildirin, tamam."
+ },
+ {
+  "id": "12",
+  "speaker": "HASAN",
+  "text": "[breathless] Şükür! Şükür ki biri var! Kızım, kuzeybatıda bir tekne batıyor! Mavi Yunus! Işığını görüyorum, kayalara sürükleniyor! İçinde çocuk var, tamam!"
+ },
+ {
+  "id": "13",
+  "speaker": "ANLATICI",
+  "text": "[curious] Deniz radara baktı. Kuzeybatı... bomboş. Tekne kayıt sistemine \"Mavi Yunus\" yazdı. [pause] Böyle bir tekne yoktu."
+ },
+ {
+  "id": "14",
+  "speaker": "DENİZ",
+  "text": "[cautiously] Kuzgun Feneri, radarımda hiçbir tekne görünmüyor. Kimliğinizi bildirin, tamam."
+ },
+ {
+  "id": "15",
+  "speaker": "HASAN",
+  "text": "[angry] Hangi radardan bahsediyorsun kızım? Ben fener bekçisi Hasan Kaya! Otuz yıldır bu feneri ben yakıyorum! [nervous] Limandaki Rüstem Reis'e haber verin, motorunu hemen çıkarsın, tamam!"
+ },
+ {
+  "id": "16",
+  "speaker": "ANLATICI",
+  "text": "[nervous] Deniz ne diyeceğini bilemedi. Protokol açıktı: asılsız çağrı kayda geçirilir, kanal kapatılır. [pause] Ama arkadaki sesler... Fırtınanın uğultusu, dalgaların kayalara vuruşu, adamın nefes nefese soluması... Bunların hiçbiri sahte değildi. [long pause] Tam o sırada istasyonun kapısı açıldı. İçeri giren, istasyon komutanı Enes'ti. Elli yedi yaşında, otuz yılını bu kıyılarda geçirmiş, hiçbir şeyden korkmayan bir adam."
+ },
+ {
+  "id": "17",
+  "speaker": "ENES",
+  "text": "[tired] Ne oluyor Deniz? Koridordan duydum, kiminle konuşuyorsun—"
+ },
+ {
+  "id": "18",
+  "speaker": "HASAN",
+  "text": "[shouting] Duyan var mı?! Rüstem Reis nerede kaldı? Dalgalar çok büyük, ışık kayboluyor!"
+ },
+ {
+  "id": "19",
+  "speaker": "ANLATICI",
+  "text": "[slowly] Enes olduğu yerde dondu. Yüzü bembeyaz oldu."
+ },
+ {
+  "id": "20",
+  "speaker": "ENES",
+  "text": "[trembling voice] Rüstem Reis... [pause] O yıllarda limanın motorcusuydu. Öleli yirmi yıl oldu. [long pause] Ve bu ses... bu ses Hasan Reis'in sesi."
+ },
+ {
+  "id": "21",
+  "speaker": "DENİZ",
+  "text": "[curious] Tanıyor musunuz komutanım?"
+ },
+ {
+  "id": "22",
+  "speaker": "ENES",
+  "text": "[softly] Deniz... Kuzgun Feneri otuz sekiz yıldır otomatik çalışıyor. Orada kimse yaşamıyor. [pause] Hasan Kaya, son fener bekçisiydi. Otuz sekiz yıl önce, 14 Kasım gecesi, batan bir tekneyi kurtarmak için kendi sandalıyla denize açıldı. [long pause] Bir daha dönmedi."
+ },
+ {
+  "id": "23",
+  "speaker": "ANLATICI",
+  "text": "[whispers] Deniz duvardaki takvime baktı. 14 Kasım."
+ },
+ {
+  "id": "24",
+  "speaker": "ENES",
+  "text": "[sad] O gece telsiz nöbetinde ben vardım. On dokuz yaşındaydım. Çağrısını duydum... ama cevap veremedim. Fırtına antenimizi kırmıştı. Ben onu duyuyordum, o beni duyamıyordu. [pause] Onu ölürken dinledim, Deniz. Tek kelime edemeden."
+ },
+ {
+  "id": "25",
+  "speaker": "ANLATICI",
+  "text": "[nervous] Bir kayıt olmalıydı. Eski bir bant, bir şaka, bir arıza... [pause] Deniz mikrofona eğildi ve ancak o anda bilinebilecek bir şey sordu."
+ },
+ {
+  "id": "26",
+  "speaker": "DENİZ",
+  "text": "[cautiously] Hasan Reis... fenerin ışığı şu an kaç saniyede bir dönüyor?"
+ },
+ {
+  "id": "27",
+  "speaker": "HASAN",
+  "text": "[breathless] Ne biçim soru bu kızım? On saniyede bir! Ama motor tekliyor... işte, bak, yine tekledi!"
+ },
+ {
+  "id": "28",
+  "speaker": "ANLATICI",
+  "text": "[whispers] Tam o anda, pencereden görünen otomatik fenerin ışığı... otuz sekiz yıldır ilk kez... bir kez tekledi. [long pause] Bu bir kayıt değildi. Hasan Reis, otuz sekiz yıl önceki o geceden... şu anda konuşuyordu. [pause] Deniz titreyen elleriyle arşivi açtı. Mavi Yunus kazası, 1987. Rapor ekrana geldi. [slowly] \"Mavi Yunus balıkçı teknesi Kuzgun Adası açıklarında battı. Teknede üç mürettebat ve bir çocuk. Fener bekçisi Hasan Kaya, kendi sandalıyla yardıma gitti. Cesedi ertesi sabah Doğu Kayalıkları'nda bulundu.\" [pause] Ve en altta, iki satır daha vardı. [whispers] \"Kurtulan: bir kişi. Altı yaşında bir kız çocuğu, Doğu Kayalıkları'ndaki bir mağarada bulundu. Çocuk ifadesinde, bekçiye yolu telsizdeki bir kadının gösterdiğini söylemiştir. İfade, travmaya bağlanmıştır.\""
+ },
+ {
+  "id": "29",
+  "speaker": "ENES",
+  "text": "[whispers] Telsizdeki kadın... O gece telsizde kadın yoktu. Sadece ben vardım. Ve benim sesim ona hiç ulaşmadı."
+ },
+ {
+  "id": "30",
+  "speaker": "ANLATICI",
+  "text": "[dramatically] Deniz mikrofona baktı. Sonra Enes'e. Sonra tekrar mikrofona. [long pause] [whispers] Telsizdeki kadın... kendisiydi."
+ },
+ {
+  "id": "31",
+  "speaker": "HASAN",
+  "text": "[shouting] [breathless] Tekne parçalandı! Işık söndü! Kızım, çocuğu göremiyorum! Nereye gideyim? Söyle bana!"
+ },
+ {
+  "id": "32",
+  "speaker": "ANLATICI",
+  "text": "[nervous] Cevap ekrandaydı. Doğu Kayalıkları. Mağara. [pause] Ama aynı raporda bir şey daha yazıyordu: Hasan Reis'in cesedi... tam orada bulunmuştu. [slowly] Eğer söylerse, Hasan Reis o kayalıklara gidecek ve ölecekti. Eğer susarsa... o çocuk ölecekti."
+ },
+ {
+  "id": "33",
+  "speaker": "DENİZ",
+  "text": "[trembling voice] Komutanım... ne yapacağım? Onu ölüme ben mi göndereceğim?"
+ },
+ {
+  "id": "34",
+  "speaker": "ENES",
+  "text": "[softly] Ben otuz sekiz yıl önce susmak zorunda kaldım, kızım. Ve o susuşla her gün yaşadım. [pause] Sen susma."
+ },
+ {
+  "id": "35",
+  "speaker": "DENİZ",
+  "text": "[crying] Hasan Reis... beni dinleyin. Çocuk Doğu Kayalıkları'nda. Bir mağarada. Lütfen... acele edin."
+ },
+ {
+  "id": "36",
+  "speaker": "HASAN",
+  "text": "[softly] Doğu Kayalıkları... [chuckles softly] Orası çok fena yerdir kızım. Oraya giden pek dönmez. [pause] [warmly] Ama bir çocuk varsa, gidilir. El telsizini yanıma alıyorum. Kanalı açık tut. Tamam."
+ },
+ {
+  "id": "37",
+  "speaker": "ANLATICI",
+  "text": "[dramatically] Sonraki dakikalar, Deniz'in hayatının en uzun dakikalarıydı. Telsizden sadece rüzgâr geliyordu. Kürek sesleri. Hasan Reis'in boğuk soluğu. Bir ara dua ettiğini duydular. [long pause] Sonra..."
+ },
+ {
+  "id": "38",
+  "speaker": "HASAN",
+  "text": "[excited] [breathless] Buldum! Kızı buldum! Mağaranın içinde, kayaya sarılmış! Yaşıyor! Üşümüş ama yaşıyor!"
+ },
+ {
+  "id": "39",
+  "speaker": "ANLATICI",
+  "text": "Deniz ellerini ağzına kapadı. Enes gözlerini yumdu."
+ },
+ {
+  "id": "40",
+  "speaker": "HASAN",
+  "text": "[warmly] [softly] Korkma güzelim, korkma... Bak, sana bir şey vereceğim. Bu benim düdüğüm. Pirinçten. Korkarsan üfle, seni hemen bulurlar. [pause] Adın ne senin?"
+ },
+ {
+  "id": "41",
+  "speaker": "KÜÇÜK NUR",
+  "text": "[childlike voice] [crying] Nur..."
+ },
+ {
+  "id": "42",
+  "speaker": "HASAN",
+  "text": "[warmly] Nur mu? Ne güzel isim."
+ },
+ {
+  "id": "43",
+  "speaker": "ANLATICI",
+  "text": "[whispers] Deniz'in eli, farkında olmadan, boynundaki pirinç düdüğe gitti."
+ },
+ {
+  "id": "44",
+  "speaker": "HASAN",
+  "text": "[nervous] Kızım, dinle. Rüstem Reis'in motoru geliyor ama mağarayı bu karanlıkta göremez. Kayalığın tepesine çıkıp işaret fişeği yakmam lazım. Yoksa bizi kimse bulamaz."
+ },
+ {
+  "id": "45",
+  "speaker": "ANLATICI",
+  "text": "[nervous] Deniz raporu hatırladı. \"Cesedi Doğu Kayalıkları'nda bulundu.\" [pause] Kayalığın tepesi... İşte orası."
+ },
+ {
+  "id": "46",
+  "speaker": "DENİZ",
+  "text": "[crying] Hayır! Hasan Reis, çıkmayın! Lütfen mağarada kalın! Siz... [long pause] siz oradan dönemeyeceksiniz."
+ },
+ {
+  "id": "47",
+  "speaker": "ANLATICI",
+  "text": "[long pause] Telsizde uzun bir sessizlik oldu. Sadece fırtına."
+ },
+ {
+  "id": "48",
+  "speaker": "HASAN",
+  "text": "[softly] Sen bunu... nereden biliyorsun kızım? [pause] [warmly] Neyse... Söyleme. Bilmesem de olur. [pause] Ben çıkmazsam bu çocuğu kimse bulamaz. Fener bekçisi dediğin, ışığı yakmak için vardır. [pause] Telsizdeki kızım... senin adın ne? Bu çocuk sana hayatını borçlu."
+ },
+ {
+  "id": "49",
+  "speaker": "DENİZ",
+  "text": "[crying] Deniz. Benim adım Deniz."
+ },
+ {
+  "id": "50",
+  "speaker": "HASAN",
+  "text": "[warmly] Duydun mu Nur? Seni Deniz abla buldu. Bunu hiç unutma, olur mu? [long pause] [softly] Deniz kızım... [whispers] nöbet sende. Tamam..."
+ },
+ {
+  "id": "51",
+  "speaker": "ANLATICI",
+  "text": "[long pause] [sad] Ve telsiz sustu. [long pause] Saat üçü bir geçiyordu. [pause] Otuz sekiz yıl önce, tam o dakikada, Rüstem Reis'in motoru, kayalığın tepesinde yanan kırmızı bir ışık gördü. Ve o ışığın altındaki mağaradan... bir düdük sesi geliyordu."
+ },
+ {
+  "id": "52",
+  "speaker": "ENES",
+  "text": "[trembling voice] Otuz sekiz yıldır o çağrıya cevap verebilmeyi bekledim. [pause] Bu gece biri verdi."
+ },
+ {
+  "id": "53",
+  "speaker": "ANLATICI",
+  "text": "[softly] Sabah, Deniz nöbeti devredip eve gitti. Annesi uyumamıştı. Pencerenin önünde oturuyordu. Önünde, her yıl bu gece yaktığı o küçük mum yanıyordu."
+ },
+ {
+  "id": "54",
+  "speaker": "DENİZ",
+  "text": "[softly] Anne... neden 14 Kasım'ı hiç sevmezsin?"
+ },
+ {
+  "id": "55",
+  "speaker": "ANLATICI",
+  "text": "Annesi uzun bir süre sustu. Sonra, Deniz'in hayatında ilk kez, anlattı."
+ },
+ {
+  "id": "56",
+  "speaker": "NUR",
+  "text": "[sad] [softly] Ben altı yaşındaydım. Babamın teknesi... Mavi Yunus... o gece battı. Bir mağarada, bir kayaya sarılmıştım. Sonra yaşlı bir adam geldi. Elinde bir fener... [pause] Bana bu düdüğü verdi."
+ },
+ {
+  "id": "57",
+  "speaker": "ANLATICI",
+  "text": "[whispers] Parmağıyla, Deniz'in boynundaki pirinç düdüğe dokundu."
+ },
+ {
+  "id": "58",
+  "speaker": "NUR",
+  "text": "[trembling voice] Adamın telsizinden bir kadın sesi geliyordu. O adama yolu o gösterdi. Kimse bana inanmadı, \"travma\" dediler. [pause] Ama ben o sesi hiç unutmadım. Kendime söz verdim... bir kızım olursa, ona o kadının adını koyacaktım. [long pause] [crying] Telsizdeki kadının adı... Deniz'di."
+ },
+ {
+  "id": "59",
+  "speaker": "DENİZ",
+  "text": "[trembling voice] Anne... sen bunu biliyordun. Dün gece o yüzden mi aradın?"
+ },
+ {
+  "id": "60",
+  "speaker": "NUR",
+  "text": "[crying] Sana anlatamazdım kızım. Ya anlatırsam bir şey değişirse? Ya sen o gece... o telsizin başında olmazsan? [pause] [whispers] O zaman ben de olmazdım. Sen de olmazdın."
+ },
+ {
+  "id": "61",
+  "speaker": "ANLATICI",
+  "text": "[long pause] [softly] Deniz o gece bir çocuğun hayatını kurtardığını sanıyordu. [pause] [whispers] Meğer... kendi hayatını kurtarmıştı. [long pause] [softly] Kuzgun Feneri hâlâ her gece yanıyor. Otomatik, sessiz, kimsesiz. [pause] Ama her 14 Kasım gecesi, saat iki kırkta, o istasyonun telsizi bir kez cızırdıyormuş. [long pause] [whispers] Ve o gece nöbette kim varsa... telsizi asla kapatmıyormuş."
+ }
+]
