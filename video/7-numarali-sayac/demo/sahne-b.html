@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Demo B — Tamamen kodla çizilmiş sahne</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script src="lib.js"></script>
+<script>
+// Demo B: hiçbir hazır görsel kullanmadan, tamamen kodla çizilen mürekkep/çizgi roman sahnesi.
+// Dünya koordinatları 1920x1080; kamera bu dünyada gezinir, vektörler her karede yeniden çizilir.
+const canvas = document.getElementById('c');
+let ctx = canvas.getContext('2d');
+
+const INK = '#120c08';
+const TEX = 2.5;                          // statik doku çözünürlük çarpanı
+const TX0 = -140, TY0 = -100, TW = 2200, TH = 1280; // doku kapsama alanı
+const CAB = { x0: 250, y0: 330, x1: 1670, y1: 930, bar: 34 };
+const METERS = Array.from({ length: 7 }, (_, i) => ({ i, x: 390 + i * 190, y: 610, r: 72 }));
+const READINGS = ['04271', '01988', '03302', '02659', '05117', '03840', '00927'];
+const T_TICK = 4.6, T_SPIN = 4.65, T_TITLE = 6.55, DURATION = 9.0;
+
+const CAM = [
+  { t: 0.0, cx: 960, cy: 560, w: 1990 },
+  { t: 3.2, cx: 960, cy: 575, w: 1760 },
+  { t: 4.5, cx: 1290, cy: 600, w: 1180 },
+  { t: 7.0, cx: 1405, cy: 612, w: 600 },
+  { t: 9.0, cx: 1410, cy: 614, w: 560, ease: (k) => k },
+];
+
+let wallTex, hatch, grain, flickerNoise, shakeX, shakeY, dust, rustSpots;
+
+// ---------- Yardımcı çizim fonksiyonları ----------
+// Titrek (elle çizilmiş) daire yolu. "boil": her birkaç karede çizgi hafifçe değişir.
+function wobblyCircle(g, x, y, r, seed, amp = 0.9, n = 56) {
+  const nz = noise1(seed);
+  g.beginPath();
+  for (let k = 0; k <= n; k++) {
+    const a = (k / n) * Math.PI * 2;
+    const rr = r + nz(k * 0.7) * amp;
+    const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
+    k ? g.lineTo(px, py) : g.moveTo(px, py);
+  }
+  g.closePath();
+}
+
+function wobblyLine(g, x0, y0, x1, y1, seed, amp = 0.8) {
+  const nz = noise1(seed);
+  const len = Math.hypot(x1 - x0, y1 - y0), n = Math.max(2, Math.round(len / 14));
+  const nx = -(y1 - y0) / len, ny = (x1 - x0) / len;
+  g.beginPath();
+  for (let k = 0; k <= n; k++) {
+    const f = k / n, o = nz(k * 0.9) * amp;
+    const px = lerp(x0, x1, f) + nx * o, py = lerp(y0, y1, f) + ny * o;
+    k ? g.lineTo(px, py) : g.moveTo(px, py);
+  }
+}
+
+function makeHatch() {
+  const c = document.createElement('canvas');
+  c.width = c.height = 24;
+  const g = c.getContext('2d');
+  g.strokeStyle = 'rgba(18,12,8,0.85)';
+  g.lineWidth = 2.2;
+  for (let o = -24; o <= 48; o += 8) { g.beginPath(); g.moveTo(o, 0); g.lineTo(o - 24, 24); g.stroke(); }
+  return c;
+}
+
+// ---------- Statik doku: duvar, tavan boruları, dolap ----------
+function buildWall() {
+  const c = document.createElement('canvas');
+  c.width = TW * TEX; c.height = TH * TEX;
+  const g = c.getContext('2d');
+  g.scale(TEX, TEX);
+  g.translate(-TX0, -TY0);
+  const r = rng(5);
+
+  const base = g.createLinearGradient(0, TY0, 0, TY0 + TH);
+  base.addColorStop(0, '#3a322b'); base.addColorStop(0.45, '#5e4a3a'); base.addColorStop(1, '#332a23');
+  g.fillStyle = base; g.fillRect(TX0, TY0, TW, TH);
+
+  for (let k = 0; k < 2600; k++) { // sıva lekeleri
+    g.fillStyle = r() < 0.5 ? `rgba(0,0,0,${0.02 + r() * 0.05})` : `rgba(255,220,180,${0.015 + r() * 0.03})`;
+    g.beginPath(); g.arc(TX0 + r() * TW, TY0 + r() * TH, 2 + r() * 42, 0, Math.PI * 2); g.fill();
+  }
+  for (let k = 0; k < 45000; k++) { // noktalama (stipple)
+    g.fillStyle = `rgba(14,9,6,${0.15 + r() * 0.3})`;
+    g.fillRect(TX0 + r() * TW, TY0 + r() * TH, 0.6 + r() * 1.2, 0.6 + r() * 1.2);
+  }
+  // çatlaklar
+  g.strokeStyle = INK; g.lineCap = 'round';
+  for (let k = 0; k < 9; k++) {
+    let x = TX0 + r() * TW, y = TY0 + r() * TH, a = r() * Math.PI * 2;
+    g.lineWidth = 1 + r() * 1.6;
+    g.beginPath(); g.moveTo(x, y);
+    for (let s = 0; s < 26; s++) { a += (r() - 0.5) * 1.1; x += Math.cos(a) * 9; y += Math.sin(a) * 9; g.lineTo(x, y); }
+    g.stroke();
+  }
+  // kenarlarda tarama gölgesi
+  g.lineWidth = 1.1;
+  for (let o = -TH; o < TW + TH; o += 7) {
+    for (let s = 0; s < TH; s += 18) {
+      const x = TX0 + o + s, y = TY0 + s;
+      const dx = (x - 960) / 1100, dy = (y - 560) / 700;
+      const dark = Math.hypot(dx, dy);
+      if (dark < 0.78 + r() * 0.12) continue;
+      g.strokeStyle = `rgba(14,9,6,${clamp((dark - 0.75) * 1.4, 0, 0.6)})`;
+      g.beginPath(); g.moveTo(x, y); g.lineTo(x + 18, y + 18); g.stroke();
+    }
+  }
+  drawCeilingPipes(g, r);
+  drawCabinet(g, r);
+  return c;
+}
+
+function pipeH(g, x0, x1, y, rad, light = '#7fa1a3') {
+  const gr = g.createLinearGradient(0, y - rad, 0, y + rad);
+  gr.addColorStop(0, '#1d2629'); gr.addColorStop(0.3, light); gr.addColorStop(0.5, '#3b4a4c'); gr.addColorStop(1, '#0d1214');
+  g.fillStyle = gr; g.fillRect(x0, y - rad, x1 - x0, rad * 2);
+  g.lineWidth = 2.6; g.strokeStyle = INK;
+  wobblyLine(g, x0, y - rad, x1, y - rad, y * 3); g.stroke();
+  wobblyLine(g, x0, y + rad, x1, y + rad, y * 5); g.stroke();
+}
+
+function drawCeilingPipes(g, r) {
+  g.fillStyle = 'rgba(10,8,6,0.55)'; g.fillRect(TX0, TY0, TW, 180 - TY0);
+  pipeH(g, TX0, TX0 + TW, 70, 24);
+  pipeH(g, TX0, TX0 + TW, 132, 14, '#c27a3a');
+  for (let x = 100; x < 1900; x += 380) { // kelepçeler
+    g.fillStyle = '#2b2522'; g.fillRect(x - 9, 40, 18, 62);
+    g.lineWidth = 2.4; g.strokeStyle = INK; g.strokeRect(x - 9, 40, 18, 62);
+  }
+}
+
+function rustRect(g, x, y, w, h, r) {
+  const gr = g.createLinearGradient(x, y, x + w * 0.3, y + h);
+  gr.addColorStop(0, '#d9822b'); gr.addColorStop(0.5, '#a4521c'); gr.addColorStop(1, '#6b3212');
+  g.fillStyle = gr; g.fillRect(x, y, w, h);
+  for (let k = 0; k < (w * h) / 90; k++) {
+    g.fillStyle = r() < 0.6 ? `rgba(60,22,6,${0.4 + r() * 0.5})` : `rgba(255,170,90,${0.25 + r() * 0.3})`;
+    g.beginPath(); g.arc(x + r() * w, y + r() * h, 0.6 + r() * 2.4, 0, Math.PI * 2); g.fill();
+  }
+}
+
+function drawCabinet(g, r) {
+  const { x0, y0, x1, y1, bar } = CAB;
+  // arka panel
+  g.fillStyle = '#1b1714'; g.fillRect(x0, y0, x1 - x0, y1 - y0);
+  for (let k = 0; k < 140; k++) { // pas akıntıları
+    const x = x0 + r() * (x1 - x0), y = y0 + bar + r() * 60;
+    const gr = g.createLinearGradient(0, y, 0, y + 80 + r() * 260);
+    gr.addColorStop(0, `rgba(150,70,25,${0.15 + r() * 0.25})`); gr.addColorStop(1, 'rgba(150,70,25,0)');
+    g.fillStyle = gr; g.fillRect(x, y, 1 + r() * 4, 340);
+  }
+  // iç gölge
+  const sh = g.createLinearGradient(0, y0 + bar, 0, y0 + bar + 70);
+  sh.addColorStop(0, 'rgba(0,0,0,0.7)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = sh; g.fillRect(x0, y0 + bar, x1 - x0, 70);
+  // çerçeve
+  rustRect(g, x0, y0, x1 - x0, bar, r);
+  rustRect(g, x0, y1 - bar, x1 - x0, bar, r);
+  rustRect(g, x0, y0, bar, y1 - y0, r);
+  rustRect(g, x1 - bar, y0, bar, y1 - y0, r);
+  g.lineWidth = 3.2; g.strokeStyle = INK;
+  g.strokeRect(x0, y0, x1 - x0, y1 - y0);
+  g.lineWidth = 2.2;
+  g.strokeRect(x0 + bar, y0 + bar, x1 - x0 - bar * 2, y1 - y0 - bar * 2);
+  for (const [x, y] of [[x0 + 17, y0 + 17], [x1 - 17, y0 + 17], [x0 + 17, y1 - 17], [x1 - 17, y1 - 17]]) {
+    g.fillStyle = '#e09a55'; g.beginPath(); g.arc(x, y, 6, 0, Math.PI * 2); g.fill();
+    g.lineWidth = 1.8; g.stroke();
+  }
+}
+
+// ---------- Dinamik öğeler ----------
+function flicker(t) {
+  let f = 1 + flickerNoise(t * 8) * 0.035;
+  const burst = (a, b, depth) => {
+    if (t < a || t > b) return;
+    const k = (t - a) / (b - a);
+    f -= depth * Math.sin(k * Math.PI) * (flickerNoise(t * 40 + 9) > -0.15 ? 1 : 0.1);
+  };
+  burst(T_TICK - 0.05, T_TICK + 0.6, 0.7);
+  burst(6.0, 6.25, 0.3);
+  return clamp(f, 0.22, 1.1);
+}
+
+function spinSpeed(t) { return 18 * easeIn(range(t, T_SPIN, T_SPIN + 1.4)); }
+function spinAngle(t) {
+  let a = 0;
+  for (let s = T_SPIN; s < t; s += 1 / 240) a += spinSpeed(s) / 240;
+  return a;
+}
+
+function bulbPos(t) {
+  let th = 0.05 * Math.sin(t * 1.7);
+  if (t > T_TICK) th += 0.11 * Math.exp(-(t - T_TICK) * 1.1) * Math.sin((t - T_TICK) * 4.4);
+  const L = 250;
+  return { x: 960 + Math.sin(th) * L, y: -40 + Math.cos(th) * L, th };
+}
+
+function drawShadows(light) {
+  ctx.save();
+  ctx.beginPath(); ctx.rect(CAB.x0 + CAB.bar, CAB.y0 + CAB.bar, CAB.x1 - CAB.x0 - CAB.bar * 2, CAB.y1 - CAB.y0 - CAB.bar * 2); ctx.clip();
+  for (const m of METERS) {
+    const dx = m.x - light.x, dy = m.y - light.y, d = Math.hypot(dx, dy);
+    const ox = (dx / d) * 30, oy = (dy / d) * 30;
+    ctx.fillStyle = 'rgba(0,0,0,0.38)';
+    ctx.fillRect(m.x - 14 + ox * 0.6, CAB.y0, 28, CAB.y1 - CAB.y0); // boru gölgesi
+    const g = ctx.createRadialGradient(m.x + ox, m.y + oy, 0, m.x + ox, m.y + oy, m.r + 34);
+    g.addColorStop(0, 'rgba(0,0,0,0.7)'); g.addColorStop(0.7, 'rgba(0,0,0,0.45)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(m.x + ox, m.y + oy, m.r + 34, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function pipeV(x, y0, y1, w, seed, lightDir) {
+  const gr = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+  const hl = clamp(0.5 - lightDir * 0.3, 0.15, 0.85);
+  gr.addColorStop(0, '#24130a'); gr.addColorStop(hl, '#c9894a'); gr.addColorStop(Math.min(hl + 0.12, 0.95), '#6e3a18'); gr.addColorStop(1, '#150b06');
+  ctx.fillStyle = gr; ctx.fillRect(x - w / 2, y0, w, y1 - y0);
+  const r = rng(seed);
+  for (let k = 0; k < (y1 - y0) / 6; k++) {
+    ctx.fillStyle = `rgba(40,14,4,${0.3 + r() * 0.5})`;
+    ctx.fillRect(x - w / 2 + r() * w, y0 + r() * (y1 - y0), 1.2 + r() * 2, 1.2 + r() * 2);
+  }
+  ctx.lineWidth = 2.6; ctx.strokeStyle = INK;
+  wobblyLine(ctx, x - w / 2, y0, x - w / 2, y1, seed); ctx.stroke();
+  wobblyLine(ctx, x + w / 2, y0, x + w / 2, y1, seed + 1); ctx.stroke();
+}
+
+function hexNut(x, y, w, h) {
+  const gr = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+  gr.addColorStop(0, '#5d3415'); gr.addColorStop(0.35, '#e0a25c'); gr.addColorStop(0.6, '#9c5a26'); gr.addColorStop(1, '#3a1f0c');
+  ctx.fillStyle = gr;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, 3); ctx.fill();
+  ctx.lineWidth = 2.4; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.moveTo(x - w / 6, y - h / 2); ctx.lineTo(x - w / 6, y + h / 2); ctx.moveTo(x + w / 6, y - h / 2); ctx.lineTo(x + w / 6, y + h / 2); ctx.stroke();
+}
+
+function drawMeterAssembly(m, t, light, boil, focusBlur) {
+  const isSeven = m.i === 6;
+  const sp = isSeven ? spinSpeed(t) / 18 : 0;
+  const jx = isSeven ? Math.sin(t * 61) * 1.3 * sp : 0, jy = isSeven ? Math.cos(t * 53) * 1.0 * sp : 0;
+  const lightDir = clamp((m.x - light.x) / 700, -1, 1);
+  ctx.save();
+  ctx.translate(jx, jy);
+  pipeV(m.x, CAB.y0 - 30, m.y - m.r - 10, 26, 100 + m.i * 7, lightDir);
+  pipeV(m.x, m.y + m.r + 10, CAB.y1 - 20, 26, 200 + m.i * 7, lightDir);
+  hexNut(m.x, CAB.y0 + CAB.bar + 26, 44, 26);
+  hexNut(m.x, m.y - m.r - 16, 50, 24);
+  hexNut(m.x, m.y + m.r + 16, 50, 24);
+  // vana kolu
+  ctx.fillStyle = '#b8322a'; ctx.beginPath(); ctx.roundRect(m.x - 34, 820, 68, 12, 5); ctx.fill();
+  ctx.lineWidth = 2.4; ctx.strokeStyle = INK; ctx.stroke();
+  hexNut(m.x, 826, 30, 22);
+  drawMeter(m, t, light, boil, isSeven);
+  drawTag(m, t);
+  ctx.restore();
+}
+
+function drawMeter(m, t, light, boil, isSeven) {
+  const { x, y, r } = m;
+  const seed = 500 + m.i * 31 + boil;
+  // gövde gölgesi ve kenar
+  ctx.fillStyle = 'rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.arc(x + 5, y + 7, r + 13, 0, Math.PI * 2); ctx.fill();
+  const rim = ctx.createLinearGradient(x - r, y - r, x + r, y + r);
+  rim.addColorStop(0, '#f3c57a'); rim.addColorStop(0.35, '#c8913f'); rim.addColorStop(0.75, '#7a4a1c'); rim.addColorStop(1, '#3b220c');
+  ctx.fillStyle = rim;
+  wobblyCircle(ctx, x, y, r + 12, seed); ctx.fill();
+  ctx.lineWidth = 2.8; ctx.strokeStyle = INK; ctx.stroke();
+  const rr = rng(m.i + 77);
+  for (let k = 0; k < 26; k++) { // kenarda pas
+    const a = rr() * Math.PI * 2, d = r + 3 + rr() * 8;
+    ctx.fillStyle = `rgba(70,28,8,${0.5 + rr() * 0.4})`;
+    ctx.beginPath(); ctx.arc(x + Math.cos(a) * d, y + Math.sin(a) * d, 0.8 + rr() * 2, 0, Math.PI * 2); ctx.fill();
+  }
+  // kadran yüzü
+  const face = ctx.createRadialGradient(x - r * 0.3, y - r * 0.35, 4, x, y, r);
+  face.addColorStop(0, '#f6ecd3'); face.addColorStop(0.7, '#dccaa3'); face.addColorStop(1, '#a8946f');
+  ctx.fillStyle = face;
+  wobblyCircle(ctx, x, y, r, seed + 3, 0.6); ctx.fill();
+  ctx.lineWidth = 2.2; ctx.stroke();
+  // çentikler
+  ctx.strokeStyle = 'rgba(18,12,8,0.85)';
+  for (let k = 0; k < 40; k++) {
+    const a = (k / 40) * Math.PI * 2, long = k % 5 === 0;
+    ctx.lineWidth = long ? 1.8 : 1;
+    ctx.beginPath();
+    ctx.moveTo(x + Math.cos(a) * (r - (long ? 11 : 7)), y + Math.sin(a) * (r - (long ? 11 : 7)));
+    ctx.lineTo(x + Math.cos(a) * (r - 3), y + Math.sin(a) * (r - 3));
+    ctx.stroke();
+  }
+  drawOdometer(x, y - 30, m, t, isSeven);
+  // kırmızı yıldız çark
+  const ang = isSeven ? spinAngle(t) : m.i * 0.7;
+  const sp = isSeven ? spinSpeed(t) / 18 : 0;
+  drawStarWheel(x, y + 24, 17, ang, sp);
+  // ana ibre
+  const needle = -Math.PI / 2 + 0.6 + m.i * 0.45 + (isSeven ? ang * 0.04 : 0);
+  ctx.save();
+  ctx.translate(x, y + 2);
+  ctx.rotate(needle);
+  ctx.fillStyle = '#d42a1b'; ctx.strokeStyle = INK; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(-4, 0); ctx.lineTo(0, -r + 16); ctx.lineTo(4, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = '#2a1a10'; ctx.beginPath(); ctx.arc(x, y + 2, 5, 0, Math.PI * 2); ctx.fill();
+  // ışıktan uzak tarafta tarama gölgesi
+  const away = Math.atan2(y - light.y, x - light.x);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r + 12, 0, Math.PI * 2); ctx.clip();
+  ctx.translate(x, y); ctx.rotate(away);
+  ctx.globalAlpha = 0.45;
+  ctx.fillStyle = ctx.createPattern(hatch, 'repeat');
+  ctx.beginPath(); ctx.arc(r * 0.55, 0, r * 1.05, 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+  ctx.restore();
+  // cam yansıması ve buğu damlaları
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r - 1, 0, Math.PI * 2); ctx.clip();
+  ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(x, y, r - 10, Math.PI * 1.08, Math.PI * 1.42); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  ctx.beginPath(); ctx.ellipse(x - r * 0.35, y - r * 0.45, r * 0.32, r * 0.14, -0.6, 0, Math.PI * 2); ctx.fill();
+  const dr = rng(m.i * 13 + 1);
+  for (let k = 0; k < 16; k++) {
+    const dx = (dr() - 0.5) * r * 1.6, dy = (dr() - 0.5) * r * 1.6, s = 1 + dr() * 2.4;
+    ctx.fillStyle = 'rgba(30,20,12,0.35)'; ctx.beginPath(); ctx.arc(x + dx + 0.6, y + dy + 0.8, s, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.beginPath(); ctx.arc(x + dx - s * 0.3, y + dy - s * 0.3, s * 0.45, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawOdometer(x, y, m, t, isSeven) {
+  const cw = 13, ch = 19, n = 5, w = cw * n;
+  ctx.fillStyle = '#16100c';
+  ctx.fillRect(x - w / 2 - 3, y - ch / 2 - 3, w + 6, ch + 6);
+  const value = Number(READINGS[m.i]) + (isSeven ? spinAngle(t) / (Math.PI * 2) * 0.5 : 0);
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x - w / 2, y - ch / 2, w, ch); ctx.clip();
+  ctx.font = '700 17px "Courier Prime"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (let d = 0; d < n; d++) {
+    const place = Math.pow(10, n - 1 - d);
+    const raw = value / place;
+    const digit = Math.floor(raw) % 10;
+    // en sağdaki hane sürekli döner, diğerleri yalnızca geçişte
+    const frac = d === n - 1 ? raw - Math.floor(raw) : Math.max(0, (raw % 1) * place - (place - 1));
+    const cx = x - w / 2 + cw * d + cw / 2;
+    ctx.fillStyle = d === n - 1 ? '#b8281b' : '#efe6d4';
+    ctx.fillRect(cx - cw / 2 + 1, y - ch / 2, cw - 2, ch);
+    ctx.fillStyle = d === n - 1 ? '#fff' : '#1a120c';
+    ctx.fillText(String(digit), cx, y + 1 - frac * ch);
+    ctx.fillText(String((digit + 1) % 10), cx, y + 1 - frac * ch + ch);
+  }
+  ctx.restore();
+  ctx.lineWidth = 1.8; ctx.strokeStyle = INK;
+  ctx.strokeRect(x - w / 2 - 3, y - ch / 2 - 3, w + 6, ch + 6);
+}
+
+function drawStarWheel(x, y, r, ang, sp) {
+  const copies = sp > 0.1 ? 6 : 1;
+  for (let c = 0; c < copies; c++) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(ang - c * 0.07 * sp);
+    ctx.globalAlpha = c === 0 ? 1 : 0.25;
+    ctx.fillStyle = '#d8301f';
+    ctx.beginPath();
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2, rr = k % 2 ? r * 0.45 : r;
+      k ? ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr) : ctx.moveTo(Math.cos(a) * rr, Math.sin(a) * rr);
+    }
+    ctx.closePath(); ctx.fill();
+    if (c === 0) { ctx.lineWidth = 1.6; ctx.strokeStyle = INK; ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.fillStyle = '#f2d9b0'; ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2); ctx.fill();
+  if (sp > 0) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3.2);
+    g.addColorStop(0, `rgba(255,60,30,${0.55 * sp})`); g.addColorStop(1, 'rgba(255,30,10,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 3.2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawTag(m, t) {
+  const x = m.x - 64, y = m.y + 112;
+  const swing = m.i === 6 ? 0.14 + Math.sin(t * 2.2) * 0.04 + (t > T_SPIN ? Math.sin(t * 30) * 0.03 * (spinSpeed(t) / 18) : 0) : 0;
+  ctx.save();
+  ctx.translate(x, y - 16);
+  ctx.rotate(swing);
+  ctx.fillStyle = '#d8ccb0';
+  ctx.beginPath(); ctx.roundRect(-23, 0, 46, 36, 4); ctx.fill();
+  ctx.lineWidth = 2.2; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.fillStyle = 'rgba(120,60,20,0.35)'; ctx.fillRect(-23, 26, 46, 10);
+  ctx.fillStyle = '#1a120c';
+  ctx.font = '700 26px "Oswald"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(String(m.i + 1), 0, 19);
+  ctx.fillStyle = '#6b4a2a'; ctx.beginPath(); ctx.arc(0, 0, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// Odak dışı sayaçlar: ayrı katmana çizilip tek seferde bulanıklaştırılır (hızlı)
+const layer = document.createElement('canvas');
+layer.width = W; layer.height = H;
+function drawOtherMeters(t, light, boil, focus) {
+  const others = METERS.slice(0, 6);
+  if (focus <= 0.02) { for (const m of others) drawMeterAssembly(m, t, light, boil, 0); return; }
+  const main = ctx;
+  const lctx = layer.getContext('2d');
+  lctx.setTransform(1, 0, 0, 1, 0, 0);
+  lctx.clearRect(0, 0, W, H);
+  lctx.setTransform(main.getTransform());
+  ctx = lctx;
+  for (const m of others) drawMeterAssembly(m, t, light, boil, 0);
+  ctx = main;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.filter = `blur(${(focus * 9).toFixed(2)}px)`;
+  ctx.drawImage(layer, 0, 0);
+  ctx.restore();
+}
+
+function drawPipeDrips(t) {
+  if (t < T_SPIN + 0.3) return;
+  const m = METERS[6];
+  const drops = [{ dx: -9, s: 0.0, sp: 70 }, { dx: 8, s: 0.7, sp: 55 }, { dx: -3, s: 1.5, sp: 85 }];
+  for (const d of drops) {
+    const k = t - (T_SPIN + 0.3 + d.s);
+    if (k < 0) continue;
+    const y = m.y + m.r + 34 + (k * d.sp) % 120;
+    ctx.fillStyle = 'rgba(210,232,236,0.9)'; ctx.strokeStyle = INK; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.ellipse(m.x + d.dx, y, 2.6, 3.6, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(m.x + d.dx - 0.8, y - 1, 0.9, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawBulb(b, f) {
+  ctx.strokeStyle = INK; ctx.lineWidth = 2.6;
+  ctx.beginPath(); ctx.moveTo(960, -60); ctx.lineTo(b.x, b.y - 26); ctx.stroke();
+  ctx.save();
+  ctx.translate(b.x, b.y);
+  ctx.rotate(-b.th);
+  ctx.fillStyle = '#2b2420'; ctx.beginPath(); ctx.roundRect(-13, -36, 26, 30, 3); ctx.fill();
+  ctx.lineWidth = 2.4; ctx.stroke();
+  ctx.lineWidth = 1.2;
+  for (let k = -30; k < -8; k += 6) { ctx.beginPath(); ctx.moveTo(-13, k); ctx.lineTo(13, k + 3); ctx.stroke(); }
+  const gl = ctx.createRadialGradient(0, 18, 2, 0, 18, 34);
+  gl.addColorStop(0, `rgba(255,250,225,${0.95 * f})`); gl.addColorStop(0.5, `rgba(255,214,140,${0.85 * f})`); gl.addColorStop(1, `rgba(200,120,50,${0.6 * f + 0.2})`);
+  ctx.fillStyle = gl;
+  ctx.beginPath();
+  ctx.moveTo(-11, -6); ctx.bezierCurveTo(-12, 4, -30, 14, -28, 30); ctx.bezierCurveTo(-26, 52, 26, 52, 28, 30); ctx.bezierCurveTo(30, 14, 12, 4, 11, -6); ctx.closePath();
+  ctx.fill(); ctx.lineWidth = 2.4; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.strokeStyle = `rgba(255,120,30,${f})`; ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.moveTo(-6, 6); ctx.lineTo(-6, 20); ctx.lineTo(-3, 24); ctx.lineTo(0, 20); ctx.lineTo(3, 24); ctx.lineTo(6, 20); ctx.lineTo(6, 6); ctx.stroke();
+  ctx.restore();
+}
+
+function drawLighting(b, f) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'multiply';
+  const k = f;
+  const g = ctx.createRadialGradient(b.x, b.y + 20, 0, b.x, b.y + 20, 1500);
+  g.addColorStop(0, `rgb(${255 * k},${248 * k},${230 * k})`);
+  g.addColorStop(0.3, `rgb(${250 * k},${190 * k},${130 * k})`);
+  g.addColorStop(0.62, `rgb(${85 * k + 12},${120 * k + 16},${128 * k + 18})`);
+  g.addColorStop(1, 'rgb(16,32,40)');
+  ctx.fillStyle = g; ctx.fillRect(TX0, TY0, TW, TH);
+  ctx.globalCompositeOperation = 'lighter';
+  const h = ctx.createRadialGradient(b.x, b.y + 20, 0, b.x, b.y + 20, 520);
+  h.addColorStop(0, `rgba(255,190,110,${0.5 * f})`); h.addColorStop(0.3, `rgba(255,140,60,${0.16 * f})`); h.addColorStop(1, 'rgba(255,120,40,0)');
+  ctx.fillStyle = h; ctx.fillRect(b.x - 520, b.y - 500, 1040, 1040);
+  ctx.restore();
+}
+
+function drawDust(t, b, f) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of dust) {
+    const x = p.x + p.vx * t + Math.sin(t * 0.6 + p.ph) * 10;
+    const y = p.y + p.vy * t + Math.cos(t * 0.4 + p.ph) * 7;
+    const a = clamp(1 - Math.hypot(x - b.x, y - b.y) / 520, 0, 1) * 0.6 * f;
+    if (a < 0.02) continue;
+    ctx.fillStyle = `rgba(255,214,150,${a})`;
+    ctx.beginPath(); ctx.arc(x, y, p.s, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Ön planda bulanık boru: paralaks ile derinlik hissi
+function drawForeground(cam) {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const k = W / cam.w;
+  const x = 220 - (cam.cx - 960) * k * 1.6;
+  ctx.filter = `blur(${(10 + k * 4).toFixed(1)}px)`;
+  const w = 120 * Math.sqrt(k);
+  const g = ctx.createLinearGradient(x - w / 2, 0, x + w / 2, 0);
+  g.addColorStop(0, '#050403'); g.addColorStop(0.7, '#1a120c'); g.addColorStop(0.85, 'rgba(160,90,40,0.9)'); g.addColorStop(1, '#050403');
+  ctx.fillStyle = g;
+  ctx.fillRect(x - w / 2, -50, w, H + 100);
+  ctx.restore();
+}
+
+function applyCamera(t) {
+  const c = cameraAt(CAM, t);
+  const hit = t > T_SPIN ? Math.exp(-(t - T_SPIN) * 5) * (1 - Math.exp(-(t - T_SPIN) * 40)) : 0;
+  c.w *= 1 - 0.04 * hit;
+  const k = W / c.w;
+  const amp = 2 + hit * 8 + (t > T_SPIN ? 1.2 * spinSpeed(t) / 18 : 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.translate(W / 2 + shakeX(t * 1.4) * amp, H / 2 + shakeY(t * 1.2) * amp);
+  ctx.scale(k, k);
+  ctx.translate(-c.cx, -c.cy);
+  return c;
+}
+
+function drawTitle(t) {
+  const k = range(t, T_TITLE, T_TITLE + 0.5);
+  if (k <= 0) return;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 1150, 0);
+  g.addColorStop(0, `rgba(5,8,10,${0.85 * k})`); g.addColorStop(1, 'rgba(5,8,10,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, 1150, H);
+  const title = '7 NUMARALI SAYAÇ';
+  ctx.font = '400 168px "Bebas Neue"';
+  let x = 140;
+  for (let i = 0; i < title.length; i++) {
+    const ch = title[i], tl = T_TITLE + 0.12 + i * 0.045, a = range(t, tl, tl + 0.18);
+    const fl = t < tl + 0.4 && Math.sin(t * 90 + i * 3) > 0.3 ? 0.35 : 1;
+    ctx.globalAlpha = a * fl;
+    ctx.fillStyle = ch === '7' ? '#ff4b34' : '#f3e2c6';
+    ctx.shadowColor = ch === '7' ? 'rgba(255,60,30,0.9)' : 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = ch === '7' ? 30 : 12;
+    ctx.fillText(ch, x, 560 + (1 - easeOut(a)) * 20);
+    x += ctx.measureText(ch).width + 4;
+  }
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = range(t, T_TITLE + 0.9, T_TITLE + 1.2);
+  ctx.font = '400 40px "Special Elite"';
+  ctx.fillStyle = 'rgba(243,226,198,0.9)';
+  ctx.fillText(typed('Her gece, saat 03:17\'de...', range(t, T_TITLE + 0.9, T_TITLE + 1.6)), 146, 640);
+  ctx.restore();
+}
+
+window.setup = async () => {
+  hatch = makeHatch();
+  wallTex = buildWall();
+  grain = makeGrain();
+  flickerNoise = noise1(3); shakeX = noise1(21); shakeY = noise1(22);
+  const r = rng(9);
+  dust = Array.from({ length: 110 }, () => ({ x: 500 + r() * 900, y: 0 + r() * 700, s: 0.6 + r() * 1.8, vx: (r() - 0.5) * 8, vy: -3 + r() * 7, ph: r() * 10 }));
+};
+
+window.renderFrame = (t) => {
+  const frame = Math.round(t * 30);
+  const boil = Math.floor(frame / 4) % 3; // çizgi "kaynaması": 7.5 fps
+  const f = flicker(t);
+  const b = bulbPos(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingQuality = 'high';
+
+  const cam = applyCamera(t);
+  ctx.drawImage(wallTex, TX0, TY0, TW, TH);
+  drawShadows(b);
+  const zoom = W / cam.w;
+  const focus = clamp((zoom - 1.6) / 1.6, 0, 1);
+  drawOtherMeters(t, b, boil, focus);
+  drawMeterAssembly(METERS[6], t, b, boil, 0);
+  drawPipeDrips(t);
+  drawBulb(b, f);
+  drawLighting(b, f);
+  drawDust(t, b, f);
+  drawForeground(cam);
+
+  drawVignette(ctx, 0.7);
+  const clockA = range(t, 0.4, 0.8) * (1 - range(t, 6.2, 6.6));
+  drawClock(ctx, t, t < T_TICK ? '03:16' : '03:17', clockA, t < T_TICK);
+  const sub1 = range(t, 0.9, 1.1) * (1 - range(t, 2.9, 3.1));
+  drawSubtitle(ctx, typed('Altısı... kıpırdamıyor bile.', range(t, 0.9, 2.0)), sub1);
+  const sub2 = range(t, 3.3, 3.5) * (1 - range(t, 4.45, 4.6));
+  drawSubtitle(ctx, typed('Ama yedincisi...', range(t, 3.3, 4.0)), sub2);
+  if (t >= T_TICK && t < T_TICK + 0.12) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = 'rgba(255,40,20,0.14)'; ctx.fillRect(0, 0, W, H); }
+  drawTitle(t);
+  drawGrain(ctx, grain, frame, 0.12);
+  const fade = Math.min(range(t, 0, 0.6), 1 - range(t, DURATION - 0.45, DURATION));
+  if (fade < 1) { ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1 - fade; ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+};
+</script>
+</body>
+</html>

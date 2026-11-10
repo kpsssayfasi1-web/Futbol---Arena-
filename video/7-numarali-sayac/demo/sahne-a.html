@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<title>Demo A — Hareketli çizgi roman</title>
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<script src="lib.js"></script>
+<script>
+// Demo A: verilen tek illüstrasyonu 2.5B "motion comic" olarak canlandırır.
+// Tüm koordinatlar orijinal görselin (941x1672) piksel uzayındadır.
+const IMG_W = 941, IMG_H = 1672, SRC = 2; // kaynak 2x büyütülmüş
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let img, grain, flickerNoise, shakeX, shakeY, shakeR, dust;
+
+const LAMP = { x: 556, y: 172 };
+const ROTOR = { x: 848, y: 702, r: 52 };
+const EYES = [
+  { x: 362, y: 645, rx: 56, ry: 66 },
+  { x: 466, y: 650, rx: 44, ry: 64 },
+];
+const DRIPS = [
+  { x: 776, y: 1222, fall: 34, period: 1.7, start: 0.2 },
+  { x: 886, y: 936, fall: 150, period: 2.3, start: 0.9 },
+  { x: 650, y: 828, fall: 60, period: 2.9, start: 1.6 },
+];
+const T_TICK = 3.4;      // 03:16 -> 03:17
+const T_SPIN = 3.45;     // çark dönmeye başlar
+const T_TITLE = 5.9;
+const DURATION = 8.5;
+
+const CAM = [
+  { t: 0.0, cx: 560, cy: 215, w: 620 },
+  { t: 2.6, cx: 470, cy: 585, w: 900 },
+  { t: 4.5, cx: 500, cy: 635, w: 800 },
+  { t: 6.6, cx: 700, cy: 695, w: 500 },
+  { t: 8.5, cx: 712, cy: 699, w: 468, ease: (k) => k },
+];
+
+window.setup = async () => {
+  img = new Image();
+  img.src = 'referans-2x.jpg';
+  await img.decode();
+  grain = makeGrain();
+  flickerNoise = noise1(7);
+  shakeX = noise1(11); shakeY = noise1(12); shakeR = noise1(13);
+  const r = rng(42);
+  dust = Array.from({ length: 90 }, () => ({
+    x: 380 + r() * 400, y: 40 + r() * 560, s: 0.4 + r() * 1.3,
+    vx: (r() - 0.5) * 6, vy: -2 + r() * 5, ph: r() * 10,
+  }));
+};
+
+// Ampul titreşimi: 1 = normal, düşük = kararma
+function flicker(t) {
+  let f = 1 + flickerNoise(t * 9) * 0.04;
+  const burst = (a, b, depth) => {
+    if (t < a || t > b) return;
+    const k = (t - a) / (b - a);
+    const n = flickerNoise(t * 38 + 50);
+    f -= depth * Math.sin(k * Math.PI) * (n > -0.1 ? 1 : 0.15);
+  };
+  burst(3.33, 3.95, 0.65);
+  burst(5.45, 5.75, 0.35);
+  return clamp(f, 0.25, 1.1);
+}
+
+// Çarkın açısı: hızın zamana göre integrali (sayısal)
+function rotorAngle(t) {
+  let a = 0;
+  const dt = 1 / 240;
+  for (let s = T_SPIN; s < t; s += dt) a += 16 * easeIn(range(s, T_SPIN, T_SPIN + 1.6)) * dt;
+  if (t > 3.28 && t < 3.4) a += Math.sin((t - 3.28) * 80) * 0.06; // önce küçük bir seğirme
+  return a;
+}
+
+function rotorSpeed(t) { return 16 * easeIn(range(t, T_SPIN, T_SPIN + 1.6)); }
+
+// Görselden bir bölgeyi dönüştürüp yumuşak kenarlı maske ile geri basar
+const patch = document.createElement('canvas');
+const pctx = patch.getContext('2d');
+function drawPatch(cx, cy, rx, ry, drawFn) {
+  const pw = Math.ceil(rx * 2 * SRC), ph = Math.ceil(ry * 2 * SRC);
+  patch.width = pw; patch.height = ph;
+  pctx.save();
+  pctx.scale(SRC, SRC);
+  pctx.translate(rx, ry);
+  drawFn(pctx);
+  pctx.restore();
+  // eliptik tüy maskesi
+  pctx.save();
+  pctx.globalCompositeOperation = 'destination-in';
+  pctx.translate(pw / 2, ph / 2);
+  pctx.scale(1, ry / rx);
+  const g = pctx.createRadialGradient(0, 0, 0, 0, 0, rx * SRC);
+  g.addColorStop(0, 'rgba(0,0,0,1)');
+  g.addColorStop(0.72, 'rgba(0,0,0,1)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  pctx.fillStyle = g;
+  pctx.fillRect(-rx * SRC, -rx * SRC, rx * 2 * SRC, rx * 2 * SRC);
+  pctx.restore();
+  ctx.drawImage(patch, cx - rx, cy - ry, rx * 2, ry * 2);
+}
+
+// Kaynağı (cx,cy) merkezli olarak yerel koordinata çizer
+function srcAround(g, cx, cy, half) {
+  g.drawImage(img, (cx - half) * SRC, (cy - half) * SRC, half * 2 * SRC, half * 2 * SRC, -half, -half, half * 2, half * 2);
+}
+
+function drawEyes(t) {
+  const k = easeOut(range(t, 3.58, 3.82));
+  if (k <= 0) return;
+  const tremble = 1 + Math.sin(t * 47) * 0.006 * k;
+  const s = (1 + 0.085 * k) * tremble;
+  for (const e of EYES) {
+    drawPatch(e.x, e.y, e.rx, e.ry, (g) => { g.scale(s, s); srcAround(g, e.x, e.y, Math.max(e.rx, e.ry)); });
+  }
+}
+
+function drawRotor(t) {
+  const a = rotorAngle(t);
+  if (a === 0) return;
+  const speed = rotorSpeed(t);
+  const copies = speed > 1 ? 7 : 1;
+  drawPatch(ROTOR.x, ROTOR.y, ROTOR.r, ROTOR.r, (g) => {
+    srcAround(g, ROTOR.x, ROTOR.y, ROTOR.r);
+    for (let i = 0; i < copies; i++) {
+      g.save();
+      g.globalAlpha = i === 0 ? 1 : 0.32;
+      g.rotate(a - i * Math.min(speed, 16) * 0.006);
+      srcAround(g, ROTOR.x, ROTOR.y, ROTOR.r);
+      g.restore();
+    }
+  });
+}
+
+function drawDrips(t) {
+  for (const d of DRIPS) {
+    if (t < d.start) continue;
+    const p = ((t - d.start) / d.period) % 1;
+    ctx.save();
+    if (p < 0.62) {
+      const r = 3.4 * easeOut(p / 0.62);
+      ctx.translate(d.x, d.y);
+      teardrop(r, 1 + p * 0.6);
+    } else {
+      const k = (p - 0.62) / 0.38;
+      const y = d.y + d.fall * k * k;
+      ctx.translate(d.x, y);
+      ctx.globalAlpha = 1 - easeIn(k) * 0.6;
+      teardrop(3.2, 1.9);
+    }
+    ctx.restore();
+    // çarpma halkası
+    const since = (t - d.start) % d.period;
+    if (t - d.start > d.period && since < 0.25) {
+      const k = since / 0.25;
+      ctx.save();
+      ctx.globalAlpha = (1 - k) * 0.8;
+      ctx.strokeStyle = '#dff1f4';
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.ellipse(d.x, d.y + d.fall + 2, 2 + k * 9, 0.8 + k * 2.2, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+}
+
+function teardrop(r, stretch) {
+  ctx.beginPath();
+  ctx.moveTo(0, -r * stretch * 1.4);
+  ctx.bezierCurveTo(r * 0.9, -r * 0.3, r, r * 0.6, 0, r);
+  ctx.bezierCurveTo(-r, r * 0.6, -r * 0.9, -r * 0.3, 0, -r * stretch * 1.4);
+  ctx.fillStyle = 'rgba(205,228,232,0.9)';
+  ctx.fill();
+  ctx.lineWidth = 0.7;
+  ctx.strokeStyle = 'rgba(25,15,8,0.9)';
+  ctx.stroke();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-r * 0.3, r * 0.1, r * 0.25, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawDust(t, f) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const p of dust) {
+    const x = p.x + p.vx * t + Math.sin(t * 0.7 + p.ph) * 6;
+    const y = p.y + p.vy * t + Math.cos(t * 0.5 + p.ph) * 4;
+    const dist = Math.hypot(x - LAMP.x, y - LAMP.y);
+    const a = clamp(1 - dist / 380, 0, 1) * 0.55 * f * (0.6 + 0.4 * Math.sin(t * 2 + p.ph));
+    if (a <= 0.01) continue;
+    ctx.fillStyle = `rgba(255,214,150,${a})`;
+    ctx.beginPath();
+    ctx.arc(x, y, p.s, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawLighting(t, f) {
+  // titreşimde sahne kararır (görsel koordinatında tüm alan)
+  if (f < 1) {
+    ctx.fillStyle = `rgba(8,18,26,${(1 - f) * 0.55})`;
+    ctx.fillRect(0, 0, IMG_W, IMG_H);
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(LAMP.x, LAMP.y, 0, LAMP.x, LAMP.y, 330);
+  g.addColorStop(0, `rgba(255,190,110,${0.30 * f})`);
+  g.addColorStop(0.35, `rgba(255,140,60,${0.10 * f})`);
+  g.addColorStop(1, 'rgba(255,120,40,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(LAMP.x - 330, LAMP.y - 330, 660, 660);
+  // dönen sayacın kırmızı parıltısı
+  const sp = rotorSpeed(t) / 16;
+  if (sp > 0) {
+    const pulse = 0.75 + 0.25 * Math.sin(t * 9);
+    const rg = ctx.createRadialGradient(ROTOR.x, ROTOR.y, 0, ROTOR.x, ROTOR.y, 150);
+    rg.addColorStop(0, `rgba(255,50,30,${0.42 * sp * pulse})`);
+    rg.addColorStop(0.4, `rgba(255,30,20,${0.12 * sp * pulse})`);
+    rg.addColorStop(1, 'rgba(255,0,0,0)');
+    ctx.fillStyle = rg;
+    ctx.fillRect(ROTOR.x - 150, ROTOR.y - 150, 300, 300);
+  }
+  ctx.restore();
+}
+
+function cameraTransform(t) {
+  const c = cameraAt(CAM, t);
+  // 03:17 anında kısa bir "şok" yakınlaşması
+  const hit = t > T_SPIN ? Math.exp(-(t - T_SPIN) * 5) * (1 - Math.exp(-(t - T_SPIN) * 40)) : 0;
+  let w = c.w * (1 - 0.05 * hit);
+  const h = w * H / W;
+  const cx = clamp(c.cx, w / 2, IMG_W - w / 2);
+  const cy = clamp(c.cy, h / 2, IMG_H - h / 2);
+  const k = W / w;
+  const amp = 2.2 + hit * 7;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.translate(W / 2 + shakeX(t * 1.3) * amp, H / 2 + shakeY(t * 1.1) * amp);
+  ctx.rotate(shakeR(t * 0.9) * 0.0025);
+  ctx.scale(k * 1.012, k * 1.012); // kenar boşluğu görünmesin diye hafif fazla
+  ctx.translate(-cx, -cy);
+}
+
+function drawTitle(t) {
+  const k = range(t, T_TITLE, T_TITLE + 0.5);
+  if (k <= 0) return;
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const g = ctx.createLinearGradient(0, 0, 1150, 0);
+  g.addColorStop(0, `rgba(5,8,10,${0.82 * k})`);
+  g.addColorStop(1, 'rgba(5,8,10,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 1150, H);
+
+  const title = '7 NUMARALI SAYAÇ';
+  ctx.font = '400 168px "Bebas Neue"';
+  ctx.textBaseline = 'alphabetic';
+  let x = 140;
+  for (let i = 0; i < title.length; i++) {
+    const ch = title[i];
+    const tl = T_TITLE + 0.12 + i * 0.045;
+    const a = range(t, tl, tl + 0.18);
+    const fl = t < tl + 0.4 && Math.sin(t * 90 + i * 3) > 0.3 ? 0.35 : 1;
+    ctx.globalAlpha = a * fl;
+    ctx.fillStyle = ch === '7' ? '#ff4b34' : '#f3e2c6';
+    ctx.shadowColor = ch === '7' ? 'rgba(255,60,30,0.9)' : 'rgba(0,0,0,0.8)';
+    ctx.shadowBlur = ch === '7' ? 30 : 12;
+    ctx.fillText(ch, x, 560 + (1 - easeOut(a)) * 20);
+    x += ctx.measureText(ch).width + 4;
+  }
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = range(t, T_TITLE + 0.9, T_TITLE + 1.2);
+  ctx.font = '400 40px "Special Elite"';
+  ctx.fillStyle = 'rgba(243,226,198,0.9)';
+  ctx.fillText(typed('Her gece, saat 03:17\'de...', range(t, T_TITLE + 0.9, T_TITLE + 1.6)), 146, 640);
+  ctx.restore();
+}
+
+window.renderFrame = (t) => {
+  const frame = Math.round(t * 30);
+  const f = flicker(t);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingQuality = 'high';
+
+  cameraTransform(t);
+  ctx.drawImage(img, 0, 0, IMG_W, IMG_H);
+  drawEyes(t);
+  drawRotor(t);
+  drawDrips(t);
+  drawDust(t, f);
+  drawLighting(t, f);
+
+  drawVignette(ctx, 0.8);
+  const clockA = range(t, 0.5, 0.9) * (1 - range(t, 5.9, 6.3));
+  drawClock(ctx, t, t < T_TICK ? '03:16' : '03:17', clockA, t < T_TICK);
+  if (t >= T_TICK && t < T_TICK + 0.12) { // saat değişiminde kırmızı flaş
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.fillStyle = 'rgba(255,40,20,0.12)';
+    ctx.fillRect(0, 0, W, H);
+  }
+  drawTitle(t);
+  drawGrain(ctx, grain, frame, 0.13);
+
+  const fade = Math.min(range(t, 0, 0.6), 1 - range(t, DURATION - 0.45, DURATION));
+  if (fade < 1) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1 - fade;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+};
+</script>
+</body>
+</html>
