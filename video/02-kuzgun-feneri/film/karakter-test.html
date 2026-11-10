@@ -1,0 +1,11 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="fonts/fonts.css"><style>body{margin:0;background:#000}</style></head>
+<body><canvas width="1920" height="1080"></canvas><script src="lib.js"></script><script src="cizim.js"></script><script>
+const ctx=document.querySelector('canvas').getContext('2d');
+window.setup=async()=>{};
+window.renderFrame=(t)=>{
+ ctx.fillStyle='#2b3a3f';ctx.fillRect(0,0,W,H);
+ const list=[['deniz',{x:220,y:420,s:1,mouth:0.3,smile:0.5,look:[0.3,0]}],['enes',{x:600,y:420,s:1,worry:0.8,eyeOpen:1.15,pupil:0.8}],['hasan',{x:980,y:420,s:1,mouth:0.6}],['nur',{x:1360,y:420,s:1,worry:0.6,tears:0.3}],['kucukNur',{x:1720,y:440,s:0.8,worry:1,mouth:0.2}]];
+ for(const [w,o] of list){ torso(ctx,o.x,o.y+100*o.s,o.s*0.9,w==='enes'?PAL.navy:w==='hasan'?'#d9a62a':w==='deniz'?PAL.navy:'#6e3b4a'); head(ctx,w,o);}
+ whistle(ctx,220,700,1.2);
+};
+</script></body></html>
