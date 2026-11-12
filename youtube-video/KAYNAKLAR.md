@@ -1,54 +1,60 @@
-# Muhteşem Yüzyıl — Doğruluk Kontrol Listesi
+# Ezel — Doğruluk Kontrol Listesi
 
-Senaryodaki her bilgi iddiası, dayandığı kaynak ve güven düzeyi.
-**✅ Sağlam** = birden fazla bağımsız kaynakta aynı · **⚠️ Dikkatli ifade edildi** = kaynaklar ayrışıyor, metinde "rivayete göre / tartışılıyor" diye geçiyor.
+**✅ Sağlam** = birden fazla kaynakta aynı · **⚠️ Dikkatli** = tek kaynak ya da kaynaklar ayrışıyor; metinde ihtiyatlı ifade edildi.
+Not: Bu ortamdan sitelere doğrudan erişilemedi; doğrulama arama motoru sonuçlarındaki kaynak özetleri üzerinden yapıldı. Yayından önce ⚠️ işaretli satırlara bir göz atman önerilir.
 
 ## Dizi hakkında
-| İddia (metindeki hâli) | Durum | Kaynak |
-|---|---|---|
-| 4 sezon, 139 bölüm; final 139. bölüm (11 Haziran 2014) | ✅ | [Akşam](https://www.aksam.com.tr/aksam-tv/televizyon/ve-muhtesem-yuzyil-sona-erdi/10274), [Onedio](https://onedio.com/haber/muhtesem-yuzyil-in-final-sahnesi-izleyiciyi-ekrana-kitledi-318383) |
-| Final, Kanuni'nin Zigetvar seferindeki ölümüyle bitiyor | ✅ | [Akşam](https://www.aksam.com.tr/aksam-tv/televizyon/ve-muhtesem-yuzyil-sona-erdi/10274), [Hürriyet Daily News](https://hurriyetdailynews.com/magnificent-century-bids-farewell-to-tv-viewers-after-four-seasons-67718) |
-| İlk fragman ile ilk bölüm arasında RTÜK'e ~75 bin şikâyet (resmî sayı: 74.911) | ✅ | [Bianet](https://bianet.org/haber/organized-intolerance-against-magnificent-century-series-127112), [Washington Times / AP](https://m.washingtontimes.com/news/2011/jan/12/turkey-watchdog-slams-channel-for-sultan-portrayal/) |
-| "Onlarca ülkeye satıldı" (kaynaklar 48 / 50+ / 100+ arası rakam veriyor; bu yüzden rakam verilmedi) | ✅ | [AHA Perspectives](https://www.historians.org/research-and-publications/perspectives-on-history/summer-2014/magnificent-century-historical-turkish-soap-opera-finds-a-global-audience) |
-| Meryem Uzerli ayrıldı; son sezonda Hürrem'i Vahide Perçin (o dönemki soyadıyla Gördüm) oynadı | ✅ | [Takvim](https://www.takvim.com.tr/galeri/magazin/yeni-hurreme-rekor-zam), [Habertürk](https://www.haberturk.com/yazarlar/oya-dogan/847835-meryem-uzerli-neden-gitti) |
-| İbrahim'in dizide boğularak idamı | ✅ | [CNN Türk](https://www.cnnturk.com/magazin/pargali-idama-boyle-gidecek-57779), [Eğitim Sistem – 82. bölüm](https://egitimsistem.com/pargali-ibrahim-oldu-muhtesem-yuzyil-82-bolum-ozeti-15304h.htm) |
-
-## Tarih
 | İddia | Durum | Kaynak |
 |---|---|---|
-| 1520'de Yavuz ölür, Süleyman 25 yaşında tahta çıkar (doğum Kasım 1494 / 1495, iki tarihe göre de 25) | ✅ | [TDV İslâm Ansiklopedisi](https://islamansiklopedisi.org.tr/suleyman-i), [Britannica](https://www.britannica.com/biography/Suleyman-the-Magnificent) |
-| Hürrem Kırım Tatar akınında esir alındı, köle pazarı üzerinden İstanbul'a geldi | ✅ | [Wikipedia – Hurrem Sultan](https://www.wikipedia.org/wiki/Roxelana) |
-| Papaz kızı / Rohatyn hikâyesi ölümünden çok sonra yazılmış anlatılara dayanır (Twardowski, 1620'ler) | ✅ | aynı kaynak |
-| "Hürrem" Farsça "neşeli olan" | ✅ | aynı kaynak |
-| Navagero raporu: Mahidevran, Hürrem'i dövdü ve aşağıladı; Süleyman kızdı | ✅ | [Wikipedia – Mahidevran](https://en.wikipedia.org/wiki/Mahidevran) (Peirce, *The Imperial Harem* kaynaklı) |
-| Hürrem'den 6 çocuk: Mehmed, Mihrimah, Abdullah, Selim, Bayezid, Cihangir | ✅ | [Wikipedia – Hurrem Sultan](https://www.wikipedia.org/wiki/Roxelana) |
-| 1533: Mustafa Manisa'ya, Mahidevran da onunla | ✅ | [Wikipedia – Mahidevran](https://en.wikipedia.org/wiki/Mahidevran) |
-| 1534: Hafsa Sultan'ın ölümü, Hürrem'in haremdeki gücünün artması | ✅ | [Wikipedia – Hurrem Sultan](https://www.wikipedia.org/wiki/Roxelana) |
-| Hürrem azat edilip resmen nikâhlandı (1533/34), geleneği yıkan bir adım | ✅ | aynı kaynak |
-| Süleyman "Muhibbî" mahlasıyla şiir yazdı; Hürrem'e gazeller; mektuplar günümüze ulaştı | ✅ | [GZT](https://www.gzt.com/tarih/kanuni-sultan-suleymanin-hurrem-sultana-aski-4242716), [1000Kitap – Kanuni](https://1000kitap.com/yazar/kanuni-sultan-suleyman) |
-| İbrahim 1523'te sadrazam oldu | ✅ | [Wikipedia – Pargalı İbrahim](https://en.wikipedia.org/wiki/Pargal%C4%B1_Ibrahim_Pasha) |
-| İbrahim–Hatice evliliği: güncel tarihçilerin çoğu reddediyor, eşinin Muhsine Hatun olduğunu söylüyor | ⚠️ "tarihçilerin çoğu" diye ifade edildi | [Wikipedia – Hatice Sultan](https://en.wikipedia.org/wiki/Hatice_Sultan_(daughter_of_Selim_I)) · eski görüş: [Sabah](https://www.sabah.com.tr/haberleri/pargali-ibrahim-pasa) |
-| Belgrad 1521, Rodos 1522, Mohaç 1526 (II. Lajos öldü), Viyana 1529 **alınamadı**, Preveze 1538 | ✅ | [Britannica](https://www.britannica.com/biography/Suleyman-the-Magnificent), [Campaigns of Suleiman](https://en.wikipedia.com/wiki/Campaigns_of_Suleiman_the_Magnificent) |
-| "Serasker Sultan" unvanı meydan okuma gibi algılanabilirdi; İbrahim Mustafa'yı destekliyordu | ✅ | [Sabah](https://www.sabah.com.tr/haberleri/pargali-ibrahim-pasa) |
-| İbrahim 14/15 Mart 1536'da iftara çağrıldı, gece odasında boğularak öldürüldü | ✅ | [Biyografiler](https://biyografiler.com/kisi/pargali-ibrahim-pasa), [Sabah](https://www.sabah.com.tr/pargali-ibrahim-pasa) |
-| İbrahim'in idam sebebi kesin bilinmiyor | ✅ | [Biyografiler](https://biyografiler.com/kisi/pargali-ibrahim-pasa) |
-| Mihrimah–Rüstem evliliği 1539, Rüstem sadrazam 1544 | ✅ | [Küre Ansiklopedi](https://kureansiklopedi.com/tr/detay/mihrimah-sultan-2) |
-| Şehzade Mehmed Kasım 1543'te Manisa'da, büyük ihtimalle çiçekten öldü; Şehzade Camii onun anısına (Mimar Sinan) | ✅ | [Wikipedia – Şehzade Mehmed](https://en.wikipedia.org/wiki/%C5%9Eehzade_Mehmed) |
-| Mustafa 6 Ekim 1553, Ereğli: el öpmeye otağa girdi, babasını göremeden boğuşarak boğuldu | ✅ | [Belleten (TTK)](https://belleten.gov.tr/tam-metin/3129/tur), [Wikipedia – Şehzade Mustafa](https://en.wikipedia.org/wiki/%C5%9Eehzade_Mustafa_(son_of_Suleiman_the_Magnificent)) |
-| Şah'a yazılan mektupların sahte olduğu iddiası tartışmalı; Rüstem'in rolü tartışmalı | ⚠️ "tartışılıyor" diye ifade edildi | [Medeniyet Üniv. makalesi](https://earsiv.medeniyet.edu.tr/items/fd77ca7e-4f6d-4e07-b246-4e0634b7fa2e), [Wikipedia – Rüstem Paşa](https://en.wikipedia.org/wiki/R%C3%BCstem_Pasha) |
-| Ordunun tepkisiyle Rüstem görevden alındı (Ekim 1553), 1555'te geri döndü | ✅ | [Wikipedia – Rüstem Paşa](https://en.wikipedia.org/wiki/R%C3%BCstem_Pasha), [Wikipedia – Kara Ahmed Paşa](https://en.wikipedia.org/wiki/Kara_Ahmed_Pasha) |
-| Taşlıcalı Yahya'nın mersiyesi Kanuni, Hürrem ve Rüstem'i ağır eleştirir; sürgün edildiği anlatılır | ⚠️ "anlatılana göre" diye ifade edildi | [Küre – Mersiye](https://kureansiklopedi.com/en/detay/elegy-for-prince-mustafa-poem-09f08), [Wikipedia – Yahya Bey](https://en.wikipedia.org/wiki/Yahya_bey_Dukagjini) |
-| Cihangir 1553'te Halep'te öldü; kederden öldüğü rivayettir | ⚠️ "rivayete göre" diye ifade edildi (ölüm günü kaynaklarda ayrışıyor, verilmedi) | [Wikipedia – Cihangir](https://en.Wikipedia.com/wiki/%C5%9Eehzade_Cihangir) |
-| Mahidevran Bursa'da yaşadı, 1581'de orada öldü | ✅ | [Wikipedia – Mahidevran](https://www.Wikipedia.org/wiki/Mahidevran) |
-| Hürrem Nisan 1558'de öldü; Süleymaniye'de, Süleyman'ın türbesinin yanında | ✅ | [Wikipedia – Hurrem Sultan](https://www.wikipedia.org/wiki/Roxelana) |
-| Haseki semti, Hürrem'in yaptırdığı külliyeden adını alır (cami, medrese, imaret, darüşşifa) | ✅ | genel kabul; yayından önce bir kez daha göz atılabilir |
-| 1559 Konya: Bayezid yenildi, İran'a (Şah Tahmasb) sığındı | ✅ | [Wikipedia – Şehzade Bayezid](https://en.wikipedia.org/wiki/%C5%9Eehzade_Bayezid), [Küre](https://kureansiklopedi.com/tr/detay/bayezid-sehzade) |
-| Şah, pazarlıktan sonra teslim etti; 25 Eylül 1561'de Kazvin'de 4 oğluyla idam | ✅ | aynı kaynaklar |
-| "Halk içinde muteber bir nesne yok devlet gibi / Olmaya devlet cihanda bir nefes sıhhat gibi" — Muhibbî | ✅ | [DergiPark makaleleri](https://dergipark.org.tr/en/download/article-file/214887) |
-| Süleyman 6/7 Eylül 1566 gecesi, Zigetvar alınmadan öldü; Sokollu ölümü haftalarca gizledi (kaynaklar 42 ya da 48 gün diyor; "haftalarca" denildi) | ✅ | [Sabah – E. Afyoncu](https://www.sabah.com.tr/yazarlar/erhan-afyoncu/2018/09/09/kanunnin-olumu-42-gun-gizlendi), [Milliyet](https://www.milliyet.com.tr/galeri/muhtesem-yuzyil-karakterleri-48889/58) |
+| 2 sezon, 71 bölüm; 28 Eylül 2009 – 20 Haziran 2011 | ✅ | [Küre Ansiklopedi](https://kureansiklopedi.com/tr/detay/ezel-dizi-751328), [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)) |
+| Show TV'de başladı, Ocak 2010'dan itibaren ATV'de | ✅ | aynı kaynaklar |
+| Senaryo: Kerem Deren & Pınar Bulut · Yönetmen: Uluç Bayraktar · Yapım: Ay Yapım | ✅ | aynı kaynaklar |
+| Monte Kristo Kontu uyarlaması | ✅ | aynı kaynaklar |
+| Genç Ömer: İsmail Filiz · Ezel: Kenan İmirzalıoğlu · Eyşan: Cansu Dere · Cengiz: Yiğit Özşener · Ali: Barış Falay · Ramiz: Tuncel Kurtiz · Kenan: Haluk Bilginer · Bahar: Sedef Avcı · Serdar: Salih Kalyon · Tefo: Sarp Akkaya | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)), [Biyografiler](https://www.biyografiler.com/film/ezel-2009), [Haber Kıbrıs](https://haberkibris.com/12a397d8-2011_05_07.html) |
+| Ramiz'in ölümüne Tuncel Kurtiz kalp rahatsızlığı nedeniyle kendisi karar verdi; Kurtiz 27 Eylül 2013'te öldü | ✅ | [Habertürk](https://www.haberturk.com/medya/haber/617859-ramiz-dayi-diziden-neden-ayrildi), [Haber7](https://www.haber7.com/unlulerin-dunyasi/haber/730577-ramiz-dayiyi-kalbindeki-stent-oldurdu) |
+| "Ezel" = başlangıcı olmayan zaman (öncesizlik) | ✅ | TDK sözlük anlamı |
 
-## Bilerek metne **koymadığımız** şeyler (doğrulanamadı)
-- Hatice Sultan'ın dizideki sonu, Hürrem'in dizideki ölüm şekli/bölüm numarası
-- Mustafa'nın "kılıcını kapıda bırakması", "dilsiz cellatlar" detayı
-- Mustafa'nın oğlunun idamı (kaynaklar net değil)
-- İzlenme rakamları (kaynaklar 150 milyon / 200 milyon / 500 milyon arasında çelişiyor)
+## Olay örgüsü
+| İddia | Durum | Kaynak |
+|---|---|---|
+| 1997 İstanbul; Ömer askerden dönmüş, Eyşan'la evlenmek istiyor | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)), [Vikipedi – Karakterler](https://tr.wikipedia.org/wiki/Ezel_karakterleri_listesi) |
+| Baba Mümtaz Bey (marangoz, dürüst, aile şerefine düşkün), anne Meliha, küçük kardeş Mert | ✅ | [Vikipedi – Ezel Bayraktar](https://tr.wikipedia.org/wiki/Ezel_Bayraktar), [Fandom – Mert Uçar](https://ezel.fandom.com/tr/wiki/Mert_U%C3%A7ar) |
+| Soygunu Eyşan'ın babası Serdar Tezcan, hasta kızı Bahar'ın tedavisi için planladı; Ali ve Cengiz'i ikna etti | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)), [Steemit – Serdar analizi](https://steemit.com/tr/@thesky/ezel-turkish-series-character-analysis-serdar-tezcan-yakisikli-serdar) |
+| Eyşan'ın görevi Ömer'i oyalamak; suç Ömer'e yıkıldı | ✅ | aynı kaynaklar, [Vikipedi – Karakterler](https://tr.wikipedia.org/wiki/Ezel_karakterleri_listesi) |
+| Güvenlik görevlisini Ali vurdu | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)) |
+| Ali ve Cengiz, Ömer'in birkaç yıl yatacağını sandı | ✅ | aynı |
+| Eyşan'ın yalan tanıklığı → müebbet | ⚠️ fan kaynakları | [Fandom – Eyşan](https://ezel.fandom.com/tr/wiki/Ey%C5%9Fan_Birkan), [Bora Fandom S1](https://bora.fandom.com/tr/wiki/Ezel_(1._sezon)) |
+| Can, Eyşan'ın Ömer'i oyaladığı gece hamile kaldığı çocuk; Ömer'in oğlu | ✅ | [Vikipedi – Karakterler](https://tr.wikipedia.org/wiki/Ezel_karakterleri_listesi), [TV Tropes](https://tvtropes.org/pmwiki/pmwiki.php/Characters/Ezel) |
+| Ramiz, Ömer'i Kenan'a karşı sağ kol olarak yetiştirdi | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)) |
+| Gardiyanlar parayı sakladığını sanıp yüzünü kesti; Ramiz kaçırdı, yerine yangında ölen birinin cesedi kondu; "tanınmaz hâlde öldü" yalanı | ⚠️ fan kaynağı | [Fandom – Ezel Bayraktar](https://ezel.fandom.com/tr/wiki/Ezel_Bayraktar) |
+| Cengiz, Eyşan'la evli; Can onların oğlu olarak büyüyor | ✅ | [Vikipedi – Karakterler](https://tr.wikipedia.org/wiki/Ezel_karakterleri_listesi) |
+| Ali, Ömer'i hapse göndermekten pişman | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)) |
+| Bahar 1. sezonun sonlarında uzaktan vurularak öldürüldü | ✅ (katil kaynaklarda çelişiyor, metinde verilmedi) | [Vikipedi – S1](https://tr.wikipedia.org/wiki/Ezel_(1._sezon)), [YaCevap](https://yandex.com.tr/yacevap/c/filmler-ve-diziler/q/ezel-de-bahar-i-kim-oldurdu-53888309) |
+| Selma Hünel: Kenan'ın eski nişanlısı, Ramiz'in sevgilisi; Azad'ın düğününde Kenan'ın adamlarınca öldürüldü | ✅ | [Fandom – Selma](https://ezel.fandom.com/tr/wiki/Selma_H%C3%BCnel), [Bora Fandom](https://bora.fandom.com/tr/wiki/Ezel_karakterleri_listesi) |
+| Mert, 41. bölümde Kenan'ın emriyle Ezel'i ezmek için bekleyen Serdar'ın arabası altında kaldı; Ezel ailesine sorumluluğunu itiraf etti | ✅ | [Fandom – Mert](https://ezel.fandom.com/tr/wiki/Mert_U%C3%A7ar), [Sabah](https://www.sabah.com.tr/magazin/dayi_sahalara_dondu_ezelin_kardesi_oldu-1547275), [Vatan](https://www.gazetevatan.com/magazin/ezel-in-kardesi-oldu-mu-338138) |
+| 61. bölüm: Cengiz'in planıyla Azad kaçırıldı; Ramiz, Ezel'le girdiği çatışmadan sonra öldü; Edip Cansever'in "Düşlüyor Ölümünü Ruhi Bey" şiirini okudu | ✅ | [Vikipedi – Ramiz Karaeski](https://tr.wikipedia.org/wiki/Ramiz_Karaeski), [Hürriyet](https://www.hurriyet.com.tr/gundem/ezelde-huzunlu-veda-17467894) |
+| Tefo vuruldu (~65. bölüm) | ✅ (tetikçi kaynaklarda çelişiyor, metinde verilmedi) | [Haber Kıbrıs](https://haberkibris.com/12a397d8-2011_05_07.html) |
+| 68. bölüm: Kenan, Ali tarafından öldürüldü, intihar süsü verildi | ⚠️ fan kaynağı | [Fandom – Kenan Birkan](https://ezel.fandom.com/tr/wiki/Kenan_Birkan) |
+| Final: Cengiz Eyşan'ı bıçakladı, suçu Ezel'e attı; Eyşan hastanede gerçeği söyledi; Ezel ve Ali Cengiz'i fenerde yakaladı | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)) |
+| Trende Eyşan'ın gözleri kapanıyor; Ezel Ramiz'in yüzüğündeki zehri içiyor | ✅ | [Wikipedia](https://en.wikipedia.org/wiki/Ezel_(TV_series)), [Haber3](https://www.haber3.com/medya/ezelden-surpriz-final-haberi-862074) |
+| Yıllar sonra büyümüş Can babasını arıyor; fener; belirsiz son | ✅ | [Haber3](https://www.haber3.com/medya/ezelden-surpriz-final-haberi-862074), [Gazeteciler.com](https://www.gazeteciler.com/haber/ezelin-finalinde-ne-oldu/193995) |
+
+---
+
+## Taslaktaki düzeltmeler (senin metninle karşılaştırma)
+| Taslakta | Sorun | Yeni metinde |
+|---|---|---|
+| "Babasının tamirhanesinde çalışıyor" | Doğrulanamadı; babası **marangoz** | Babası marangoz Mümtaz Bey |
+| Soygun gecesi ve mahkeme | **Eyşan'ın yalan tanıklığı** ve **müebbet** hiç yok; hikâyenin kalbi | Eklendi |
+| Güvenlik görevlisinin ölümü | Kimin vurduğu yok; **Ali vuruyor** | Eklendi (Ali'nin vicdan azabı buradan besleniyor) |
+| — | **Can'ın Ömer'in oğlu olması** hiç yok; en güçlü duygusal kırılma | Kancalı biçimde eklendi (1. bölümde ipucu, 3. bölümde açılış) |
+| "Babası inanmakta zorlanıyor, Mert ailenin yükünü taşıyor" | Doğrulanamadı | Çıkarıldı |
+| "Yüzü ağır şekilde zarar gören…" | Belirsiz; **sahte ölüm** (başkasının cesedi) atlanmış | Gardiyan saldırısı + yangın + ceset değişimi + "Ömer Uçar öldü" |
+| "Cengiz otel ve kumarhane dünyasında" | "Otel" doğrulanamadı | "Zengin ve güçlü bir adam" |
+| Sahne 6: Kenan'ın hikâyesi soyut | Kayıplar somut değil | Mert'in Serdar'ın arabası altında ölmesi, Selma'nın düğünde ölmesi, Ramiz'in vedası, Kenan'ın sonu |
+| Sahne 7: "Mert, Bahar ve Tefo trajik bir hâl alıyor" | Soyut ve yanlış sırada (Bahar 1. sezonda ölüyor) | Her ölüm kendi yerinde, sonucu ve nedeniyle |
+| "Cengiz uçurumdan düşerek" | Doğrulanamadı | "Cengiz'in hikâyesi orada bitiyor" |
+| "Eyşan'ı hastaneden alarak trene" | Doğrulanamadı | "Sonra bir tren" |
+| "Trende Ramiz, Bahar, Mert'i görüyor" | Tam liste doğrulanamadı | "Kaybettiği insanları görmeye başlıyor" |
+| "Ramiz'in yıllar önce verdiği yüzük" | Kaynak: Ramiz'in ölümünden sonra kalan eşyası | "Ramiz Dayı'dan kalan yüzük" |
+| "Siz" diye hitap | Kanal tonu "sen"; samimi ve tutarlı olmalı | Her yerde "sen" |

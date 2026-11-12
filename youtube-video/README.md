@@ -1,6 +1,7 @@
-# Dizi Özeti Videosu — Muhteşem Yüzyıl
+# Dizi Özeti Videosu — Ezel
 
-YouTube için yatay (16:9), yaklaşık 10 dakikalık "dizi özeti + Dizi mi, Tarih mi?" videosu. Video Remotion ile üretilecek.
+YouTube için yatay (16:9), yaklaşık 9–10 dakikalık "Ezel baştan sona" videosu ("Kamera Arkası" köşeli).
+(Muhteşem Yüzyıl senaryosu git geçmişinde duruyor.) Video Remotion ile üretilecek.
 
 ## Dosyalar
 - `SESLENDIRME-METNI.txt`: ElevenLabs'e yapıştırılacak tek parça metin (duygu etiketleri dahil).
