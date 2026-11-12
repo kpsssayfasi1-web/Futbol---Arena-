@@ -3,26 +3,38 @@
 | | |
 |---|---|
 | Format | YouTube Shorts, dikey 1080×1920, 30 fps |
-| Tahmini süre | ~2:20–2:30 (net süre seslendirme gelince belli olur) |
+| Tahmini süre | ~2:40–2:55 (net süre seslendirme gelince belli olur; gerekirse kurguda ayarlanır) |
 | Seslendirme | ElevenLabs **Eleven v4**, metin: [`seslendirme-v4.txt`](seslendirme-v4.txt) |
 | Görseller | ChatGPT (aşağıdaki promptlar) |
 | Kurgu, animasyon, müzik, efekt, altyazı | Claude (kod tabanlı üretim hattı) |
 
 ---
 
-## 1. Açılış — ilk 13 saniye
+## 1. Açılış — ilk ~16 saniye
 
 Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniyede twist ve intikam vaadi gelir. 10. saniyeye kadar üç hain tanıtılır. Ardından başlık kartı gelir. **Hiçbir kare durağan kalmaz.** Her sahnede en az bir kamera hareketi, bir ortam animasyonu ve bir ses efekti bulunur.
 
 | # | Zaman* | Seslendirme | Görsel | Hareket / animasyon | Ses efekti / müzik |
 |---|---|---|---|---|---|
-| A1 | 0:00–0:02 | "Bu adam… öldü." | Loş hastane odası, tek çıplak ampul. Sandalyede yüzü tamamen sargılı bir adam. | Ampul sallanır, ışık odada sağa sola süpürür. 3 katmanlı parallax ile içeri yaklaşma. Havada toz. | 0.0 sn'de derin "boom" ve kulak çınlaması. Ampul cızırtısı. |
-| A2 | 0:02–0:04.5 | "Sonra bir gün, bambaşka bir yüzle geri döndü." | Omuz üstünden aynaya bakış. Yansımada sargılı yüz var. Çatlak büyür, ayna kırılır ve yansımada takım elbiseli yeni yüz belirir. | Çatlak büyüme animasyonu, cam kırıkları (parçacık), beyaz flaş, ani zoom. | Cam gerilme sesi, ardından kırılma ve whoosh. Ezel piyano motifinin ilk notası. |
-| A3 | 0:04.5–0:06.5 | "Onu öldürenlerden hesap sormaya." | Arkadan Ezel. Yağmurlu camın ardında yalıda bir davet ve üç figür. | Odak kayması (Ezel'den üçlüye), camdan akan yağmur damlaları, yavaş ilerleme. | Cama vuran yağmur, boğuk davet uğultusu, yükselen gerilim sesi (riser) başlar. |
-| A4 | 0:06.5–0:10.5 | "Kim mi öldürdü onu? En yakın iki arkadaşı… ve uğruna ölebileceği kadın." | Karanlıkta satranç tahtası. Spotlar sırayla yanar: beyaz fil (**CENGİZ**), beyaz at (**ALİ**), beyaz vezir (**EYŞAN**). | Her spot yandığında isim etiketi belirir. Kamera tahtanın etrafında yavaşça döner, ışık hüzmelerinde toz uçuşur. | Her spotta şalter sesi ve tahta taş "tak" sesi. Altta kalp atışı. |
-| A5 | 0:10.5–0:13 | *(sessiz, `[long pause]`)* | Ön planda tek **siyah piyon** üçüne bakar. **EZEL** başlığı gelir, altında "Bir piyonun intikamı" yazar. | Pirinç harflerde ışık parlaması, kor parçacıkları, darbe sarsıntısı. | Büyük sinematik darbe ve yankı. 0.3 sn sessizlik, sonra "Bak şimdi." |
+| A1 | 0:00–0:03 | "Bu adam, resmî kayıtlara göre 2005'te öldü." | Loş hastane odası, tek çıplak ampul. Sandalyede yüzü tamamen sargılı bir adam. | Ampul sallanır, ışık odada sağa sola süpürür. Katmanlı parallax ile içeri yaklaşma. Havada toz. | 0.0 sn'de derin "boom" ve kulak çınlaması. Ampul cızırtısı. |
+| A2 | 0:03–0:06 | "Ama ölmedi. Yüzünü de adını da değiştirip geri döndü." | Omuz üstünden aynaya bakış. Yansımada sargılı yüz var. Çatlak büyür, ayna kırılır ve yansımada takım elbiseli yeni yüz belirir. | Çatlak büyüme animasyonu, cam kırıkları (parçacık), beyaz flaş, ani zoom. | Cam gerilme sesi, ardından kırılma ve whoosh. Ezel piyano motifinin ilk notası. |
+| A3 | 0:06–0:09 | "Tek bir amacı vardı: Hayatını mahvedenlerden hesap sormak." | Arkadan Ezel. Yağmurlu camın ardında yalıda bir davet ve üç figür. | Odak kayması (Ezel'den üçlüye), camdan akan yağmur damlaları, yavaş ilerleme. | Cama vuran yağmur, boğuk davet uğultusu, yükselen gerilim sesi (riser) başlar. |
+| A4 | 0:09–0:12.5 | "Kim mi bunlar? En yakın iki arkadaşı ve evlenmek istediği kız." | Karanlıkta satranç tahtası. Spotlar sırayla yanar: beyaz fil (**CENGİZ**), beyaz at (**ALİ**), beyaz vezir (**EYŞAN**). | Her spot yandığında isim etiketi belirir. Kamera tahtanın etrafında yavaşça döner, ışık hüzmelerinde toz uçuşur. | Her spotta şalter sesi ve tahta taş "tak" sesi. Altta kalp atışı. |
+| A5 | 0:12.5–0:16 | *(`[long pause]`)*, ardından "Gel, sana Ezel'i baştan anlatayım." | Ön planda tek **siyah piyon** üçüne bakar. **EZEL** başlığı gelir, altında "Bir piyonun intikamı" yazar. | Pirinç harflerde ışık parlaması, kor parçacıkları, darbe sarsıntısı. | Büyük sinematik darbe ve yankı. Kısa sessizlik, sonra anlatıcı hikâyeye girer. |
 
 \* Zamanlar tahminidir. Gerçek seslendirme gelince her kesme sesin ritmine göre ayarlanır.
+
+---
+
+## 1b. Anlatım kuralları (bütün bölümler için)
+
+1. **Konuşur gibi yaz.** Arkadaşına dizi anlatan biri nasıl konuşursa öyle: "Gel, baştan anlatayım", "Ama Ömer'in haberi yok", "Düşünsene", "Şimdi sana soruyorum".
+2. **Her cümle tek ve net bir bilgi versin.** Mecaz, şiirsel ifade ve havada kalan cümle kullanma.
+3. **Sebep-sonuç zinciri kur.** Her olayın *neden* olduğunu tek bir somut detayla göster (örnek: Cengiz'in eldiveni, silahta kalan parmak izleri).
+4. **Bölüm iskeleti:** kanca, kurulum, tuzak, ihanet, dip noktası, yeniden doğuş, intikam, büyük çatışma, final, son sahne, izleyiciye soru.
+5. **Üç noktayı (…) yalnızca gerçek bir duraksama için kullan. Duygu etiketini yalnızca ton değiştiğinde koy** (~20 etiket).
+6. **Kullanılan her bilgi doğrulanmış olsun** (bkz. bölüm 5). Ekranın zaten göstereceği detayı anlatıcıya söyletme.
+7. **Süre:** Shorts için en fazla ~400 kelime (yaklaşık 2:50).
 
 ---
 
@@ -58,7 +70,7 @@ Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her
 
 - **Model:** Eleven v4
 - **Ses:** Batuhan Altınova (ilk tercih). Beğenmezsen Ahmet Akyalçın Pro'yu dene.
-- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~2.600 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
+- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~3.000 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
 - **2–3 deneme** üret ve en doğal olanı seç. Tek bir cümle kötü çıktıysa sadece o paragrafı yeniden üret, iki dosyayı da bana gönder. Birleştirmeyi ben yaparım.
 - **Çıktı:** WAV ya da en yüksek kalite MP3. ElevenLabs'te müzik veya efekt **ekleme**, bana temiz ses lazım.
 

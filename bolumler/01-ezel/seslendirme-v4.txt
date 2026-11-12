@@ -1,24 +1,24 @@
-[softly] Bu adam… öldü.
-[dramatically] Sonra bir gün, bambaşka bir yüzle geri döndü. [whispers] Onu öldürenlerden hesap sormaya.
-[curious] Kim mi öldürdü onu? [sad] En yakın iki arkadaşı… ve uğruna ölebileceği kadın.
+[serious] Bu adam, resmî kayıtlara göre 2005'te öldü.
+[dramatically] Ama ölmedi. Yüzünü de adını da değiştirip geri döndü. Tek bir amacı vardı: Hayatını mahvedenlerden hesap sormak.
+[serious] Kim mi bunlar? En yakın iki arkadaşı ve evlenmek istediği kız.
 [long pause]
-[warmly] Bak şimdi. 1997. Ömer Uçar; tamirhanede çırak, herkese hemen güvenen saf bir çocuk. Dünyası üç kişi: Ali, Cengiz… ve Eyşan.
-[cautiously] Ama bu üçü, Eyşan'ın babasının kurduğu bir kumarhane soygununun içinde. Cengiz içeride, silah Ali'de. [whispers] Eyşan'ın işi ise… Ömer'i tuzağa çekmek.
-[sighs] Soygun gecesi Ali bir güvenlik görevlisini öldürüyor. Ve cinayet silahı… Ömer'in ceketiyle birlikte bulunuyor.
-[sad] Düşünsene… Sevdiğin kıza evlenme teklif ediyorsun. Ertesi gün, bileklerinde kelepçe. Mahkemede tanık kürsüsüne çıkan kişi ise… [pause] Eyşan. Ve tek bir yeminle, Ömer'i toprağa gömüyor.
-[tired] Sekiz yıl. "Para nerede?" diye her Allah'ın günü dayak.
-[warmly] Ama o cehennemde ona oğlu gibi sahip çıkan biri var: Ramiz Dayı. Eski bir mafya babası. Ömer'e hayatı, bir satranç tahtası gibi oynamayı öğretiyor.
-[dramatically] 2005. Ramiz bir oyun kuruyor: Ömer Uçar kâğıt üstünde ölüyor… ve hapisten kaçıyor.
-[softly] Yalan da sayılmaz aslında. O gece Ömer gerçekten öldü. Ameliyat masasından bambaşka bir adam kalkıyor. [dramatically] Ezel Bayraktar.
-[mischievously] Ya o üçü? Ömer'den çaldıkları hayatı yaşıyorlar. Cengiz zengin bir otelci… ve Eyşan'ın kocası.
-[dramatically] Ezel aralarına dost diye giriyor. Ve hamle hamle… her şeylerini ellerinden alıyor.
-[sad] İşin en acı yanı ne, biliyor musun? Eyşan bu yabancıya âşık oluyor. Aynı adama… ikinci kez.
-[curious] Peki Eyşan neden yapmıştı? Hasta kız kardeşinin tedavi parası için. Ömer'in birkaç yıl yatıp çıkacağını sanmış. [sighs] Yanılmış.
-[nervous] Sonra tahtanın öbür ucuna Ramiz'in otuz yıllık düşmanı oturuyor: Kenan Birkan. Ve savaş, herkesi yutuyor. [sad] Ramiz Dayı'yı bile.
-[dramatically] Final. Ezel ile Eyşan sonunda yeniden kavuşuyor… ama Cengiz kıskançlıktan Eyşan'ı bıçaklıyor ve suçu yine Ezel'e atıyor.
-Bir zamanlar Ömer'i satan Ali, bu kez onun yanında. Cengiz'in hesabı, bir deniz fenerinde kapanıyor.
-[trembling voice] Eyşan'ın son isteği… Ezel'in değil, Ömer'in kollarında ölmek. Bir trende, gözleri yavaşça kapanıyor.
-[softly] Ve Ömer… Ramiz'in yüzüğündekini içiyor. [whispers] Vagon, kaybettiği herkesle doluyor.
-[long pause] Son sahne. Bir genç deniz fenerine geliyor: "Babamı görmeye geldim." Kapıya yürüyor… ve bir siluet beliriyor.
-[curious] Ezel yaşıyor mu? Kimse emin değil.
-[warmly] Ama ben sana şunu soracağım: Sen Ömer olsan… Eyşan'ı affeder miydin? Yaz bakalım.
+[warmly] Gel, sana Ezel'i baştan anlatayım.
+1997, İstanbul. Ömer Uçar; tamirhanede çırak, herkese hemen güvenen saf bir çocuk. Hayatında üç kişi var: Abi bildiği Ali, çocukluk arkadaşı Cengiz ve âşık olduğu Eyşan.
+[serious] Ama Ömer'in haberi yok; bu üçü, Eyşan'ın babasıyla bir kumarhane soygunu planlıyor. Cengiz içerideki adam, silah Ali'de. Eyşan'ın görevi ise Ömer'i oyuna getirmek; çünkü suç Ömer'e yıkılacak.
+Birkaç gün önce Cengiz, sarhoş halde Ömer'e silah doğrultuyor. Ömer silahı elinden alıyor. Cengiz'in elinde eldiven var. Ömer'in elinde yok.
+[sighs] Soygun gecesi Ali bir güvenlik görevlisini öldürüyor. Cinayet silahı, Ömer'in ceketiyle birlikte bulunuyor. Üstünde de Ömer'in parmak izleri.
+[sad] Ömer, Eyşan'a evlenme teklif ettiğinin ertesi günü tutuklanıyor. Mahkemede "Ben yapmadım" deyip duruyor. Sonra tanık çağrılıyor. [pause] Tanık, Eyşan. Soygunu da cinayeti de Ömer'in yaptığını söylüyor.
+Düşünsene; evlenme teklif ettiğin kız, seni hapse gönderiyor.
+[tired] İçeride "Para nerede?" diye neredeyse her gün dayak yiyor. [warmly] Ama ona oğlu gibi sahip çıkan biri var: Eski mafya babası Ramiz Dayı.
+[dramatically] 2005'te cezaevinde isyan çıkıyor, kavgada başgardiyan ölüyor. Ramiz de herkese Ömer'in öldüğünü duyuruyor. Ömer kaçıyor, yüzünü baştan yaptırıyor ve yeni bir isim alıyor: Ezel Bayraktar.
+[serious] Ezel döndüğünde Cengiz zengin bir otel sahibi ve Eyşan'la evli. Ezel karşılarına dost olarak çıkıyor; hiçbiri onu tanımıyor. Ve sahip oldukları her şeyi tek tek ellerinden alıyor.
+[sad] Ama Eyşan, karşısındaki adamın Ömer olduğunu bilmeden ona yeniden âşık oluyor.
+[curious] Peki Eyşan neden ihanet etmişti? Kız kardeşi Bahar'ın tedavi parası için. Ömer'in birkaç yıl yatıp çıkacağını sanmıştı.
+[serious] İkinci sezonda sahneye Türkiye'nin en güçlü adamı Kenan Birkan çıkıyor. Bu savaşta neredeyse herkes ölüyor; Ramiz Dayı da.
+[dramatically] Finalde Ezel ile Eyşan yeniden bir araya geliyor. Ama Cengiz kıskançlıktan Eyşan'ı bıçaklıyor ve suçu ikinci kez Ömer'e yıkıyor.
+Bu sefer, yıllar önce ona ihanet eden Ali onun yanında. İkisi Cengiz'i bir deniz fenerinde yakalayıp öldürüyor.
+[trembling voice] Eyşan'ın birkaç saati kalmış. Son isteği, Ömer'in kollarında ölmek. Ve bir trende gözlerini kapatıyor.
+[softly] Ramiz, Ömer'e bir yüzük vermişti: "Yeni bir hayata hazır olmadan sakın kullanma." Ömer yüzüğü açıp içindekini içiyor. Gözleri kapanırken vagonda kaybettiği herkes var.
+[whispers] Son sahnede bir genç, deniz fenerine gelip "Babamı görmeye geldim" diyor. Ömer'in oğlu. Kapıya yaklaşırken bir siluet görünüyor.
+[curious] Ezel yaşıyor mu, öldü mü? Dizi bunu hiçbir zaman net söylemiyor.
+[warmly] Şimdi sana soruyorum: Sen Ömer'in yerinde olsan, Eyşan'ı affeder miydin? Yorumlara yaz.
