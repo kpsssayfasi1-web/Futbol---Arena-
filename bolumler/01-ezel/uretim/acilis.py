@@ -41,6 +41,7 @@ T_HIT = word_at("kız")["end"] + 0.22
 T_A5 = T_HIT - 0.12
 T_FADE = word_at("anlatayım")["end"] + 0.3
 T_END = T_FADE + 0.65
+STRIKES = [T_A3 + 0.25, T_FOCUS + 0.95]
 CUTS = [(0.0, "a1"), (T_A2, "a2"), (T_A3, "a3"), (T_A4, "a4"), (T_A5, "a5")]
 
 
@@ -53,7 +54,8 @@ def shot_name(t: float) -> str:
 
 
 def build_shots():
-    return {"a1": ShotA1(T_A2), "a2": ShotA2(T_A2, T_SHATTER, T_A3), "a3": ShotA3(T_A3, T_FOCUS, T_A4),
+    return {"a1": ShotA1(T_A2, word_at("sanıyordu")["start"]), "a2": ShotA2(T_A2, T_SHATTER, T_A3),
+            "a3": ShotA3(T_A3, T_FOCUS, T_A4, STRIKES),
             "a4": ShotA4(T_A4, REVEALS, T_A5), "a5": ShotA5(T_A5, T_HIT, T_FADE, T_END)}
 
 
@@ -81,11 +83,14 @@ def build_sfx_music() -> np.ndarray:
     rain_l, rain_r = ses.rain(T_A4 - T_A3 + 0.3), ses.rain(T_A4 - T_A3 + 0.3)
     tl.put_stereo(rain_l, rain_r, T_A3, -23)
     tl.put(ses.muffled_party(T_A4 - T_A3), T_A3, -32, -0.2)
+    for k, st in enumerate(STRIKES):
+        tl.put(ses.thunder(3.2), st + 0.3, -15 - 3 * k, 0.2 - 0.4 * k)
     for midi, t in ((57, T_A3 + 0.2), (60, T_A3 + 1.0), (59, T_A3 + 1.8)):
         tl.put(ses.reverb(ses.piano_note(midi, 3.5, 0.8), 2.4, 0.4), t, -22)
     tl.put(ses.riser(T_HIT - T_A3 - 0.4), T_A3 + 0.4, -25)
     tl.put(ses.heartbeat(T_A5 - T_A4 + 0.2, 66), T_A4, -19)
     for (t, pan), midi in zip(zip(REVEALS, (-0.45, 0.0, 0.45)), (64, 62, 60)):
+        tl.put(ses.whoosh(0.26, 900, 3200), t - 0.26, -24, pan)
         tl.put(ses.switch_thunk(), t, -17, pan)
         tl.put(ses.reverb(ses.wood_clack(), 1.2, 0.3), t + 0.04, -16, pan)
         tl.put(ses.reverb(ses.piano_note(midi, 3, 0.7), 2.2, 0.4), t + 0.05, -24, pan)
@@ -111,6 +116,11 @@ def load_voice() -> np.ndarray:
     i = int(VO_OFFSET * ses.SR)
     n = min(len(v), len(out) - i)
     out[i:i + n] = v[:n] * 2.0  # +6 dB
+    # Açılış "anlatayım" ile biter: sonraki cümlenin sesi ("1997...") içeri sızmasın.
+    cut = int((word_at("anlatayım")["end"] + 0.12) * ses.SR)
+    fade = int(0.08 * ses.SR)
+    out[cut:cut + fade] *= np.linspace(1, 0, len(out[cut:cut + fade]))
+    out[cut + fade:] = 0
     return out
 
 
@@ -152,6 +162,9 @@ def main():
     shots, fin = build_shots(), Finisher()
     captions = CaptionRenderer("/usr/share/fonts/opentype/inter/Inter-ExtraBold.otf", 88, 1270, max_width=1000)
     chunks = chunk_words([w for w in WORDS if w["start"] < T_FADE])
+    for c in chunks:  # başlık darbesi gelince önceki altyazı kalmasın
+        if c["start"] < T_HIT:
+            c["end"] = min(c["end"], T_HIT - 0.02)
     print(f"kırılma {T_SHATTER:.2f}  A3 {T_A3:.2f}  A4 {T_A4:.2f}  açılış {REVEALS}  başlık {T_HIT:.2f}")
     if "--kareler" in args:
         from PIL import Image

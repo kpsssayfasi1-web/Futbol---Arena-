@@ -241,3 +241,12 @@ class Timeline:
     def put_stereo(self, left: np.ndarray, right: np.ndarray, at: float, gain_db: float = 0.0):
         self.put(left, at, gain_db, -1.0)
         self.put(right, at, gain_db, 1.0)
+
+
+def thunder(dur: float = 3.2) -> np.ndarray:
+    """Gök gürültüsü: kısa çatırtı + yuvarlanan alçak gürleme."""
+    t = _t(dur)
+    crack = _high(_noise(dur), 1500) * np.exp(-t * 14)
+    rumble = _low(_noise(dur), 120) * np.minimum(t / 0.15, 1) * np.exp(-t * 1.1)
+    roll = _low(_noise(dur), 400) * (0.5 + 0.5 * np.sin(2 * np.pi * 1.7 * t)) * np.exp(-t * 1.5)
+    return _norm(0.5 * crack + rumble + 0.5 * roll)

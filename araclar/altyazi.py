@@ -65,16 +65,20 @@ class CaptionRenderer:
     def sprite(self, text: str) -> np.ndarray:
         if text in self.cache:
             return self.cache[text]
+        # Bütün kelimeler aynı yükseklikte ve aynı taban çizgisinde çizilir (satır hizası bozulmaz).
         stroke, pad = max(4, self.size // 11), self.size // 2
-        bbox = self.font.getbbox(text, stroke_width=stroke)
-        w, h = bbox[2] - bbox[0] + 2 * pad, bbox[3] - bbox[1] + 2 * pad
+        ascent, descent = self.font.getmetrics()
+        bbox = self.font.getbbox(text, anchor="ls", stroke_width=stroke)
+        w = bbox[2] - bbox[0] + 2 * pad
+        h = ascent + descent + 2 * stroke + 2 * pad
+        origin = (pad - bbox[0], pad + stroke + ascent)
         shadow = Image.new("L", (w, h), 0)
-        ImageDraw.Draw(shadow).text((pad - bbox[0], pad - bbox[1] + 7), text, font=self.font, fill=170,
+        ImageDraw.Draw(shadow).text((origin[0], origin[1] + 7), text, font=self.font, fill=170, anchor="ls",
                                     stroke_width=stroke, stroke_fill=170)
         shadow = shadow.filter(ImageFilter.GaussianBlur(7))
         img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
         img.putalpha(shadow)
-        ImageDraw.Draw(img).text((pad - bbox[0], pad - bbox[1]), text, font=self.font, fill=word_color(text),
+        ImageDraw.Draw(img).text(origin, text, font=self.font, fill=word_color(text), anchor="ls",
                                  stroke_width=stroke, stroke_fill=(12, 10, 10))
         arr = np.asarray(img, np.float32) / 255.0
         arr[..., :3] *= arr[..., 3:4]

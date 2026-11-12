@@ -61,3 +61,10 @@ def test_word_colors():
     assert word_color("Ezel'i") == BRASS
     assert word_color("öldüğünü") == CRIMSON
     assert word_color("masa") == WHITE
+
+
+def test_caption_sprites_share_height_and_baseline():
+    from altyazi import CaptionRenderer
+    r = CaptionRenderer("/usr/share/fonts/opentype/inter/Inter-ExtraBold.otf", 88)
+    heights = {r.sprite(t).shape[0] for t in ("Ezel'i", "yüzünü", "değiştirip", "İstanbul.", "ya", "o,")}
+    assert len(heights) == 1
