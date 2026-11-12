@@ -1,0 +1,23 @@
+{
+  "name": "dizi-ozet-video",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "script:export": "node scripts/export-script.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource/montserrat": "5.2.5",
+    "@fontsource/playfair-display": "5.2.5",
+    "@remotion/cli": "4.0.533",
+    "@remotion/transitions": "4.0.533",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.533"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.2",
+    "typescript": "5.6.3"
+  }
+}
