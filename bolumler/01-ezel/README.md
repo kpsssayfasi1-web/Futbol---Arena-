@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Format | YouTube Shorts, dikey 1080×1920, 30 fps |
-| Tahmini süre | ~2:05–2:15 (net süre seslendirme gelince belli olur) |
+| Tahmini süre | ~2:20–2:30 (net süre seslendirme gelince belli olur) |
 | Seslendirme | ElevenLabs **Eleven v4**, metin: [`seslendirme-v4.txt`](seslendirme-v4.txt) |
 | Görseller | ChatGPT (aşağıdaki promptlar) |
 | Kurgu, animasyon, müzik, efekt, altyazı | Claude (kod tabanlı üretim hattı) |
@@ -17,9 +17,9 @@ Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniye
 | # | Zaman* | Seslendirme | Görsel | Hareket / animasyon | Ses efekti / müzik |
 |---|---|---|---|---|---|
 | A1 | 0:00–0:02 | "Bu adam… öldü." | Loş hastane odası, tek çıplak ampul. Sandalyede yüzü tamamen sargılı bir adam. | Ampul sallanır, ışık odada sağa sola süpürür. 3 katmanlı parallax ile içeri yaklaşma. Havada toz. | 0.0 sn'de derin "boom" ve kulak çınlaması. Ampul cızırtısı. |
-| A2 | 0:02–0:04.5 | "Sonra bir gün, başka bir yüzle geri döndü." | Omuz üstünden aynaya bakış. Yansımada sargılı yüz var. Çatlak büyür, ayna kırılır ve yansımada takım elbiseli yeni yüz belirir. | Çatlak büyüme animasyonu, cam kırıkları (parçacık), beyaz flaş, ani zoom. | Cam gerilme sesi, ardından kırılma ve whoosh. Ezel piyano motifinin ilk notası. |
-| A3 | 0:04.5–0:06.5 | "Onu öldürenlerin karşısına." | Arkadan Ezel. Yağmurlu camın ardında yalıda bir davet ve üç figür. | Odak kayması (Ezel'den üçlüye), camdan akan yağmur damlaları, yavaş ilerleme. | Cama vuran yağmur, boğuk davet uğultusu, yükselen gerilim sesi (riser) başlar. |
-| A4 | 0:06.5–0:10.5 | "Peki kim öldürdü onu? En yakın iki arkadaşı… ve hayatının kadını." | Karanlıkta satranç tahtası. Spotlar sırayla yanar: beyaz fil (**CENGİZ**), beyaz at (**ALİ**), beyaz vezir (**EYŞAN**). | Her spot yandığında isim etiketi belirir. Kamera tahtanın etrafında yavaşça döner, ışık hüzmelerinde toz uçuşur. | Her spotta şalter sesi ve tahta taş "tak" sesi. Altta kalp atışı. |
+| A2 | 0:02–0:04.5 | "Sonra bir gün, bambaşka bir yüzle geri döndü." | Omuz üstünden aynaya bakış. Yansımada sargılı yüz var. Çatlak büyür, ayna kırılır ve yansımada takım elbiseli yeni yüz belirir. | Çatlak büyüme animasyonu, cam kırıkları (parçacık), beyaz flaş, ani zoom. | Cam gerilme sesi, ardından kırılma ve whoosh. Ezel piyano motifinin ilk notası. |
+| A3 | 0:04.5–0:06.5 | "Onu öldürenlerden hesap sormaya." | Arkadan Ezel. Yağmurlu camın ardında yalıda bir davet ve üç figür. | Odak kayması (Ezel'den üçlüye), camdan akan yağmur damlaları, yavaş ilerleme. | Cama vuran yağmur, boğuk davet uğultusu, yükselen gerilim sesi (riser) başlar. |
+| A4 | 0:06.5–0:10.5 | "Kim mi öldürdü onu? En yakın iki arkadaşı… ve uğruna ölebileceği kadın." | Karanlıkta satranç tahtası. Spotlar sırayla yanar: beyaz fil (**CENGİZ**), beyaz at (**ALİ**), beyaz vezir (**EYŞAN**). | Her spot yandığında isim etiketi belirir. Kamera tahtanın etrafında yavaşça döner, ışık hüzmelerinde toz uçuşur. | Her spotta şalter sesi ve tahta taş "tak" sesi. Altta kalp atışı. |
 | A5 | 0:10.5–0:13 | *(sessiz, `[long pause]`)* | Ön planda tek **siyah piyon** üçüne bakar. **EZEL** başlığı gelir, altında "Bir piyonun intikamı" yazar. | Pirinç harflerde ışık parlaması, kor parçacıkları, darbe sarsıntısı. | Büyük sinematik darbe ve yankı. 0.3 sn sessizlik, sonra "Bak şimdi." |
 
 \* Zamanlar tahminidir. Gerçek seslendirme gelince her kesme sesin ritmine göre ayarlanır.
@@ -58,7 +58,7 @@ Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her
 
 - **Model:** Eleven v4
 - **Ses:** Batuhan Altınova (ilk tercih). Beğenmezsen Ahmet Akyalçın Pro'yu dene.
-- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~2.330 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
+- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~2.600 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
 - **2–3 deneme** üret ve en doğal olanı seç. Tek bir cümle kötü çıktıysa sadece o paragrafı yeniden üret, iki dosyayı da bana gönder. Birleştirmeyi ben yaparım.
 - **Çıktı:** WAV ya da en yüksek kalite MP3. ElevenLabs'te müzik veya efekt **ekleme**, bana temiz ses lazım.
 
@@ -78,8 +78,10 @@ Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her
 | **Kenan Birkan, Eyşan'ın babası mı?** | ❌ **Hayır.** Eyşan'ın babası Serdar Tezcan. Metne hiç girmemişti. |
 | Final: Cengiz Eyşan'ı bıçaklıyor ve suçu Ezel'e atıyor; Ezel ile Ali Cengiz'i deniz fenerinde öldürüyor; Eyşan trende Ezel'in kollarında gözlerini kapatıyor; Ezel Ramiz'in yüzüğündekini içiyor | ✅ Doğrulandı |
 | Son sahne: bir genç fenere gelip "Babamı görmeye geldim" diyor; kapıda bir siluet | ✅ Doğrulandı (metne eklendi) |
-| Eyşan'ın motivi: kız kardeşi Bahar'ın tedavi parası | ✅ Doğrulandı (kapanış sorusuna eklendi) |
-| Ramiz'in Ezel'e satranç öğretmesi | ⚠️ Wikipedia'da geçmiyor. Referans video da aynı bilgiyi veriyor; dizide böyle olduğunu biliyorsan sorun yok. |
+| Eyşan'ın motivi: kız kardeşi Bahar'ın tedavi parası; Ömer'in kısa ceza alacağını sanması | ✅ Doğrulandı |
+| Eyşan'ın son isteği: Ömer'in kollarında ölmek; trende ölen sevdikleri de yolcu olarak görünüyor | ✅ Doğrulandı |
+| Ömer, Eyşan'a evlenme teklif ettiğinin ertesi günü hapse giriyor | ✅ Doğrulandı |
+| Ramiz'in Ezel'e satranç öğretmesi | ⚠️ Wikipedia'da geçmiyor. Metinde artık mecaz olarak geçiyor ("hayatı bir satranç tahtası gibi oynamayı öğretiyor"). |
 
 ## 6. Sıradaki adımlar
 
