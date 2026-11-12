@@ -48,59 +48,7 @@ Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniye
 
 ## 3. ChatGPT görsel promptları — açılış seti
 
-**Kurallar:**
-1. Her promptun başına aşağıdaki **STİL** bloğunu yapıştır.
-2. Görselleri **PNG** ve en yüksek çözünürlükte indir. Dosya adı olarak koddaki kimliği kullan (`A1-BG.png` gibi).
-3. "Transparent background" isteyen görseller **şeffaf PNG** olmalı. ChatGPT şeffaf veremezse sonuna `on a solid pure green #00FF00 background` ekle, arka planı ben temizlerim.
-4. Görsellerde yazı istemiyoruz. Gazete manşeti, isimler ve başlık gibi bütün yazıları kurguda ben ekleyeceğim.
-
-**STİL bloğu:**
-```
-Cinematic painterly digital illustration in a dark graphic-novel style. Visible brush and ink texture, dramatic single-source lighting with volumetric light beams, deep midnight-teal shadows, warm brass/amber highlights, rare deep-crimson accents, subtle film grain. Semi-realistic stylized proportions. All characters are original and must NOT resemble any real actor or real person. Absolutely no text, letters, numbers, logos or watermarks. Vertical 2:3 portrait. Keep the main subject centered with generous empty margin on all sides (the image will be cropped and animated).
-```
-
-**A1-BG** (arka plan, insan yok)
-```
-Empty, dim hospital recovery room at night in Istanbul in the early 2000s. Peeling pale-green walls, the edge of a metal hospital bed on the left, an empty open space in the center of the room. A single bare light bulb hangs on a cord from the ceiling at the top center and glows warm amber, casting a soft pool of light on the floor; everything else falls into teal darkness. No people, no furniture in the center.
-```
-
-**A1-CHAR** (karakter katmanı)
-```
-A man sitting on a simple wooden chair, facing the viewer, his whole head and face wrapped in white surgical bandages, only two dark eye openings in shadow. Plain dark shirt, slumped shoulders, hands resting on his knees. Full body including the chair, lit from directly above by a warm bare bulb. Transparent background (PNG).
-```
-
-**A2a** (ayna, sargılı hâli)
-```
-Over-the-shoulder view from behind a man whose head is wrapped in white surgical bandages, looking into an old cracked bathroom mirror with a tarnished brass frame. In the mirror we see his reflection: the face completely wrapped in bandages, eyes hidden in shadow. A single bare bulb above, teal shadows, amber highlights.
-```
-
-**A2b** (aynı sohbette, A2a üretildikten hemen sonra; aynı kadrajın düzenlenmiş hâli)
-```
-Edit this exact image. Keep the composition, mirror, frame, lighting and camera angle identical. Change only the man: no bandages anymore. In the mirror his reflection now shows a man in his early 40s with short dark hair, a sharp jawline and light stubble, wearing a black tailored suit and black shirt. Half of his face is in deep shadow, one eye catches warm amber light, cold determined gaze. The man in the foreground, seen from behind, now has short dark hair and the same black suit.
-```
-> ⭐ **A2b, Ezel'in yüz referansı olacak.** Sonraki bütün Ezel sahnelerinde bu görseli ChatGPT'ye referans olarak vereceğiz.
-
-**A3-BG** (yağmurlu camın ardındaki davet)
-```
-Night view through a tall rain-streaked window into a warmly lit luxurious waterfront mansion on the Bosphorus during an elegant party: crystal chandeliers, soft golden bokeh. In the middle distance, three figures stand together holding drinks: two men in suits and a woman in a deep crimson evening dress. Their faces are small and softly out of focus. The outside of the window is dark and cold teal. No person in the foreground.
-```
-
-**A3-FG** (ön planda arkası dönük Ezel)
-```
-Back view of a man in a black tailored overcoat, from the waist up, standing and looking away from the viewer. Only the back of his head and shoulders are visible, short dark hair, rim-lit by warm amber light from the front. Transparent background (PNG).
-```
-
-**A4-BG** (boş satranç tahtası)
-```
-An old, worn wooden chessboard on a dark table in an otherwise pitch-black room, low camera angle close to the board surface, the board receding in perspective toward the top of the frame. The board is completely empty. Faint dust floating in the air, teal ambient shadows, a very soft amber glow on the near edge.
-```
-
-**A4-PIECES** (taşlar; ayrı ayrı keseceğim. **Bu görsel yatay 3:2 olsun**, STİL bloğundaki "vertical" ifadesini sil)
-```
-Five hand-carved antique wooden chess pieces standing side by side in a single row, evenly spaced with clear empty gaps between them: a white bishop, a white knight, a white queen, a black pawn, a black queen. White pieces are aged ivory, black pieces are dark ebony with subtle brass details. Same eye-level camera angle and the same soft top lighting for all pieces. Transparent background (PNG). Horizontal 3:2 image.
-```
-
-A5 başlık kartı için görsel gerekmiyor. Başlığı, pirinç efektini ve kor parçacıklarını kodla üretiyorum. Piyon A4-PIECES'tan alınacak.
+Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her prompt kendi başına eksiksiz ve kopyalanmaya hazır. Açılış için 8 görsel var (A1–A4). A5 başlık kartını kodla üretiyorum.
 
 ---
 
