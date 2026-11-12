@@ -28,7 +28,9 @@ Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniye
 
 ## 2. Görsel kimlik (referans videodan ayrışan kendi dilimiz)
 
-- **Stil:** Sinematik 2.5D. Fırça dokulu, grafik roman havasında illüstrasyonlar katmanlara ayrılıp derinlikli kamera hareketleriyle canlandırılır. Düz vektör ya da siluet kullanılmaz.
+- **Stil:** Çizgi roman. Temiz siyah mürekkep konturlar, düz iki tonlu gölgelendirme, gölgelerde hafif tarama, kâğıt greni. Görseller katmanlara ayrılıp derinlikli kamera hareketleri, çizgi titreşimi ve ışık animasyonlarıyla canlandırılır. Stil referansı: [`gorseller/A2b.png`](gorseller/A2b.png).
+- **Karakter benzerliği:** Oyuncuların yüzleri kopyalanmaz. Karakteri tanıtan şey imza özellikleridir: saç, sakal, yaş, kıyafet, aksesuar ve renk. Ekrandaki isim etiketi ve anlatım tanınmayı tamamlar. Bunun nedenleri: kişilik/portre hakları, YouTube'da tanınabilir kişinin şikâyetiyle video kaldırma riski ve görsel tutarlılık.
+- **Ezel karakter kartı:** 40'lı yaşların başı, kısa koyu dalgalı geriye taranmış saç, hafif sakal, keskin çene, siyah takım elbise ve siyah gömlek, kravat yok, soğuk bakış. Yüz referansı: `A2b.png`.
 - **Ezel paleti:** gece mavisi/petrol `#0E1A24`, pirinç/amber `#C8913A`, idareli kullanılan koyu kan kırmızısı `#8E1B1B`. Üstüne film greni ve vinyet.
 - **Ana motif — satranç:** Her karakterin bir taşı var. Bölüm geçişleri tahtada bir hamleyle yapılır, imza sesimiz taşın tahtaya vuruşudur.
 
@@ -48,7 +50,7 @@ Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniye
 
 ## 3. ChatGPT görsel promptları — açılış seti
 
-Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her prompt kendi başına eksiksiz ve kopyalanmaya hazır. Açılış için 8 görsel var (A1–A4). A5 başlık kartını kodla üretiyorum.
+Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her prompt kendi başına eksiksiz ve kopyalanmaya hazır. Açılış için 7 görsel gerekiyor: A2b hazır, 6'sı üretilecek. A5 başlık kartını kodla üretiyorum.
 
 ---
 
@@ -75,6 +77,6 @@ Metin, dizinin bilinen olay örgüsüne ve referans videodaki bilgilere dayanıy
 
 ## 6. Sıradaki adımlar
 
-1. Sen **seslendirmeyi** ve **açılış görsellerini** (A1–A4, toplam 8 görsel) üretip bana gönderirsin.
+1. Sen **seslendirmeyi** ve **açılış görsellerini** (6 görsel) üretip bana gönderirsin.
 2. Ben önce **13 saniyelik açılışı** tamamen bitmiş hâliyle kurgularım: animasyon, müzik, efekt ve altyazı dahil. Bu, kalite testi olur.
 3. Açılışı onaylarsan videonun geri kalanının sahne listesini ve promptlarını çıkarırım, ardından bütün bölümü kurgularım.
