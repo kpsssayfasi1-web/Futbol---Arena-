@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Format | YouTube Shorts, dikey 1080×1920, 30 fps |
-| Tahmini süre | ~2:40–2:55 (net süre seslendirme gelince belli olur; gerekirse kurguda ayarlanır) |
+| Tahmini süre | ~2:45–3:00. Kurguda sessizlikler sıkılaştırılarak 2:58'in altında tutulur. Gerekirse Kenan cümlesi çıkarılır. |
 | Seslendirme | ElevenLabs **Eleven v4**, metin: [`seslendirme-v4.txt`](seslendirme-v4.txt) |
 | Görseller | ChatGPT (aşağıdaki promptlar) |
 | Kurgu, animasyon, müzik, efekt, altyazı | Claude (kod tabanlı üretim hattı) |
@@ -16,10 +16,10 @@ Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniye
 
 | # | Zaman* | Seslendirme | Görsel | Hareket / animasyon | Ses efekti / müzik |
 |---|---|---|---|---|---|
-| A1 | 0:00–0:03 | "Bu adam, resmî kayıtlara göre 2005'te öldü." | Loş hastane odası, tek çıplak ampul. Sandalyede yüzü tamamen sargılı bir adam. | Ampul sallanır, ışık odada sağa sola süpürür. Katmanlı parallax ile içeri yaklaşma. Havada toz. | 0.0 sn'de derin "boom" ve kulak çınlaması. Ampul cızırtısı. |
-| A2 | 0:03–0:06 | "Ama ölmedi. Yüzünü de adını da değiştirip geri döndü." | Omuz üstünden aynaya bakış. Yansımada sargılı yüz var. Çatlak büyür, ayna kırılır ve yansımada takım elbiseli yeni yüz belirir. | Çatlak büyüme animasyonu, cam kırıkları (parçacık), beyaz flaş, ani zoom. | Cam gerilme sesi, ardından kırılma ve whoosh. Ezel piyano motifinin ilk notası. |
-| A3 | 0:06–0:09 | "Tek bir amacı vardı: Hayatını mahvedenlerden hesap sormak." | Arkadan Ezel. Yağmurlu camın ardında yalıda bir davet ve üç figür. | Odak kayması (Ezel'den üçlüye), camdan akan yağmur damlaları, yavaş ilerleme. | Cama vuran yağmur, boğuk davet uğultusu, yükselen gerilim sesi (riser) başlar. |
-| A4 | 0:09–0:12.5 | "Kim mi bunlar? En yakın iki arkadaşı ve evlenmek istediği kız." | Karanlıkta satranç tahtası. Spotlar sırayla yanar: beyaz fil (**CENGİZ**), beyaz at (**ALİ**), beyaz vezir (**EYŞAN**). | Her spot yandığında isim etiketi belirir. Kamera tahtanın etrafında yavaşça döner, ışık hüzmelerinde toz uçuşur. | Her spotta şalter sesi ve tahta taş "tak" sesi. Altta kalp atışı. |
+| A1 | 0:00–0:03 | "Herkes bu adamın öldüğünü sanıyordu." | Loş hastane odası, tek çıplak ampul. Sandalyede yüzü tamamen sargılı bir adam. | Ampul sallanır, ışık odada sağa sola süpürür. Katmanlı parallax ile içeri yaklaşma. Havada toz. | 0.0 sn'de derin "boom" ve kulak çınlaması. Ampul cızırtısı. |
+| A2 | 0:03–0:06 | "Ama o, yüzünü ve adını değiştirip geri döndü." | Omuz üstünden aynaya bakış. Yansımada sargılı yüz var. Çatlak büyür, ayna kırılır ve yansımada takım elbiseli yeni yüz belirir. | Çatlak büyüme animasyonu, cam kırıkları (parçacık), beyaz flaş, ani zoom. | Cam gerilme sesi, ardından kırılma ve whoosh. Ezel piyano motifinin ilk notası. |
+| A3 | 0:06–0:09 | "Onu mahvedenlerden hesap sormak için." | Arkadan Ezel. Yağmurlu camın ardında yalıda bir davet ve üç figür. | Odak kayması (Ezel'den üçlüye), camdan akan yağmur damlaları, yavaş ilerleme. | Cama vuran yağmur, boğuk davet uğultusu, yükselen gerilim sesi (riser) başlar. |
+| A4 | 0:09–0:12.5 | "Kim mi onu mahvedenler? En yakın iki arkadaşı ve evlenmek istediği kız." | Karanlıkta satranç tahtası. Spotlar sırayla yanar: beyaz fil (**CENGİZ**), beyaz at (**ALİ**), beyaz vezir (**EYŞAN**). | Her spot yandığında isim etiketi belirir. Kamera tahtanın etrafında yavaşça döner, ışık hüzmelerinde toz uçuşur. | Her spotta şalter sesi ve tahta taş "tak" sesi. Altta kalp atışı. |
 | A5 | 0:12.5–0:16 | *(`[long pause]`)*, ardından "Gel, sana Ezel'i baştan anlatayım." | Ön planda tek **siyah piyon** üçüne bakar. **EZEL** başlığı gelir, altında "Bir piyonun intikamı" yazar. | Pirinç harflerde ışık parlaması, kor parçacıkları, darbe sarsıntısı. | Büyük sinematik darbe ve yankı. Kısa sessizlik, sonra anlatıcı hikâyeye girer. |
 
 \* Zamanlar tahminidir. Gerçek seslendirme gelince her kesme sesin ritmine göre ayarlanır.
@@ -31,10 +31,11 @@ Amaç: 1. saniyede şok cümlesi ve gizemli bir görüntü vermek. İlk 6 saniye
 1. **Konuşur gibi yaz.** Arkadaşına dizi anlatan biri nasıl konuşursa öyle: "Gel, baştan anlatayım", "Ama Ömer'in haberi yok", "Düşünsene", "Şimdi sana soruyorum".
 2. **Her cümle tek ve net bir bilgi versin.** Mecaz, şiirsel ifade ve havada kalan cümle kullanma.
 3. **Sebep-sonuç zinciri kur.** Her olayın *neden* olduğunu tek bir somut detayla göster (örnek: Cengiz'in eldiveni, silahta kalan parmak izleri).
-4. **Bölüm iskeleti:** kanca, kurulum, tuzak, ihanet, dip noktası, yeniden doğuş, intikam, büyük çatışma, final, son sahne, izleyiciye soru.
-5. **Üç noktayı (…) yalnızca gerçek bir duraksama için kullan. Duygu etiketini yalnızca ton değiştiğinde koy** (~20 etiket).
-6. **Kullanılan her bilgi doğrulanmış olsun** (bkz. bölüm 5). Ekranın zaten göstereceği detayı anlatıcıya söyletme.
-7. **Süre:** Shorts için en fazla ~400 kelime (yaklaşık 2:50).
+4. **Kurulum ve karşılık:** Başta kurulan her şey finalde karşılık bulsun. Ezel'de: "herkes öldü sanıyordu" ↔ "ikinci kez öldü mü?", evlenme teklifi ↔ kollarında ölüm, Cengiz suçu iki kez yıkıyor, tetiği çeken Ali ↔ yanında duran Ali, Ramiz'in yüzüğü ("aklında tut") ↔ yeni hayata hazır.
+5. **Bölüm iskeleti:** kanca, kurulum, tuzak, ihanet, dip noktası, yeniden doğuş, intikam, büyük çatışma, final, son sahne, izleyiciye soru.
+6. **Üç noktayı (…) yalnızca gerçek bir duraksama için kullan. Duygu etiketini yalnızca ton değiştiğinde koy** (~20 etiket).
+7. **Kullanılan her bilgi doğrulanmış olsun** (bkz. bölüm 5). Ekranın zaten göstereceği detayı anlatıcıya söyletme.
+8. **Süre:** Shorts için en fazla ~410 kelime (yaklaşık 2:55). Fazlası için hikâye iki bölüme ayrılır.
 
 ---
 
@@ -70,7 +71,7 @@ Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her
 
 - **Model:** Eleven v4
 - **Ses:** Batuhan Altınova (ilk tercih). Beğenmezsen Ahmet Akyalçın Pro'yu dene.
-- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~3.000 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
+- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~3.100 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
 - **2–3 deneme** üret ve en doğal olanı seç. Tek bir cümle kötü çıktıysa sadece o paragrafı yeniden üret, iki dosyayı da bana gönder. Birleştirmeyi ben yaparım.
 - **Çıktı:** WAV ya da en yüksek kalite MP3. ElevenLabs'te müzik veya efekt **ekleme**, bana temiz ses lazım.
 
