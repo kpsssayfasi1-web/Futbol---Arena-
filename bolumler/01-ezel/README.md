@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | Format | YouTube Shorts, dikey 1080×1920, 30 fps |
-| Tahmini süre | ~2:00–2:10 (net süre seslendirme gelince belli olur) |
+| Tahmini süre | ~2:05–2:15 (net süre seslendirme gelince belli olur) |
 | Seslendirme | ElevenLabs **Eleven v4**, metin: [`seslendirme-v4.txt`](seslendirme-v4.txt) |
 | Görseller | ChatGPT (aşağıdaki promptlar) |
 | Kurgu, animasyon, müzik, efekt, altyazı | Claude (kod tabanlı üretim hattı) |
@@ -58,22 +58,28 @@ Promptlar ayrı dosyada: **[`gorsel-promptlari.md`](gorsel-promptlari.md)**. Her
 
 - **Model:** Eleven v4
 - **Ses:** Batuhan Altınova (ilk tercih). Beğenmezsen Ahmet Akyalçın Pro'yu dene.
-- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~2.450 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
+- **Metin:** [`seslendirme-v4.txt`](seslendirme-v4.txt) dosyasını **tek parça**, etiketleriyle birlikte yapıştır (~2.330 karakter). Arayüz karakter sınırına takılırsan metni `[dramatically] 2005.` satırından ikiye böl.
 - **2–3 deneme** üret ve en doğal olanı seç. Tek bir cümle kötü çıktıysa sadece o paragrafı yeniden üret, iki dosyayı da bana gönder. Birleştirmeyi ben yaparım.
 - **Çıktı:** WAV ya da en yüksek kalite MP3. ElevenLabs'te müzik veya efekt **ekleme**, bana temiz ses lazım.
 
 ---
 
-## 5. Yayından önce teyit listesi
+## 5. Bilgi doğrulaması (Wikipedia TR/EN, 12.11.2026)
 
-Metin, dizinin bilinen olay örgüsüne ve referans videodaki bilgilere dayanıyor. Dizi hayranları hataları hemen yakalar, bu yüzden şunları kontrol et:
-
-1. **Tarihler:** Soygun 1997, kaçış 2005.
-2. **Başlık kartı:** 2 sezon, 71 bölüm.
-3. **Kenan Birkan, Eyşan'ın babası mı?** Hatırladığım kadarıyla öyle. Ama emin olmadığım için metne koymadım. Doğruysa çok güçlü bir twist olur. O durumda Kenan satırının arkasına şunu eklerim:
-   `[surprised] Ve işin en büyük sürprizi… Kenan Birkan, Eyşan'ın babası.`
-
----
+| İddia | Sonuç |
+|---|---|
+| Soygun 1997, kaçış 2005 | ✅ Doğrulandı |
+| 2 sezon, 71 bölüm (Show TV 2009 → atv, final 20.06.2011) | ✅ Doğrulandı |
+| Ömer tamirhanede çırak; Cengiz kumarhanede içeriden adam, silah Ali'de, Eyşan tuzak | ✅ Doğrulandı |
+| Ali bir **güvenlik görevlisini** vuruyor; silah ve ceket Ömer'in üstüne kalıyor; Eyşan aleyhine tanıklık ediyor | ✅ Doğrulandı ("bekçi" ifadesi düzeltildi) |
+| Hapiste neredeyse her gün dayak; Ramiz Dayı onu kanatlarının altına alıyor | ✅ Doğrulandı |
+| 2005: isyan, Ömer ölü gösterilip kaçırılıyor, estetik ameliyat, adı Ezel Bayraktar | ✅ Doğrulandı |
+| Kenan Birkan: Ramiz'in 30 yıl önceki en yakın dostu; Ramiz, Ezel'i kısmen bu savaş için yetiştirmiş | ✅ Doğrulandı |
+| **Kenan Birkan, Eyşan'ın babası mı?** | ❌ **Hayır.** Eyşan'ın babası Serdar Tezcan. Metne hiç girmemişti. |
+| Final: Cengiz Eyşan'ı bıçaklıyor ve suçu Ezel'e atıyor; Ezel ile Ali Cengiz'i deniz fenerinde öldürüyor; Eyşan trende Ezel'in kollarında gözlerini kapatıyor; Ezel Ramiz'in yüzüğündekini içiyor | ✅ Doğrulandı |
+| Son sahne: bir genç fenere gelip "Babamı görmeye geldim" diyor; kapıda bir siluet | ✅ Doğrulandı (metne eklendi) |
+| Eyşan'ın motivi: kız kardeşi Bahar'ın tedavi parası | ✅ Doğrulandı (kapanış sorusuna eklendi) |
+| Ramiz'in Ezel'e satranç öğretmesi | ⚠️ Wikipedia'da geçmiyor. Referans video da aynı bilgiyi veriyor; dizide böyle olduğunu biliyorsan sorun yok. |
 
 ## 6. Sıradaki adımlar
 
