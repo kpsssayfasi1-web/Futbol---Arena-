@@ -1,0 +1,5 @@
+# video üretim çıktıları (büyük dosyalar repoya girmez)
+bolumler/*/uretim/cikti/
+*_preview.jpg
+__pycache__/
+.pytest_cache/
