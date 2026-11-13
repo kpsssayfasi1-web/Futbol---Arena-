@@ -1,0 +1,20 @@
+{
+  "name": "physics-world-cup-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Renders Physics World Cup match Shorts from tournament data",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "short": "node make-short.js",
+    "calibrate": "node calibrate.js",
+    "test": "node --test \"test/*.test.js\"",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-exclude=\"test/**\" --test-coverage-exclude=\"../tournament/**\" \"test/*.test.js\""
+  },
+  "dependencies": {
+    "@fontsource/inter": "^5.0.18",
+    "flag-icons": "^7.2.3"
+  }
+}
