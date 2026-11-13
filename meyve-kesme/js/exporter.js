@@ -18,7 +18,7 @@ export function canExport() {
 
 async function pickVideo(width, height, fps) {
   for (const c of VIDEO_CODECS) {
-    const config = { codec: c.codec, width, height, bitrate: 14_000_000, framerate: fps };
+    const config = { codec: c.codec, width, height, bitrate: 24_000_000, framerate: fps };
     if (c.muxer === 'avc') config.avc = { format: 'avc' };
     try {
       const res = await VideoEncoder.isConfigSupported(config);

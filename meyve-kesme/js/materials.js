@@ -50,10 +50,10 @@ function bodyMaterial(item, cut) {
         objMap(vObjPos, oPart);
         float fLines = cutLines(vObjPos, true);
         vec3 fCol = gl_FrontFacing ? itemSkin(vObjPos, oPart) : itemInner(vObjPos, 0.2, oPart) * 0.75;
-        diffuseColor.rgb = fCol * (1.0 - 0.62 * fLines);`,
+        diffuseColor.rgb = fCol * (1.0 - 0.5 * fLines);`,
       ...PROPS('oPart', '1.0'),
       normal_fragment_begin: `$ORIGINAL
-        if (gl_FrontFacing) normal = bumpNormal(-vViewPosition, normal, itemBump(vObjPos, oPart) - fLines * 0.35, 1.0);`,
+        if (gl_FrontFacing) normal = bumpNormal(-vViewPosition, normal, itemBump(vObjPos, oPart) - fLines * 0.12, 1.0);`,
     },
   });
 }
@@ -73,7 +73,7 @@ function capMaterial(item, cut) {
         float cPart, cSkin, cDepth;
         vec3 cCol = objColor(vObjPos, cPart, cSkin, cDepth);
         if (cDepth < 0.0) discard;
-        diffuseColor.rgb = cCol * (1.0 - 0.5 * cutLines(vObjPos, false));`,
+        diffuseColor.rgb = cCol * (1.0 - 0.4 * cutLines(vObjPos, false));`,
       ...PROPS('cPart', 'cSkin'),
       emissivemap_fragment: '$ORIGINAL\ntotalEmissiveRadiance += itemEmissive(vObjPos, cDepth, cPart);',
     },

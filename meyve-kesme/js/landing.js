@@ -84,7 +84,7 @@ export function buildLandingTrack(data, round, sound) {
     energy += L[i] * L[i] + R[i] * R[i];
   }
   const rms = Math.sqrt(energy / (2 * n)) || 1e-9;
-  const gain = Math.min(0.9 / (rawPeak || 1), 0.16 / rms);
+  const gain = Math.min(0.9 / (rawPeak || 1), 0.1 / rms);
   let peak = 0;
   for (let i = 0; i < n; i++) {
     L[i] = Math.tanh(L[i] * gain);

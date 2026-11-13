@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTimeline, roundState } from '../js/timeline.js';
 import { knifePose, slerp, quatMul, quatAxisAngle, AXIS_QUAT } from '../js/knife-pose.js';
-import { roundEvents, eventsInWindow } from '../js/events.js';
+import { roundEvents, eventsInWindow, pickContact } from '../js/events.js';
 import { buildRoundCubes } from '../js/cubes-data.js';
 import { eventBank, impactGrain, PROFILES, filter, normalize, SAMPLE_RATE } from '../js/sfx.js';
 import { buildLandingTrack } from '../js/landing.js';
@@ -55,7 +55,7 @@ test('round events include a drop and every slow cut', () => {
   const ev = roundEvents(round);
   for (let i = 1; i < ev.length; i++) assert.ok(ev[i].t >= ev[i - 1].t);
   assert.equal(ev.filter((e) => e.type === 'drop').length, 1);
-  assert.equal(ev.filter((e) => e.type === 'thock').length, round.split[0] + round.split[2]);
+  assert.equal(ev.filter((e) => e.type === 'thock').length, round.split[0] + round.split[1] + round.split[2]);
   assert.equal(ev.filter((e) => e.type === 'slice').length, round.split[1]);
   assert.ok(ev.every((e) => e.profile === 'crisp'));
   const w = eventsInWindow(ev, round.land - 0.01, round.land + 0.01);
@@ -107,7 +107,7 @@ test('music: every style composes a full-length, non-silent, unclipped track', (
   for (const s of MUSIC_STYLES) {
     const song = compose({ style: s.id, seed: 4, duration: 8 });
     assert.ok(song.events.length > 20, s.id);
-    assert.ok(song.events.some((e) => ['oboe', 'accordion'].includes(e.inst)), `${s.id} has a lead`);
+    assert.ok(song.events.some((e) => ['oboe', 'accordion', 'vibes'].includes(e.inst)), `${s.id} has a lead`);
   }
   const m = renderMusic({ style: 'waltz', seed: 2, duration: 6 });
   assert.ok(m.left.length >= 6 * m.sampleRate);
@@ -127,4 +127,31 @@ test('lowpass filter removes high frequency content', () => {
   for (let i = n / 2; i < n; i++) peak = Math.max(peak, Math.abs(hi[i]));
   assert.ok(peak < 0.05, `peak ${peak}`);
   assert.equal(normalize(new Float32Array(4)).length, 4);
+});
+
+test('jazz: minor-key swing with a walking upright bass on every beat', () => {
+  const song = compose({ style: 'jazz', seed: 1, duration: 20 });
+  assert.equal(song.key, 62, 'default seed plays in D minor like the reference');
+  assert.ok(song.bpm >= 140 && song.bpm <= 152, `bpm ${song.bpm}`);
+  const bass = song.events.filter((e) => e.inst === 'upright');
+  const bars = Math.floor(20 / song.barDur);
+  assert.ok(bass.length >= bars * 4, `${bass.length} bass notes for ${bars} bars`);
+  assert.ok(bass.every((e) => e.midi >= 30 && e.midi <= 56), 'bass stays in the upright register');
+  assert.ok(song.events.some((e) => e.inst === 'jazzRide') && song.events.some((e) => e.inst === 'sweep'), 'brush kit');
+  const m = renderMusic({ style: 'jazz', seed: 1, duration: 4 });
+  assert.ok(m.left.every(Number.isFinite));
+  const peak = peakOf(m.left);
+  assert.ok(peak > 0.3 && peak <= 0.86, `peak ${peak}`);
+});
+
+test('fast cuts use a short swish instead of a sped-up one', () => {
+  const big = buildTimeline({ rounds: [1000] }).rounds[0];
+  const cuts = roundEvents(big).filter((e) => e.type === 'cut' || e.type === 'slice');
+  assert.ok(cuts.every((e) => e.rate >= 1 && e.rate <= 1.25), 'no pitch-shifted swishes');
+  const lens = eventBank('crisp');
+  assert.ok(cuts.every((e) => e.variant < lens[e.type].length));
+  assert.ok(cuts.some((e) => e.variant >= 6), 'short variants are used in dense passages');
+  const { block, rate, lead } = pickContact([0.1, 0.06, 0.036], 0.04);
+  assert.equal(block, 2);
+  assert.ok(Math.abs(lead - 0.036 / rate) < 1e-12 && lead <= 0.04 + 1e-9);
 });

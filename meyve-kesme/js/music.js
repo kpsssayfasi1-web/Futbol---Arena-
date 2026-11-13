@@ -1,15 +1,18 @@
-// Generative background music in a vintage style: a small composer (chord
-// progressions, motif-based melodies, accompaniment patterns) and synthesized
-// instruments, finished with a gramophone chain (band limit, saturation,
+// Generative background music: a small composer (chord progressions,
+// motif-based melodies, accompaniment patterns) and synthesized instruments.
+// The default "sneaky jazz" style is mastered clean with a small room; the
+// vintage styles go through a gramophone chain (band limit, saturation,
 // wow & flutter, crackle). Pure JS, runs in the worker, copyright free.
 import { mulberry32, hashSeed } from './rng.js';
 import { filter, SAMPLE_RATE } from './sfx.js';
+import { INSTRUMENTS } from './music-instruments.js';
+import { composeJazz } from './music-jazz.js';
 
 const SR = SAMPLE_RATE;
 const TAU = Math.PI * 2;
-const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
 
 export const MUSIC_STYLES = [
+  { id: 'jazz', tr: 'Gizemli Caz', en: 'Sneaky Jazz' },
   { id: 'waltz', tr: 'Gramofon Valsi', en: 'Gramophone Waltz' },
   { id: 'swing', tr: 'Kafe Caz', en: 'Café Swing' },
   { id: 'baroque', tr: 'Barok Çay Saati', en: 'Baroque Tea Time' },
@@ -105,8 +108,9 @@ function phraseMelody(st, key, prog, rand, range) {
   return notes;
 }
 
-export function compose({ style = 'waltz', seed = 1, duration = 60 }) {
-  const st = STYLES[style] || STYLES.waltz;
+export function compose({ style = 'jazz', seed = 1, duration = 60 }) {
+  if (style === 'jazz' || !STYLES[style]) return composeJazz({ seed, duration });
+  const st = STYLES[style];
   const rand = mulberry32(hashSeed('music', style, seed));
   const key = st.keys[Math.floor(rand() * st.keys.length)];
   const bpm = st.bpm[0] + rand() * (st.bpm[1] - st.bpm[0]);
@@ -164,125 +168,14 @@ function accompany(st, ev, chord, bar, at, beat, rand, next, key) {
   }
 }
 
-// ---------- instruments ----------
-const tables = new Map();
-function reedTable(inst, f) {
-  const key = `${inst}|${Math.round(f)}`;
-  if (tables.has(key)) return tables.get(key);
-  const N = 2048;
-  const t = new Float32Array(N);
-  const g = (x, c, w) => Math.exp(-(((x - c) / w) ** 2));
-  for (let h = 1; h * f < 9000; h++) {
-    const x = h * f;
-    let a;
-    if (inst === 'clarinet') a = (h % 2 ? 1 : 0.12) * (0.3 + g(x, 1500, 600) + 0.5 * g(x, 2400, 700)) / h ** 0.4;
-    else if (inst === 'bassoon') a = (0.4 + g(x, 450, 200) + 0.7 * g(x, 1150, 400)) / h ** 0.5;
-    else if (inst === 'accordion') a = (0.5 + 0.8 * g(x, 1500, 1200)) / h ** 0.65;
-    else a = (0.18 + g(x, 1150, 420) + 0.6 * g(x, 2900, 800)) / h ** 0.25;
-    a *= x > 4500 ? Math.exp(-(x - 4500) / 1500) : 1;
-    for (let i = 0; i < N; i++) t[i] += a * Math.sin((TAU * h * i) / N + h * 0.7);
-  }
-  let rms = 0;
-  for (const v of t) rms += v * v;
-  rms = Math.sqrt(rms / N) || 1;
-  for (let i = 0; i < N; i++) t[i] /= rms * 3;
-  tables.set(key, t);
-  return t;
-}
-
-function renderReed(out, ev, rand, inst) {
-  const f = mtof(ev.midi);
-  const table = reedTable(inst, f);
-  const n = Math.floor((ev.dur + 0.12) * SR);
-  const start = Math.floor(ev.t * SR);
-  const voices = inst === 'accordion' ? [-0.006, 0.006] : [0];
-  for (const det of voices) {
-    let ph = rand();
-    for (let i = 0; i < n && start + i < out.length; i++) {
-      const t = i / SR;
-      const vib = 1 + (inst === 'accordion' ? 0 : 0.0045 * Math.sin(TAU * 5.3 * t) * Math.min(1, t / 0.35));
-      ph += (f * (1 + det) * vib) / SR;
-      const p = (ph - Math.floor(ph)) * 2048;
-      const k = p | 0;
-      const v = table[k] + (table[(k + 1) & 2047] - table[k]) * (p - k);
-      const envA = Math.min(1, t / 0.045) * (t > ev.dur ? Math.max(0, 1 - (t - ev.dur) / 0.1) : 1);
-      out[start + i] += v * envA * ev.vel * (inst === 'accordion' ? 0.6 : 1);
-    }
-  }
-}
-
-// Karplus-Strong with an all-pass tuning stage.
-function renderPluck(out, ev, rand, { sustain, bright, gain }) {
-  const f = mtof(ev.midi);
-  const D = SR / f - 0.5;
-  const N = Math.max(2, Math.floor(D));
-  const frac = D - N;
-  const C = (1 - frac) / (1 + frac);
-  const buf = new Float32Array(N);
-  let lp = 0;
-  for (let i = 0; i < N; i++) {
-    lp += (rand() * 2 - 1 - lp) * bright;
-    buf[i] = lp;
-  }
-  const n = Math.floor(Math.min(ev.dur + 0.6, 2.5) * SR);
-  const start = Math.floor(ev.t * SR);
-  let idx = 0;
-  let apX = 0;
-  let apY = 0;
-  for (let i = 0; i < n && start + i < out.length; i++) {
-    const a = buf[idx];
-    const b = buf[(idx + 1) % N];
-    const avg = sustain * 0.5 * (a + b);
-    const y = C * avg + apX - C * apY;
-    apX = avg;
-    apY = y;
-    buf[idx] = y;
-    idx = (idx + 1) % N;
-    const t = i / SR;
-    const release = t > ev.dur + 0.3 ? Math.max(0, 1 - (t - ev.dur - 0.3) / 0.3) : 1;
-    out[start + i] += a * gain * ev.vel * release;
-  }
-}
-
-function renderEp(out, ev) {
-  const f = mtof(ev.midi);
-  const n = Math.floor((ev.dur + 0.4) * SR);
-  const start = Math.floor(ev.t * SR);
-  for (let i = 0; i < n && start + i < out.length; i++) {
-    const t = i / SR;
-    const e = Math.exp(-t / 0.9) * Math.min(1, t / 0.004) * (t > ev.dur ? Math.max(0, 1 - (t - ev.dur) / 0.3) : 1);
-    out[start + i] += ev.vel * 0.35 * e * (Math.sin(TAU * f * t) + 0.25 * Math.sin(TAU * 2 * f * t) * Math.exp(-t / 0.2) + 0.06 * Math.sin(TAU * 7.1 * f * t) * Math.exp(-t / 0.05));
-  }
-}
-
-function renderNoiseHit(out, ev, rand, { freq, q, attack, decay }) {
-  const n = Math.floor((attack + decay * 5) * SR);
-  const start = Math.floor(ev.t * SR);
-  const tmp = new Float32Array(n);
-  for (let i = 0; i < n; i++) tmp[i] = rand() * 2 - 1;
-  filter(tmp, 'bandpass', freq, q);
-  for (let i = 0; i < n && start + i < out.length; i++) {
-    const t = i / SR;
-    out[start + i] += tmp[i] * ev.vel * Math.min(1, t / attack) * Math.exp(-Math.max(0, t - attack) / decay) * 0.6;
-  }
-}
-
-const PLUCKS = {
-  pizz: { sustain: 0.994, bright: 0.35, gain: 0.9 },
-  bass: { sustain: 0.997, bright: 0.25, gain: 1.1 },
-  cello: { sustain: 0.996, bright: 0.3, gain: 1.0 },
-  harp: { sustain: 0.9985, bright: 0.55, gain: 0.45 },
-  guitar: { sustain: 0.995, bright: 0.6, gain: 0.4 },
-  harpsichord: { sustain: 0.997, bright: 0.95, gain: 0.35 },
-};
-const PAN = { oboe: 0.15, clarinet: -0.3, bassoon: -0.25, accordion: 0.1, pizz: -0.1, bass: -0.1, cello: -0.15, harp: 0.35, guitar: 0.3, harpsichord: 0.3, ep: 0.25, ride: 0.4, brush: -0.2 };
+const PAN = { oboe: 0.15, clarinet: -0.3, bassoon: -0.25, accordion: 0.1, pizz: -0.1, bass: -0.1, cello: -0.15, harp: 0.35, guitar: 0.3, harpsichord: 0.3, ep: -0.25, ride: 0.4, brush: -0.2, upright: 0, vibes: 0.28, jazzPizz: 0.2, jazzRide: 0.35, snare: -0.12, hat: 0.25, kick: 0, sweep: -0.18 };
 
 // ---------- gramophone ----------
 function gramophone(L, R, rand) {
   const n = L.length;
   for (const ch of [L, R]) {
-    filter(ch, 'highpass', 230, 0.7);
-    filter(ch, 'lowpass', 4300, 0.75);
+    filter(ch, 'highpass', 110, 0.7);
+    filter(ch, 'lowpass', 5200, 0.75);
     for (let i = 0; i < n; i++) ch[i] = Math.tanh(ch[i] * 1.5) / Math.tanh(1.5);
   }
   const outL = new Float32Array(n);
@@ -317,7 +210,66 @@ function gramophone(L, R, rand) {
   return [outL, outR];
 }
 
-export function renderMusic({ style = 'waltz', seed = 1, duration = 60 }) {
+// Clean master for the jazz style: rumble filter, gentle top roll-off, a
+// small Schroeder room and soft saturation.
+const COMBS = [1116, 1188, 1277, 1356];
+const ALLPASS = [556, 441];
+function room(L, R, wet = 0.14) {
+  const n = L.length;
+  const process = (src, spread) => {
+    const out = new Float32Array(n);
+    for (const d0 of COMBS) {
+      const d = Math.round((d0 + spread) * (SR / 44100));
+      const buf = new Float32Array(d);
+      let idx = 0;
+      let lp = 0;
+      for (let i = 0; i < n; i++) {
+        const y = buf[idx];
+        lp = y * 0.6 + lp * 0.4;
+        buf[idx] = src[i] + lp * 0.74;
+        out[i] += y * 0.25;
+        idx = (idx + 1) % d;
+      }
+    }
+    for (const d0 of ALLPASS) {
+      const d = Math.round((d0 + spread) * (SR / 44100));
+      const buf = new Float32Array(d);
+      let idx = 0;
+      for (let i = 0; i < n; i++) {
+        const b = buf[idx];
+        const y = -out[i] + b;
+        buf[idx] = out[i] + b * 0.5;
+        out[i] = y;
+        idx = (idx + 1) % d;
+      }
+    }
+    return out;
+  };
+  const mono = new Float32Array(n);
+  for (let i = 0; i < n; i++) mono[i] = (L[i] + R[i]) * 0.5;
+  filter(mono, 'highpass', 300, 0.7);
+  const wl = process(mono, 0);
+  const wr = process(mono, 23);
+  for (let i = 0; i < n; i++) {
+    L[i] += wl[i] * wet;
+    R[i] += wr[i] * wet;
+  }
+}
+
+function cleanMaster(L, R) {
+  for (const ch of [L, R]) {
+    filter(ch, 'highpass', 32, 0.7);
+    filter(ch, 'lowpass', 11000, 0.6);
+  }
+  room(L, R);
+  let peak = 0;
+  for (let i = 0; i < L.length; i++) peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
+  const drive = peak > 0 ? 1.25 / peak : 1;
+  for (const ch of [L, R]) for (let i = 0; i < ch.length; i++) ch[i] = Math.tanh(ch[i] * drive);
+  return [L, R];
+}
+
+export function renderMusic({ style = 'jazz', seed = 1, duration = 60 }) {
   const song = compose({ style, seed, duration });
   const rand = mulberry32(hashSeed('music-render', style, seed));
   const n = Math.ceil((duration + 0.2) * SR);
@@ -328,17 +280,13 @@ export function renderMusic({ style = 'waltz', seed = 1, duration = 60 }) {
   for (const ev of song.events) {
     if (ev.t >= duration) continue;
     if (!byInst.has(ev.inst)) byInst.set(ev.inst, []);
-    byInst.get(ev.inst).push({ ...ev, t: ev.t + (rand() - 0.5) * 0.012 + 0.008 });
+    byInst.get(ev.inst).push({ ...ev, t: Math.max(0, ev.t + (rand() - 0.5) * 0.012 + 0.008) });
   }
   for (const [inst, evs] of byInst) {
+    const play = INSTRUMENTS[inst];
+    if (!play) continue;
     voice.fill(0);
-    for (const ev of evs) {
-      if (['oboe', 'clarinet', 'bassoon', 'accordion'].includes(inst)) renderReed(voice, ev, rand, inst);
-      else if (PLUCKS[inst]) renderPluck(voice, ev, rand, PLUCKS[inst]);
-      else if (inst === 'ep') renderEp(voice, ev);
-      else if (inst === 'ride') renderNoiseHit(voice, ev, rand, { freq: 7500, q: 0.8, attack: 0.002, decay: 0.03 });
-      else if (inst === 'brush') renderNoiseHit(voice, ev, rand, { freq: 3500, q: 0.6, attack: 0.04, decay: 0.05 });
-    }
+    for (const ev of evs) play(voice, ev, rand);
     const pan = PAN[inst] ?? 0;
     const gl = Math.cos(((pan + 1) * Math.PI) / 4);
     const gr = Math.sin(((pan + 1) * Math.PI) / 4);
@@ -347,7 +295,7 @@ export function renderMusic({ style = 'waltz', seed = 1, duration = 60 }) {
       R[i] += voice[i] * gr;
     }
   }
-  const [outL, outR] = gramophone(L, R, rand);
+  const [outL, outR] = song.style === 'jazz' ? cleanMaster(L, R) : gramophone(L, R, rand);
   let peak = 0;
   for (let i = 0; i < n; i++) peak = Math.max(peak, Math.abs(outL[i]), Math.abs(outR[i]));
   const g = peak > 0 ? 0.85 / peak : 1;

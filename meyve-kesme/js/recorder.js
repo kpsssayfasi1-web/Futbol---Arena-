@@ -21,7 +21,7 @@ export class LiveRecorder {
     if (audioStream) for (const track of audioStream.getAudioTracks()) stream.addTrack(track);
     this.chunks = [];
     this.mimeType = mimeType || 'video/webm';
-    this.rec = new MediaRecorder(stream, { mimeType: mimeType || undefined, videoBitsPerSecond: 16_000_000, audioBitsPerSecond: 192_000 });
+    this.rec = new MediaRecorder(stream, { mimeType: mimeType || undefined, videoBitsPerSecond: 24_000_000, audioBitsPerSecond: 192_000 });
     this.rec.ondataavailable = (e) => {
       if (e.data && e.data.size) this.chunks.push(e.data);
     };

@@ -21,7 +21,10 @@ import { hookText } from './titles.js';
 const FAST_STROKE = 0.1;
 const SHUTTER = 1 / 30;
 const GHOSTS = 12;
-export const QUALITY_BUDGET = { low: 40000, medium: 100000, high: 220000 };
+export const QUALITY_BUDGET = { low: 40000, medium: 100000, high: 400000 };
+// Frame-by-frame export is not real time, so it can afford a much finer pile.
+export const EXPORT_BUDGET = { desktop: 420000, mobile: 140000 };
+const MIN_RENDER_SCALE = 0.75;
 
 export function isMobileDevice() {
   return matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 700;
@@ -62,8 +65,26 @@ export class App {
 
   budget() {
     const q = this.settings.quality;
-    if (QUALITY_BUDGET[q]) return QUALITY_BUDGET[q];
-    return isMobileDevice() ? 60000 : 140000;
+    const mobile = isMobileDevice();
+    const live = QUALITY_BUDGET[q] || (mobile ? 60000 : 220000);
+    return this.exportBoost ? Math.max(live, mobile ? EXPORT_BUDGET.mobile : EXPORT_BUDGET.desktop) : live;
+  }
+
+  // Switch between the live and the export cube budget; piles built for the
+  // other budget are dropped and rebuilt on demand.
+  setExportBoost(on) {
+    if (!!this.exportBoost === on) return;
+    const before = this.budget();
+    this.exportBoost = on;
+    if (this.budget() === before) return;
+    for (const p of this.piles.values()) {
+      this.scene.remove(p.mesh);
+      p.dispose();
+    }
+    this.piles.clear();
+    this.gen++; // results still in flight for the old budget are ignored
+    this.hub.reset('cubes');
+    this.audio.dropLandings(() => false);
   }
 
   // ---------- data ----------
@@ -115,7 +136,7 @@ export class App {
   }
 
   cubeKey(index) {
-    return `cubes:${this.gen}:${index}`;
+    return `cubes:${this.gen}:${this.budget()}:${index}`;
   }
 
   cubeJob(index) {
@@ -398,8 +419,8 @@ export class App {
     if (this.recorder || this.exporting || !this.playing || dt <= 0) return;
     p.ema += (dt - p.ema) * 0.08;
     let next = p.scale;
-    if (p.ema > 1 / 42 && p.scale > 0.55) {
-      next = p.scale * 0.88;
+    if (p.ema > 1 / 38 && p.scale > MIN_RENDER_SCALE) {
+      next = Math.max(MIN_RENDER_SCALE, p.scale * 0.9);
       p.calm = 0;
     } else if (p.ema < 1 / 57) {
       p.calm += dt;
@@ -473,6 +494,7 @@ export class App {
   async exportVideo({ fps = 30, width = 1080, height = 1920, onProgress, isCancelled, duration = this.duration, save = true } = {}) {
     this.pause();
     this.exporting = true;
+    this.setExportBoost(true);
     try {
       await this.refreshMusic();
       const audioBuffer = this.settings.sound ? await this.soundtrack(duration) : null;
@@ -495,6 +517,8 @@ export class App {
       return result;
     } finally {
       this.exporting = false;
+      this.setExportBoost(false);
+      this.prefetch(roundIndexAt(this.timeline, this.time));
       this.hooks.onResize?.();
     }
   }

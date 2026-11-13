@@ -74,7 +74,9 @@ export class Knife {
     if (!fast) {
       place(this.main, samples[0], offsetY);
     }
-    const alpha = fast ? Math.min(0.4, 2.0 / samples.length) : 0;
+    // ~1/N per sample is what a real shutter integrates; a little extra keeps
+    // the blade readable without washing out the item behind it.
+    const alpha = fast ? Math.min(0.35, 1.3 / samples.length) : 0;
     this.ghostMats.steel.opacity = alpha;
     this.ghostMats.wood.opacity = alpha * 0.45;
     this.ghosts.forEach((g, i) => {

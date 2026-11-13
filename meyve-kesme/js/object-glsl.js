@@ -98,11 +98,14 @@ float axisLines(float coord, int axis, float pix, vec3 p) {
     isDone = axis == 1 ? (p.x > uActive.z) : (p.y > uActive.z);
   }
   if (!isDone) return 0.0;
+  // Anti-aliased line about 1.5 px wide. When lines get closer than ~30 px
+  // they fade out: dense stripes would only alias into moire.
+  float spacing = stepW / max(pix, 1e-6);
+  float vis = smoothstep(12.0, 34.0, spacing);
+  if (vis <= 0.0) return 0.0;
   float dist = abs(u - k) * stepW;
-  float w = max(0.0045, pix * 0.9);
-  float line = 1.0 - smoothstep(w * 0.45, w, dist);
-  float density = smoothstep(2.5, 7.0, stepW / max(pix, 1e-6));
-  return mix(clamp(1.2 * w / stepW, 0.0, 0.45), line, density);
+  float w = max(0.003, pix * 1.5);
+  return vis * (1.0 - smoothstep(0.0, w, dist));
 }
 float cutLines(vec3 p, bool withZ) {
   vec3 pix = fwidth(p);

@@ -26,15 +26,22 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   şeftali ve avokado çekirdeği, peynir delikleri) kesildikçe görünür. Az kesimli turlarda parçalar ışın izlemeyle
   gerçek kabuk şekliyle çizilir.
 - **Doğru sayaç**: Ekranda çizilen küp sayısı kaliteye göre sınırlanır, sayaç gerçek ızgaradaki sayıyı gösterir.
-- **ASMR sesi**: Küp düşüşleri tahtanın rezonans modlarıyla (modal sentez) üretilir; büyük parça tok ve uzun,
-  minik parça kum gibi; yığına düşen daha yumuşak. Her nesnenin kendi kesim sesi var (çıtır, sulu, yumuşak,
-  çatırtılı, metal, kum, lastik, taş). Her küp, ekranda yere değdiği anda ve konumuna göre stereo duyulur.
-- **Arka fon müziği**: Her video için yeniden bestelenen gramofon tadında müzik: Gramofon Valsi (obua + arp),
-  Kafe Caz (obua, yürüyen bas, fırçalı davul), Barok Çay Saati (obua + klavsen), Paris Musette (akordeon).
-  Plak cızırtısı ve gramofon dalgalanması dahil. Telifsiz; "Yeni varyasyon" yeni melodi üretir.
-  İstersen kendi müzik dosyanı yükleyebilirsin.
+- **ASMR sesi**: Her kesim referans Shorts videosundan ölçülen yapıda: bıçağın yükselen parlak "fıss"ı
+  (8–12 kHz), temas anında keskin bir tık ve malzemenin çıtırtısı, ardından tahtanın "tok"u (1.3–2 kHz ve 3.2 kHz
+  rezonansları + kısa gövde vuruşu). Hızlı kesimlerde ses hızlandırılmaz, kısa fıss varyantları kullanılır;
+  yoğun pasajlarda fıss öne çıkar, tok geri çekilir. Her nesnenin kendi kesim sesi var (çıtır, sulu, yumuşak,
+  çatırtılı, metal, kum, lastik, taş). Küp düşüşleri tahtanın rezonans modlarıyla üretilir ve her küp
+  yere değdiği anda, konumuna göre stereo duyulur.
+- **Arka fon müziği**: Varsayılan **Gizemli Caz**: referans videodaki gibi minör tonda (ilk varyasyon Re minör),
+  ~148 BPM swing; kromatik yaklaşımlı yürüyen kontrbas, vuruş arası elektrikli piyano kompu, staccato vibrafon /
+  pizzicato melodi ve fırçalı davul (fırça süpürmesi, trampet, ride). Temiz mastering, küçük oda yankısı.
+  Gramofon tadındaki eski stiller de duruyor: Gramofon Valsi, Kafe Caz, Barok Çay Saati, Paris Musette.
+  Telifsiz; "Yeni varyasyon" yeni ton, tempo ve melodi üretir. İstersen kendi müzik dosyanı yükleyebilirsin.
+- **Görüntü kalitesi**: Kesim çizgileri kenarları yumuşatılmış (anti-aliased) çizilir ve sıklaştıkça solar; yoğun
+  turlarda yüzeyde moiré / merdiven deseni oluşmaz. MP4 çıktısı canlı önizlemeden çok daha ince bir yığınla
+  (masaüstünde 420 bine kadar küp) ve 24 Mbit/s ile kodlanır.
 - **Akıcılık**: Küp renkleri GPU'da bir kez pişirilir, sayaç rakamları doku yüklemeden çizilir, sonraki nesnenin
-  shader'ı ve verisi önceden hazırlanır, kare hızı düşerse çözünürlük kendini ayarlar.
+  shader'ı ve verisi önceden hazırlanır, kare hızı düşerse çözünürlük en fazla %75'e kadar iner.
 - **Video çıktısı**: *MP4 oluştur* (her kare tam zamanında, 1080×1920, sesli), *Seri üret* (açık kategoriden
   3 farklı nesne, 3 farklı müzikle arka arkaya), *Canlı kayıt*, *Temiz ekran*.
 - **Shorts metni**: Her video için başlık, açıklama ve etiketler; tek dokunuşla kopyalanır. Açılış sorusu
@@ -59,7 +66,8 @@ Tüm animasyon zamanın saf bir fonksiyonudur: aynı ayarlarla her render birebi
 | `js/timeline.js` | Turlar, fazlar ve her kesimin zamanı |
 | `js/cubes-data.js`, `js/cubes-mesh.js` | Küp ızgarası, yığın fiziği, GPU'da küp uçuşu ve üç çizim modu |
 | `js/materials.js`, `js/object-glsl.js` | Nesne başına shader programları |
-| `js/sfx.js`, `js/landing.js`, `js/music.js` | Ses sentezi, küp düşüş izi, müzik bestecisi |
+| `js/sfx.js`, `js/landing.js` | Kesim / tahta sesi sentezi, küp düşüş izi |
+| `js/music.js`, `js/music-jazz.js`, `js/music-instruments.js` | Müzik bestecileri, enstrüman sentezi, mastering |
 | `js/audio.js`, `js/events.js` | WebAudio çalma ve çevrimdışı ses render'ı |
 | `js/work.js`, `js/worker-hub.js` | Ağır işleri (mesh, küp, ses, müzik) arka planda çalıştırma |
 | `js/app.js`, `js/main.js`, `js/titles.js` | Uygulama, arayüz, Shorts metinleri |

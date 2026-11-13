@@ -8,9 +8,9 @@ import { shortsCopy } from './titles.js';
 import { displayedCubeTotal } from './cubes-data.js';
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'kesim-studyosu-settings-v2';
-const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'waltz', musicVolume: 0.35, hook: true, seed: 1 };
-const MUSIC = ['waltz', 'swing', 'baroque', 'musette', 'custom', 'off'];
+const STORAGE_KEY = 'kesim-studyosu-settings-v3';
+const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'jazz', musicVolume: 0.2, hook: true, seed: 1 };
+const MUSIC = ['jazz', 'waltz', 'swing', 'baroque', 'musette', 'custom', 'off'];
 const params = new URLSearchParams(location.search);
 
 function loadSettings() {
@@ -342,8 +342,10 @@ $('batchBtn').addEventListener('click', async () => {
   const original = { ...settings };
   const pool = activeCat === 'all' ? ITEMS : itemsInCategory(activeCat);
   const picks = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
+  // Jazz stays jazz (each seed is a new key, tempo and tune); the vintage
+  // styles rotate so the three videos sound different.
   const styles = ['waltz', 'swing', 'baroque', 'musette'];
-  const keepMusic = settings.music === 'off' || settings.music === 'custom';
+  const keepMusic = ['off', 'custom', 'jazz'].includes(settings.music);
   cancelled = false;
   $('exportModal').hidden = false;
   setPlaying(false);
