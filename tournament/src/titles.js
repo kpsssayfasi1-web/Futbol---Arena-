@@ -21,6 +21,7 @@ function contextLabel(match, tournamentName) {
 function hook(match, home, away) {
   if (match.stage === 'FINAL') return '🏆 THE FINAL: ';
   if (match.stage === 'SF') return 'One step from the final! ';
+  if (match.stage === 'THIRD') return '🥉 Battle for bronze: ';
   const gap = home.rating - away.rating;
   if (Math.abs(gap) >= UNDERDOG_GAP) {
     const [underdog, favourite] = gap > 0 ? [away, home] : [home, away];

@@ -63,6 +63,7 @@ test('titles never reveal the score and fit YouTube length', () => {
   }
   const final = withText.find((m) => m.stage === 'FINAL');
   assert.match(final.title, /THE FINAL/);
+  assert.match(withText.find((m) => m.stage === 'THIRD').title, /^🥉 Battle for bronze/);
 });
 
 test('underdog titles name the underdog first', () => {
