@@ -1,0 +1,14 @@
+{
+  "name": "physics-world-cup",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rating-based tournament engine for the Physics World Cup video series",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "generate": "node cli.js",
+    "odds": "node cli.js --odds 5000",
+    "test": "node --test \"test/*.test.js\"",
+    "coverage": "node --test --experimental-test-coverage --test-coverage-exclude=\"test/**\" \"test/*.test.js\""
+  }
+}
