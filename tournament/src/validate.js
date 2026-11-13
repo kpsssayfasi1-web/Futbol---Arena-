@@ -52,5 +52,14 @@ export function validateSettings(settings) {
       `schedule.${key} must be a non-empty list of HH:MM times`);
   }
   assert(schedule.finalDaySlotsUtc.length === 2, 'schedule.finalDaySlotsUtc needs 2 slots (3rd place, final)');
+  if (settings.realism !== undefined) {
+    const { minGroupPointsByPot = {}, maxGroupStageAttempts } = settings.realism;
+    assert(Number.isInteger(maxGroupStageAttempts) && maxGroupStageAttempts >= 1,
+      'realism.maxGroupStageAttempts must be a whole number >= 1');
+    for (const [pot, points] of Object.entries(minGroupPointsByPot)) {
+      assert(/^[1-4]$/.test(pot) && Number.isInteger(points) && points >= 0 && points <= 9,
+        `realism.minGroupPointsByPot["${pot}"] must map pot 1-4 to 0-9 points`);
+    }
+  }
   return settings;
 }

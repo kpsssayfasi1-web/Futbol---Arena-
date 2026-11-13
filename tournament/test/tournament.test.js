@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { runTournament } from '../src/tournament.js';
+import { runTournament, breaksRealism } from '../src/tournament.js';
 import { scheduleMatches } from '../src/schedule.js';
 import { withPublishingText, buildTitle } from '../src/titles.js';
 import { buildSummary, buildScheduleCsv } from '../src/report.js';
@@ -102,4 +102,24 @@ test('championOdds favours stronger teams and validates runs', () => {
   assert.ok(Math.abs(odds.reduce((s, o) => s + o.champion, 0) - 1) < 1e-9);
   assert.ok(share('ESP') + share('ARG') + share('FRA') > share('IDN') + share('NZL') + share('MAS'));
   assert.throws(() => championOdds({ teams, settings, runs: 0 }), RangeError);
+});
+
+test('realism rule: no pot 1 team finishes its group on 0 points', () => {
+  const pots = Object.fromEntries(teams.map((t) => [t.code, t.pot]));
+  for (let i = 0; i < 40; i += 1) {
+    const r = runTournament({ teams, settings, seed: `realism-${i}` });
+    for (const row of Object.values(r.standings).flat()) {
+      if (pots[row.team] === 1) assert.ok(row.points >= 1, `${row.team} on ${row.points} pts (seed ${i})`);
+    }
+  }
+});
+
+test('realism rule re-simulates only when broken and fails clearly when impossible', () => {
+  const pots = Object.fromEntries(teams.map((t) => [t.code, t.pot]));
+  const strict = { minGroupPointsByPot: { 1: 1 } };
+  assert.equal(breaksRealism({ A: [{ team: 'BRA', points: 0 }] }, pots, strict), true);
+  assert.equal(breaksRealism({ A: [{ team: 'BRA', points: 1 }] }, pots, strict), false);
+  assert.equal(breaksRealism({ A: [{ team: 'BRA', points: 0 }] }, pots, undefined), false);
+  const impossible = { ...settings, realism: { minGroupPointsByPot: { 4: 9 }, maxGroupStageAttempts: 3 } };
+  assert.throws(() => runTournament({ teams, settings: impossible, seed: 'x' }), /realism rules/);
 });

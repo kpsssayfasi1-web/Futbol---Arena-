@@ -48,3 +48,10 @@ Puanları değiştirdikten sonra `node cli.js --odds 5000` ile şampiyonluk olas
 - Son 32 eşleşmeleri: grup birincileri, ikincileri ve en iyi üçüncüler kendi aralarında sıralanır (1. ile 32. eşleşir, 2. ile 31. eşleşir...). Aynı gruptan iki takım karşılaşmaz.
 - Elemelerde beraberlik doğrudan penaltılarla sonuçlanır. Uzatma yok, böylece Short'lar kısa kalır.
 - 29 günlük takvim: 18 gün grup aşaması, 10 gün eleme, son gün üçüncülük maçı ve final.
+
+## Gerçekçilik kuralları (`settings.realism`)
+
+Sonuçlar görülmeden önce belirlenen ve **her takıma eşit uygulanan** kurallar. Bir grup aşaması kurallardan birini bozarsa grup aşaması baştan simüle edilir. Hiçbir maç tek tek elle değiştirilmez.
+
+- `minGroupPointsByPot: { "1": 1 }`: 1. torbadaki hiçbir takım grubu 0 puanla bitiremez.
+- Bu kural turnuvaların yaklaşık %12'sinde devreye girer. Kaçıncı denemede geçerli bir grup aşaması bulunduğu çıktıda `groupStageAttempt` alanında yazar.

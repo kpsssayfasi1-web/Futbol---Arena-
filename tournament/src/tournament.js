@@ -19,8 +19,9 @@ function winnerOf(fixture, score, penalties) {
   return decider.home > decider.away ? fixture.home : fixture.away;
 }
 
-function playMatch(fixture, { seed, ratings, model, knockout }) {
-  const rng = deriveRng(seed, `match:${fixture.stage}:${fixture.slot}:${fixture.home}-${fixture.away}`);
+function playMatch(fixture, { seed, ratings, model, knockout, attempt = 0 }) {
+  const retry = attempt > 0 ? `:retry${attempt}` : '';
+  const rng = deriveRng(seed, `match:${fixture.stage}:${fixture.slot}:${fixture.home}-${fixture.away}${retry}`);
   const score = simulateScore(rng, ratings[fixture.home], ratings[fixture.away], model);
   const penalties = knockout && score.home === score.away
     ? simulateShootout(rng, ratings[fixture.home], ratings[fixture.away], model)
@@ -40,13 +41,29 @@ function loserOf(match) {
   return match.winner === match.home ? match.away : match.home;
 }
 
+// Realism rules are decided before any results are seen and apply to every
+// team equally, e.g. "a pot 1 team never finishes its group on 0 points".
+// A group stage that breaks a rule is re-simulated as a whole.
+export function breaksRealism(standings, pots, realism) {
+  const minPoints = realism?.minGroupPointsByPot ?? {};
+  return Object.values(standings).flat()
+    .some((row) => row.points < (minPoints[String(pots[row.team])] ?? 0));
+}
+
 function runGroupStage(groups, ctx) {
   const fixtures = groups
     .flatMap(groupFixtures)
     .sort((a, b) => a.matchday - b.matchday || a.group.localeCompare(b.group));
-  const matches = fixtures.map((f, i) => playMatch({ ...f, stage: 'GROUP', slot: i + 1 }, { ...ctx, knockout: false }));
-  const standings = Object.fromEntries(groups.map((g) => [g.id, computeStandings(g, matches, ctx.lotOrder)]));
-  return { matches, standings };
+  const maxAttempts = ctx.realism?.maxGroupStageAttempts ?? 1;
+  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+    const matches = fixtures.map((f, i) => playMatch(
+      { ...f, stage: 'GROUP', slot: i + 1 },
+      { ...ctx, knockout: false, attempt },
+    ));
+    const standings = Object.fromEntries(groups.map((g) => [g.id, computeStandings(g, matches, ctx.lotOrder)]));
+    if (!breaksRealism(standings, ctx.pots, ctx.realism)) return { matches, standings, attempt };
+  }
+  throw new Error(`No group stage met the realism rules in ${maxAttempts} attempts; relax settings.realism`);
 }
 
 function playRound(pairs, stage, ctx) {
@@ -75,7 +92,8 @@ function runKnockout(r32Pairs, ctx) {
 export function runTournament({ teams, settings, seed }) {
   const ratings = Object.fromEntries(teams.map((t) => [t.code, t.rating]));
   const lotOrder = shuffle(deriveRng(seed, 'lots'), teams.map((t) => t.code));
-  const ctx = { seed, ratings, model: settings.model, lotOrder };
+  const pots = Object.fromEntries(teams.map((t) => [t.code, t.pot]));
+  const ctx = { seed, ratings, pots, model: settings.model, realism: settings.realism, lotOrder };
 
   const groups = drawGroups(teams, deriveRng(seed, 'draw'), settings.format);
   const groupStage = runGroupStage(groups, ctx);
@@ -87,6 +105,7 @@ export function runTournament({ teams, settings, seed }) {
 
   return {
     seed,
+    groupStageAttempt: groupStage.attempt,
     groups,
     standings: groupStage.standings,
     thirdsTable,

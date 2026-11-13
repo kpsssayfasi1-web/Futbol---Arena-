@@ -45,3 +45,10 @@ test('rejects invalid settings', () => {
   assert.throws(() => validateSettings({ ...settings, schedule: { ...settings.schedule, groupSlotsUtc: ['25:00'] } }), /groupSlotsUtc/);
   assert.throws(() => validateSettings({ ...settings, format: { ...settings.format, groupCount: 8 } }), /12 groups/);
 });
+
+test('rejects invalid realism settings', () => {
+  const bad = (realism) => ({ ...settings, realism });
+  assert.throws(() => validateSettings(bad({ maxGroupStageAttempts: 0 })), /maxGroupStageAttempts/);
+  assert.throws(() => validateSettings(bad({ maxGroupStageAttempts: 5, minGroupPointsByPot: { 5: 1 } })), /minGroupPointsByPot/);
+  assert.ok(validateSettings(bad({ maxGroupStageAttempts: 5 })));
+});

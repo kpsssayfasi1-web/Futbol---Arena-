@@ -10,11 +10,32 @@
     "groupCount": 12,
     "teamsPerGroup": 4,
     "bestThirdsCount": 8,
-    "confederationLimits": { "UEFA": 3, "default": 1 }
+    "confederationLimits": {
+      "UEFA": 3,
+      "default": 1
+    }
   },
   "schedule": {
-    "groupSlotsUtc": ["06:00", "12:00", "18:00", "23:00"],
-    "knockoutSlotsUtc": ["12:00", "18:00", "23:00"],
-    "finalDaySlotsUtc": ["12:00", "18:00"]
+    "groupSlotsUtc": [
+      "06:00",
+      "12:00",
+      "18:00",
+      "23:00"
+    ],
+    "knockoutSlotsUtc": [
+      "12:00",
+      "18:00",
+      "23:00"
+    ],
+    "finalDaySlotsUtc": [
+      "12:00",
+      "18:00"
+    ]
+  },
+  "realism": {
+    "minGroupPointsByPot": {
+      "1": 1
+    },
+    "maxGroupStageAttempts": 200
   }
 }
