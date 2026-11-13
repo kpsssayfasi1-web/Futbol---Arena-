@@ -9,8 +9,8 @@ import { displayedCubeTotal } from './cubes-data.js';
 
 const $ = (id) => document.getElementById(id);
 const STORAGE_KEY = 'kesim-studyosu-settings-v3';
-const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'jazz', musicVolume: 0.2, hook: true, seed: 1 };
-const MUSIC = ['jazz', 'waltz', 'swing', 'baroque', 'musette', 'custom', 'off'];
+const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'jazz', musicVolume: 0.2, hook: true, seed: 1, camera: 'dynamic' };
+const MUSIC = ['jazz', 'pizzicato', 'noir', 'custom', 'off'];
 const params = new URLSearchParams(location.search);
 
 function loadSettings() {
@@ -21,7 +21,7 @@ function loadSettings() {
     saved = {};
   }
   const s = { ...DEFAULTS, ...saved };
-  for (const key of ['item', 'preset', 'speed', 'lang', 'quality', 'handle', 'music', 'seed']) if (params.has(key)) s[key] = params.get(key);
+  for (const key of ['item', 'preset', 'speed', 'lang', 'quality', 'handle', 'music', 'seed', 'camera']) if (params.has(key)) s[key] = params.get(key);
   if (params.has('sound')) s.sound = params.get('sound') !== '0';
   if (params.has('hook')) s.hook = params.get('hook') !== '0';
   if (params.has('shadow')) s.shadowSize = Math.min(4096, Math.max(256, Number(params.get('shadow')) || 1024));
@@ -31,6 +31,7 @@ function loadSettings() {
   s.musicVolume = Number.isFinite(Number(s.musicVolume)) ? Math.min(1, Math.max(0, Number(s.musicVolume))) : DEFAULTS.musicVolume;
   if (!['tr', 'en'].includes(s.lang)) s.lang = DEFAULTS.lang;
   if (!['auto', 'low', 'medium', 'high'].includes(s.quality)) s.quality = DEFAULTS.quality;
+  if (!['dynamic', 'fixed'].includes(s.camera)) s.camera = DEFAULTS.camera;
   if (!isValidSelection(s.item)) s.item = DEFAULTS.item;
   if (!['classic', 'short', 'legend'].includes(s.preset)) s.preset = DEFAULTS.preset;
   // A custom track is not stored, so a reload falls back to the default style.
@@ -158,6 +159,7 @@ bindSeg('presetSeg', 'preset', () => {
   rebuild();
 });
 bindSeg('speedSeg', 'speed', rebuild);
+bindSeg('cameraSeg', 'camera', () => app.refreshCamera());
 bindSeg('langSeg', 'lang', () => {
   app.hud.invalidate();
   updateInfo(true);
@@ -342,17 +344,16 @@ $('batchBtn').addEventListener('click', async () => {
   const original = { ...settings };
   const pool = activeCat === 'all' ? ITEMS : itemsInCategory(activeCat);
   const picks = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
-  // Jazz stays jazz (each seed is a new key, tempo and tune); the vintage
-  // styles rotate so the three videos sound different.
-  const styles = ['waltz', 'swing', 'baroque', 'musette'];
-  const keepMusic = ['off', 'custom', 'jazz'].includes(settings.music);
+  // The three jazz styles rotate so the videos sound different.
+  const styles = ['jazz', 'pizzicato', 'noir'];
+  const keepMusic = ['off', 'custom'].includes(settings.music);
   cancelled = false;
   $('exportModal').hidden = false;
   setPlaying(false);
   let saved = 0;
   try {
     for (let i = 0; i < picks.length && !cancelled; i++) {
-      Object.assign(settings, { item: picks[i].id, seed: Math.floor(Math.random() * 9000) + 1, music: keepMusic ? settings.music : styles[(styles.indexOf(original.music) + i + 4) % 4] });
+      Object.assign(settings, { item: picks[i].id, seed: Math.floor(Math.random() * 9000) + 1, music: keepMusic ? settings.music : styles[(styles.indexOf(original.music) + i) % styles.length] });
       app.seek(0);
       app.rebuild();
       const res = await runExport(`Video ${i + 1}/${picks.length}: ${picks[i].tr}`);

@@ -93,7 +93,7 @@ float axisLines(float coord, int axis, float pix, vec3 p) {
   if (k < 1.0 || k > n) return 0.0;
   float j = k - 1.0;
   float done = uCutDone[axis];
-  bool isDone = axis == 0 ? (j < done) : (j >= n - done);
+  bool isDone = j >= n - done; // planes are cut from the max side
   if (!isDone && uActive.w > 0.5 && int(uActive.x) == axis && abs(uActive.y - j) < 0.5) {
     isDone = axis == 1 ? (p.x > uActive.z) : (p.y > uActive.z);
   }

@@ -1,7 +1,8 @@
-// "Sneaky jazz" composer, modelled on the reference Shorts soundtrack: a minor
-// key swing at ~148 BPM led by a walking upright bass with chromatic approach
-// notes, rootless off-beat comping, a sparse staccato vibraphone / pizzicato
-// melody and a quiet brush kit. Everything is seeded and deterministic.
+// Small-band jazz composer, modelled on the reference Shorts soundtrack: a
+// minor key swing led by an upright bass with chromatic approach notes,
+// rootless off-beat comping, a sparse staccato vibraphone / pizzicato melody
+// and a quiet kit. Three presets share it ("Gizemli Caz" is the reference
+// style; the others change tempo, key, feel and lead). Seeded, deterministic.
 import { mulberry32, hashSeed } from './rng.js';
 
 const CHORD = {
@@ -39,8 +40,25 @@ const COMP = [
   [[0.5, 0.4], [2.5, 0.4]],
 ];
 
-export const JAZZ_KEYS = [62, 60, 64, 65, 67];
-const SWING = 0.64;
+// short: longest staccato note (beats); twoFeel: bass on 1 and 3 in A
+// sections; kit: 'brush' (snare + ride) or 'snap' (finger snaps, ride in B only).
+export const JAZZ_PRESETS = {
+  jazz: {
+    bpm: [142, 152], firstKey: 62, keys: [62, 60, 64, 65, 67], swing: 0.64, comp: COMP,
+    leadA: 'vibes', leadB: 'jazzPizz', short: 0.42, twoFeel: false, kit: 'brush', ride: 1, pickup: 0.14,
+  },
+  pizzicato: {
+    bpm: [154, 164], firstKey: 64, keys: [64, 57, 62, 59], swing: 0.6,
+    comp: [[[3.5, 0.3]], [[1.5, 0.3], [3.5, 0.3]], [[0.5, 0.3], [2.5, 0.3]]],
+    leadA: 'jazzPizz', leadB: 'vibes', pizzGain: 1.25, short: 0.3, twoFeel: true, kit: 'snap', ride: 0.8, pickup: 0.2,
+  },
+  noir: {
+    bpm: [118, 128], firstKey: 60, keys: [60, 65, 62, 67], swing: 0.67,
+    comp: [[[0, 1.6]], [[1.5, 1.8]], [[0, 0.7], [2.5, 1.3]]],
+    leadA: 'vibes', leadB: 'vibes', short: 0.75, twoFeel: false, kit: 'brush', ride: 0.65, pickup: 0.08,
+  },
+};
+export const JAZZ_KEYS = JAZZ_PRESETS.jazz.keys;
 
 const pick = (rand, list) => list[Math.floor(rand() * list.length)];
 const clampTo = (m, lo, hi) => {
@@ -57,6 +75,18 @@ function bassNear(pc, prev, lo, hi) {
     if (c >= lo && c <= hi && Math.abs(c - prev) < Math.abs(best - prev)) best = c;
   }
   return best;
+}
+
+// Two-feel: half notes on 1 and 3 (root, then fifth or an approach note).
+function twoBar(bar, nextRoot, key, rand, prev, push) {
+  const lo = key - 26;
+  const hi = key - 7;
+  const [deg] = bar[0];
+  const root = bassNear(key + deg, prev, lo, hi);
+  const second = bar.length > 1 ? bassNear(key + bar[1][0], root, lo, hi) : rand() < 0.6 ? bassNear(root + 7, root, lo, hi) : bassNear(nextRoot, root, lo, hi) + (rand() < 0.5 ? 1 : -1);
+  push(0, root, 0.95, 1.7);
+  push(2, second, 0.85, 1.7);
+  return second;
 }
 
 // Walking bass: root on the chord's first beat, chord/scale tones in between,
@@ -84,7 +114,7 @@ function walkBar(bar, nextRoot, key, rand, prev, push) {
   return prev;
 }
 
-function melodyPhrase(rand, key, chordRoot, quality, startPitch, motif, lastLong) {
+function melodyPhrase(rand, key, chordRoot, quality, startPitch, motif, lastLong, short = 0.42) {
   const lo = key + 2;
   const hi = key + 17;
   let p = clampTo(key + chordRoot + pick(rand, CHORD[quality].slice(0, 3)), lo, hi);
@@ -101,39 +131,42 @@ function melodyPhrase(rand, key, chordRoot, quality, startPitch, motif, lastLong
       p = clampTo(p, lo, hi);
     }
     const last = i === motif.length - 1;
-    notes.push({ beat: b, len: last && lastLong ? len : Math.min(len, 0.42), midi: p, vel: 0.7 + rand() * 0.25 });
+    notes.push({ beat: b, len: last && lastLong ? len : Math.min(len, short), midi: p, vel: 0.7 + rand() * 0.25 });
   });
   return notes;
 }
 
-export function composeJazz({ seed = 1, duration = 60 }) {
-  const rand = mulberry32(hashSeed('music', 'jazz', seed));
-  const key = seed === 1 ? 62 : pick(rand, JAZZ_KEYS);
-  const bpm = 142 + rand() * 10;
+export function composeJazz({ seed = 1, duration = 60, style = 'jazz' }) {
+  const P = JAZZ_PRESETS[style] || JAZZ_PRESETS.jazz;
+  const id = JAZZ_PRESETS[style] ? style : 'jazz';
+  const rand = mulberry32(hashSeed('music', id, seed));
+  const key = seed === 1 ? P.firstKey : pick(rand, P.keys);
+  const bpm = P.bpm[0] + rand() * (P.bpm[1] - P.bpm[0]);
   const beat = 60 / bpm;
   const barDur = beat * 4;
   const bars = Math.ceil(duration / barDur) + 1;
   const events = [];
   const at = (bar, b) => {
     const whole = Math.floor(b);
-    const off = Math.abs(b - whole - 0.5) < 1e-6 ? SWING : b - whole;
+    const off = Math.abs(b - whole - 0.5) < 1e-6 ? P.swing : b - whole;
     return (bar * 4 + whole + off) * beat;
   };
   const motifs = [pick(rand, MOTIFS), pick(rand, MOTIFS)];
-  const comp = [pick(rand, COMP), pick(rand, COMP)];
+  const comp = [pick(rand, P.comp), pick(rand, P.comp)];
   let bassPrev = key - 24;
   let melPrev = key + 7;
   const form = ['A', 'A', 'B', 'A'];
   for (let bar = 0; bar < bars; bar++) {
-    const body = bar - 1; // one bar of bass and brushes as the intro
+    const body = bar - 1; // one bar of bass and kit as the intro
     const section = form[Math.floor(Math.max(0, body) / 8) % form.length];
     const prog = section === 'B' ? PROG_B : PROG_A;
     const pb = ((body % 8) + 8) % 8;
     const chords = prog[pb];
     const nextBar = (pb + 1) % 8 === 0 && section !== 'B' && form[Math.floor((body + 1) / 8) % form.length] === 'B' ? PROG_B[0] : prog[(pb + 1) % 8];
-    bassPrev = walkBar(chords, key + nextBar[0][0], key, rand, bassPrev, (b, midi, vel) => events.push({ inst: 'upright', t: at(bar, b), dur: beat * 0.82, midi, vel }));
-    if (rand() < 0.14) events.push({ inst: 'upright', t: at(bar, 3 + 2 / 3), dur: beat * 0.25, midi: bassPrev + (rand() < 0.5 ? 2 : -1), vel: 0.45 });
-    drums(events, bar, at, beat, body, rand);
+    const bassLine = P.twoFeel && section === 'A' ? twoBar : walkBar;
+    bassPrev = bassLine(chords, key + nextBar[0][0], key, rand, bassPrev, (b, midi, vel, len = 0.82) => events.push({ inst: 'upright', t: at(bar, b), dur: beat * len, midi, vel }));
+    if (rand() < P.pickup) events.push({ inst: 'upright', t: at(bar, 3 + 2 / 3), dur: beat * 0.25, midi: bassPrev + (rand() < 0.5 ? 2 : -1), vel: 0.45 });
+    drums(events, bar, at, beat, body, rand, P, section);
     if (body < 0) continue;
     const pattern = comp[pb % 2];
     for (const [b, len] of pattern) {
@@ -142,28 +175,31 @@ export function composeJazz({ seed = 1, duration = 60 }) {
     }
     // Melody: statement (bars 0-1), answer (4-5) and a cadence (6-7) per 8.
     if (pb === 0 || pb === 4 || pb === 6) {
-      const inst = section === 'B' ? 'jazzPizz' : 'vibes';
+      const inst = section === 'B' ? P.leadB : P.leadA;
       const motif = pb === 6 ? MOTIFS[(MOTIFS.indexOf(motifs[0]) + 1) % MOTIFS.length] : motifs[pb === 4 ? 1 : 0];
       const [deg, q] = chords[0];
-      const notes = melodyPhrase(rand, key, deg, q, melPrev, motif, pb !== 0);
+      const notes = melodyPhrase(rand, key, deg, q, melPrev, motif, pb !== 0, P.short);
       if (pb === 6) notes[notes.length - 1].midi = clampTo(key + (rand() < 0.5 ? 0 : 7), key + 2, key + 14);
+      const double = inst === 'vibes' ? 'jazzPizz' : 'vibes';
       for (const n of notes) {
-        events.push({ inst, t: at(bar, n.beat), dur: n.len * beat, midi: n.midi, vel: n.vel * (inst === 'vibes' ? 1 : 0.85) });
-        if (section === 'A' && Math.floor(body / 8) % 4 === 3) events.push({ inst: 'jazzPizz', t: at(bar, n.beat), dur: n.len * beat, midi: n.midi - 12, vel: n.vel * 0.35 });
+        events.push({ inst, t: at(bar, n.beat), dur: n.len * beat, midi: n.midi, vel: n.vel * (inst === 'vibes' ? 1 : P.pizzGain ?? 0.85) });
+        if (section === 'A' && Math.floor(body / 8) % 4 === 3) events.push({ inst: double, t: at(bar, n.beat), dur: n.len * beat, midi: n.midi - 12, vel: n.vel * 0.35 });
       }
       melPrev = notes[notes.length - 1].midi;
     }
   }
-  return { events, beat, barDur, key, bpm, style: 'jazz' };
+  return { events, beat, barDur, key, bpm, style: id };
 }
 
-function drums(events, bar, at, beat, body, rand) {
-  events.push({ inst: 'sweep', t: at(bar, 0), dur: beat * 4, beat, vel: 0.32 });
+function drums(events, bar, at, beat, body, rand, P, section) {
+  const snaps = P.kit === 'snap';
+  events.push({ inst: 'sweep', t: at(bar, 0), dur: beat * 4, beat, vel: snaps ? 0.18 : 0.32 });
   for (let b = 0; b < 4; b++) events.push({ inst: 'kick', t: at(bar, b), vel: b === 0 ? 0.16 : 0.1 });
   for (const b of [1, 3]) {
-    events.push({ inst: 'snare', t: at(bar, b), vel: 0.36 + rand() * 0.08 });
+    if (snaps) events.push({ inst: 'snap', t: at(bar, b), vel: 0.5 + rand() * 0.1 });
+    else events.push({ inst: 'snare', t: at(bar, b), vel: 0.36 + rand() * 0.08 });
     events.push({ inst: 'hat', t: at(bar, b), vel: 0.22 });
   }
-  if (body < 0) return;
-  for (const b of [0, 1, 1.5, 2, 3, 3.5]) events.push({ inst: 'jazzRide', t: at(bar, b), vel: (b % 1 ? 0.28 : 0.42) + rand() * 0.06 });
+  if (body < 0 || (snaps && section !== 'B')) return;
+  for (const b of [0, 1, 1.5, 2, 3, 3.5]) events.push({ inst: 'jazzRide', t: at(bar, b), vel: ((b % 1 ? 0.28 : 0.42) + rand() * 0.06) * P.ride });
 }

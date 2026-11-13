@@ -17,9 +17,9 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
 
 ## Neler var
 
-- **34 nesne, 6 kategori**: Meyve (elma, karpuz, portakal, kivi, limon, şeftali, avokado, çilek), Sebze (domates,
+- **36 nesne, 6 kategori**: Meyve (elma, karpuz, portakal, kivi, limon, şeftali, avokado, çilek), Sebze (domates,
   kırmızı soğan, havuç, salatalık, balkabağı, patlıcan), Yiyecek (katlı pasta, donut, hamburger, suşi, delikli
-  peynir, haşlanmış yumurta), Obje (sabun, kinetik kum, gökkuşağı mum, altın külçe, zeka küpü, şeker topu),
+  peynir, haşlanmış yumurta, pizza, kurabiye), Obje (sabun, kinetik kum, gökkuşağı mum, altın külçe, zeka küpü, şeker topu),
   Figür (lastik ördek, kardan adam, oyuncak ayı, gülen surat, kalp, futbol topu), Uzay (katmanlı Dünya, Ay).
   Her biri kategorisinde ya da tüm katalogdan "karışık" oynatılabilir.
 - **Gerçek kesitler**: İçi katmanlı nesneler (Dünya'nın çekirdeği, soğan halkaları, pasta katları, yumurta sarısı,
@@ -32,11 +32,19 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   yoğun pasajlarda fıss öne çıkar, tok geri çekilir. Her nesnenin kendi kesim sesi var (çıtır, sulu, yumuşak,
   çatırtılı, metal, kum, lastik, taş). Küp düşüşleri tahtanın rezonans modlarıyla üretilir ve her küp
   yere değdiği anda, konumuna göre stereo duyulur.
-- **Arka fon müziği**: Varsayılan **Gizemli Caz**: referans videodaki gibi minör tonda (ilk varyasyon Re minör),
-  ~148 BPM swing; kromatik yaklaşımlı yürüyen kontrbas, vuruş arası elektrikli piyano kompu, staccato vibrafon /
-  pizzicato melodi ve fırçalı davul (fırça süpürmesi, trampet, ride). Temiz mastering, küçük oda yankısı.
-  Gramofon tadındaki eski stiller de duruyor: Gramofon Valsi, Kafe Caz, Barok Çay Saati, Paris Musette.
-  Telifsiz; "Yeni varyasyon" yeni ton, tempo ve melodi üretir. İstersen kendi müzik dosyanı yükleyebilirsin.
+- **Arka fon müziği**: Referans videodaki küçük caz grubu tarzında üç stil, hepsi kontrbas, elektrikli piyano,
+  vibrafon / pizzicato ve hafif davulla, temiz mastering ve küçük oda yankısıyla:
+  - **Gizemli Caz** (varsayılan): minör, ~148 BPM swing, yürüyen kontrbas, vibrafon melodi, fırçalı davul.
+  - **Sinsi Pizzicato**: ~160 BPM, A bölümlerinde iki vuruşlu bas ve pizzicato melodi, parmak şıklatma.
+  - **Gece Cazı**: ~123 BPM, daha geniş swing, uzun vibrafon notaları, yumuşak ride.
+  Telifsiz; "Yeni varyasyon" yeni ton, tempo ve melodi üretir; "Seri üret" üç stili sırayla kullanır.
+  İstersen kendi müzik dosyanı yükleyebilirsin.
+- **Kamera**: "Değişen açılar" (varsayılan) her tura kendi açısını verir, nesne düşerken yumuşakça yeni açıya
+  geçer, kesim boyunca yavaşça yaklaşır, finalde geri çekilir. Düz nesnelere daha yukarıdan bakar. "Sabit" tek
+  açıda kalır.
+- **Kesim düzeni**: Bıçak önce sağdan sola dikey, sonra yukarıdan aşağı yatay, en son önden arkaya keser.
+  Pizza, kurabiye, donut gibi ince nesnelerde (yükseklik / taban < 0,4) yatay kesim yapılmaz; kesimler dikey ve
+  önden arkaya paylaşılır. Parçalar iğneye dönüşecek kadar inceldiğinde ekranda küp oranında çizilir.
 - **Görüntü kalitesi**: Kesim çizgileri kenarları yumuşatılmış (anti-aliased) çizilir ve sıklaştıkça solar; yoğun
   turlarda yüzeyde moiré / merdiven deseni oluşmaz. MP4 çıktısı canlı önizlemeden çok daha ince bir yığınla
   (masaüstünde 420 bine kadar küp) ve 24 Mbit/s ile kodlanır.
@@ -62,8 +70,9 @@ Tüm animasyon zamanın saf bir fonksiyonudur: aynı ayarlarla her render birebi
 | Dosya | Görev |
 | --- | --- |
 | `js/sdf.js`, `js/mesher.js` | Şekil dili (JS ve GLSL'e derlenir), şekilden mesh üretimi |
-| `js/catalog/*` | 34 nesne: şekil, renk, ses profili; önceden hesaplanmış ölçümler (`meta.js`) |
-| `js/timeline.js` | Turlar, fazlar ve her kesimin zamanı |
+| `js/catalog/*` | 36 nesne: şekil, renk, ses profili; önceden hesaplanmış ölçümler (`meta.js`) |
+| `js/timeline.js` | Turlar, fazlar ve her kesimin zamanı (ince nesne kuralı dahil) |
+| `js/camera.js` | Tur başına kamera açıları ve geçişler |
 | `js/cubes-data.js`, `js/cubes-mesh.js` | Küp ızgarası, yığın fiziği, GPU'da küp uçuşu ve üç çizim modu |
 | `js/materials.js`, `js/object-glsl.js` | Nesne başına shader programları |
 | `js/sfx.js`, `js/landing.js` | Kesim / tahta sesi sentezi, küp düşüş izi |

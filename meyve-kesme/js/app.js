@@ -1,5 +1,6 @@
 // Glue: renders any moment of the timeline, drives playback, sound and export.
 import { createStage, placeCamera } from './scene.js';
+import { buildCameraPlan } from './camera.js';
 import { ObjectModel } from './object-mesh.js';
 import { createCutUniforms, objectMaterials, precompile } from './materials.js';
 import { CubePile, cubeMaterialsFor, DETAILED_LIMIT } from './cubes-mesh.js';
@@ -93,6 +94,7 @@ export class App {
     this.gen++;
     this.params = { rounds: ROUND_PRESETS[s.preset] || ROUND_PRESETS.classic, item: s.item, speed: Number(s.speed) || 1, seed: Number(s.seed) || 0 };
     this.timeline = buildTimeline(this.params);
+    this.refreshCamera();
     for (const p of this.piles.values()) {
       this.scene.remove(p.mesh);
       p.dispose();
@@ -106,6 +108,10 @@ export class App {
     this.resetClock();
     this.prefetch(roundIndexAt(this.timeline, this.time));
     this.refreshMusic();
+  }
+
+  refreshCamera() {
+    this.cameraPlan = buildCameraPlan(this.timeline, this.settings.camera, Number(this.settings.seed) || 1);
   }
 
   musicJob() {
@@ -317,7 +323,7 @@ export class App {
     u.uClipZ.value = Number.isFinite(state.clipZ) ? state.clipZ : 1e6;
     if (state.active) {
       const a = state.active;
-      u.uActive.value.set(a.axis, a.axis === 0 ? a.index : round.split[a.axis] - 1 - a.index, pose.edge, 1);
+      u.uActive.value.set(a.axis, round.split[a.axis] - 1 - a.index, pose.edge, 1);
     } else u.uActive.value.set(0, 0, 0, 0);
     const zp = round.phases[2];
     const gone = T >= zp.times[zp.n - 1] + 0.13;
@@ -341,7 +347,7 @@ export class App {
       pile.mesh.visible = visible;
     }
     this.knife.update(samples, -round.boardY);
-    placeCamera(this.camera, T, this.shake(round, state, T));
+    placeCamera(this.camera, T, this.shake(round, state, T), this.cameraPlan);
     this.hud.update(this.hudValues(ri, round, state, T));
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera);

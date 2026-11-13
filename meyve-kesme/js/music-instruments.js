@@ -1,7 +1,7 @@
 // Synthesized instruments for the background music. Each renderer adds one
-// note event { t, dur, midi, vel } into a mono buffer. Reeds use wavetables,
-// plucked strings Karplus-Strong, the upright bass, vibraphone and the brush
-// kit are additive / filtered-noise models. Pure JS, runs in the worker.
+// note event { t, dur, midi, vel } into a mono buffer. Pizzicato strings are
+// Karplus-Strong; the upright bass, keys, vibraphone and the kit are additive /
+// filtered-noise models. Pure JS, runs in the worker.
 import { filter, SAMPLE_RATE } from './sfx.js';
 
 const SR = SAMPLE_RATE;
@@ -11,62 +11,8 @@ export const mtof = (m) => 440 * 2 ** ((m - 69) / 12);
 const startOf = (ev) => Math.floor(ev.t * SR);
 const gauss = (x, c, w) => Math.exp(-(((x - c) / w) ** 2));
 
-// ---------- reeds (wavetable) ----------
-const tables = new Map();
-function reedTable(inst, f) {
-  const key = `${inst}|${Math.round(f)}`;
-  if (tables.has(key)) return tables.get(key);
-  const N = 2048;
-  const t = new Float32Array(N);
-  for (let h = 1; h * f < 9000; h++) {
-    const x = h * f;
-    let a;
-    if (inst === 'clarinet') a = ((h % 2 ? 1 : 0.12) * (0.3 + gauss(x, 1500, 600) + 0.5 * gauss(x, 2400, 700))) / h ** 0.4;
-    else if (inst === 'bassoon') a = (0.4 + gauss(x, 450, 200) + 0.7 * gauss(x, 1150, 400)) / h ** 0.5;
-    else if (inst === 'accordion') a = (0.5 + 0.8 * gauss(x, 1500, 1200)) / h ** 0.65;
-    else a = (0.18 + gauss(x, 1150, 420) + 0.6 * gauss(x, 2900, 800)) / h ** 0.25;
-    a *= x > 4500 ? Math.exp(-(x - 4500) / 1500) : 1;
-    for (let i = 0; i < N; i++) t[i] += a * Math.sin((TAU * h * i) / N + h * 0.7);
-  }
-  let rms = 0;
-  for (const v of t) rms += v * v;
-  rms = Math.sqrt(rms / N) || 1;
-  for (let i = 0; i < N; i++) t[i] /= rms * 3;
-  tables.set(key, t);
-  return t;
-}
-
-function renderReed(out, ev, rand, inst) {
-  const f = mtof(ev.midi);
-  const table = reedTable(inst, f);
-  const n = Math.floor((ev.dur + 0.12) * SR);
-  const start = startOf(ev);
-  const voices = inst === 'accordion' ? [-0.006, 0.006] : [0];
-  for (const det of voices) {
-    let ph = rand();
-    for (let i = 0; i < n && start + i < out.length; i++) {
-      const t = i / SR;
-      const vib = 1 + (inst === 'accordion' ? 0 : 0.0045 * Math.sin(TAU * 5.3 * t) * Math.min(1, t / 0.35));
-      ph += (f * (1 + det) * vib) / SR;
-      const p = (ph - Math.floor(ph)) * 2048;
-      const k = p | 0;
-      const v = table[k] + (table[(k + 1) & 2047] - table[k]) * (p - k);
-      const envA = Math.min(1, t / 0.045) * (t > ev.dur ? Math.max(0, 1 - (t - ev.dur) / 0.1) : 1);
-      out[start + i] += v * envA * ev.vel * (inst === 'accordion' ? 0.6 : 1);
-    }
-  }
-}
-
 // ---------- plucked strings (Karplus-Strong with all-pass tuning) ----------
-const PLUCKS = {
-  pizz: { sustain: 0.994, bright: 0.35, gain: 0.9 },
-  bass: { sustain: 0.997, bright: 0.25, gain: 1.1 },
-  cello: { sustain: 0.996, bright: 0.3, gain: 1.0 },
-  harp: { sustain: 0.9985, bright: 0.55, gain: 0.45 },
-  guitar: { sustain: 0.995, bright: 0.6, gain: 0.4 },
-  harpsichord: { sustain: 0.997, bright: 0.95, gain: 0.35 },
-  jazzPizz: { sustain: 0.99, bright: 0.42, gain: 0.8, damp: 0.06 },
-};
+const JAZZ_PIZZ = { sustain: 0.99, bright: 0.42, gain: 0.8, damp: 0.06 };
 
 function renderPluck(out, ev, rand, { sustain, bright, gain, damp = 0.3 }) {
   const f = mtof(ev.midi);
@@ -225,20 +171,21 @@ function renderSweep(out, ev, rand) {
   }
 }
 
+// Finger snap: a bright crack plus a short skin "pop".
+function renderSnap(out, ev, rand) {
+  noiseBurst(out, ev, rand, { freq: 2100, q: 1.1, attack: 0.0006, decay: 0.022, gain: 0.9 });
+  noiseBurst(out, ev, rand, { freq: 5200, q: 0.8, attack: 0.0004, decay: 0.008, gain: 0.35 });
+}
+
 export const INSTRUMENTS = {
-  oboe: (o, e, r) => renderReed(o, e, r, 'oboe'),
-  clarinet: (o, e, r) => renderReed(o, e, r, 'clarinet'),
-  bassoon: (o, e, r) => renderReed(o, e, r, 'bassoon'),
-  accordion: (o, e, r) => renderReed(o, e, r, 'accordion'),
   ep: (o, e) => renderEp(o, e),
   upright: renderUpright,
   vibes: renderVibes,
-  ride: (o, e, r) => noiseBurst(o, e, r, { freq: 7500, q: 0.8, attack: 0.002, decay: 0.03 }),
-  brush: (o, e, r) => noiseBurst(o, e, r, { freq: 3500, q: 0.6, attack: 0.04, decay: 0.05 }),
+  jazzPizz: (o, e, r) => renderPluck(o, e, r, JAZZ_PIZZ),
   jazzRide: renderRide,
   snare: (o, e, r) => noiseBurst(o, e, r, { freq: 2600, q: 0.7, attack: 0.003, decay: 0.055, gain: 0.5 }),
+  snap: renderSnap,
   hat: (o, e, r) => noiseBurst(o, e, r, { freq: 8000, q: 0.7, attack: 0.001, decay: 0.018, gain: 0.35, type: 'highpass' }),
   kick: renderKick,
   sweep: renderSweep,
-  ...Object.fromEntries(Object.entries(PLUCKS).map(([name, p]) => [name, (o, e, r) => renderPluck(o, e, r, p)])),
 };

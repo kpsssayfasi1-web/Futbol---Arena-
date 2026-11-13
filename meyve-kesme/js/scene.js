@@ -4,6 +4,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { mulberry32 } from './rng.js';
 import { BOARD } from './cubes-data.js';
+import { cameraView, cameraPose } from './camera.js';
 
 export const BOARD_THICKNESS = 0.26;
 
@@ -168,13 +169,9 @@ export function createStage(canvas, { shadowSize = 2048 } = {}) {
   return { renderer, scene, camera, key };
 }
 
-// Gentle drift plus a small kick on every chop.
-export function placeCamera(camera, t, shake) {
-  const az = THREE.MathUtils.degToRad(30 + 5 * Math.sin(t * 0.11));
-  const el = THREE.MathUtils.degToRad(29 + 2 * Math.sin(t * 0.07 + 1));
-  const dist = 12.6;
-  const target = new THREE.Vector3(0, 0.66, 0.35);
-  camera.position.set(target.x + dist * Math.cos(el) * Math.sin(az), target.y + dist * Math.sin(el), target.z + dist * Math.cos(el) * Math.cos(az));
-  camera.position.y += shake;
-  camera.lookAt(target.x, target.y + shake * 0.5, target.z);
+// Framing from the camera plan plus a small kick on every chop.
+export function placeCamera(camera, t, shake, plan) {
+  const { position, target } = cameraPose(cameraView(plan, t));
+  camera.position.set(position[0], position[1] + shake, position[2]);
+  camera.lookAt(target[0], target[1] + shake * 0.5, target[2]);
 }

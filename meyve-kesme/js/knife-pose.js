@@ -1,7 +1,7 @@
 // Knife position/orientation as a pure function of the round state.
 // Knife local frame: +x along the blade towards the tip, +y towards the spine,
 // origin on the edge at the heel. Quaternions are [x, y, z, w].
-import { strokeStart } from './timeline.js';
+import { strokeStart, previousPhase } from './timeline.js';
 
 export const BLADE_LENGTH = 2.4;
 const HEEL_GAP = 0.28;
@@ -185,9 +185,10 @@ export function knifePose(round, state, t) {
   }
   const first = a.index === 0;
   let from;
+  const prev = previousPhase(round, a.axis);
   if (!first) from = contactPose(round, a.axis, a.index - 1, g);
-  else if (a.axis === 0) from = rest;
-  else from = contactPose(round, a.axis - 1, round.phases[a.axis - 1].n - 1, g);
+  else if (!prev) from = rest;
+  else from = contactPose(round, prev.axis, prev.n - 1, g);
   const hover = hoverPose(round, a.axis, a.index, g);
   const contact = contactPose(round, a.axis, a.index, g);
   const pose = a.axis === 1 ? slicePose(a.s, from, hover, contact, first) : addRock(chopPose(a.axis, a.s, from, hover, contact, first), a.axis, g);

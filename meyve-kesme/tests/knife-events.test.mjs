@@ -107,15 +107,17 @@ test('music: every style composes a full-length, non-silent, unclipped track', (
   for (const s of MUSIC_STYLES) {
     const song = compose({ style: s.id, seed: 4, duration: 8 });
     assert.ok(song.events.length > 20, s.id);
-    assert.ok(song.events.some((e) => ['oboe', 'accordion', 'vibes'].includes(e.inst)), `${s.id} has a lead`);
+    assert.ok(song.events.some((e) => ['vibes', 'jazzPizz'].includes(e.inst)), `${s.id} has a lead`);
+    assert.ok(song.events.some((e) => e.inst === 'upright'), `${s.id} has a bass`);
   }
-  const m = renderMusic({ style: 'waltz', seed: 2, duration: 6 });
+  assert.deepEqual(MUSIC_STYLES.map((s) => s.id), ['jazz', 'pizzicato', 'noir']);
+  const m = renderMusic({ style: 'noir', seed: 2, duration: 6 });
   assert.ok(m.left.length >= 6 * m.sampleRate);
   const peak = peakOf(m.left);
   assert.ok(peak > 0.3 && peak <= 0.86, `peak ${peak}`);
-  const again = renderMusic({ style: 'waltz', seed: 2, duration: 6 });
+  const again = renderMusic({ style: 'noir', seed: 2, duration: 6 });
   assert.equal(again.left[12345], m.left[12345], 'deterministic');
-  const other = renderMusic({ style: 'waltz', seed: 3, duration: 6 });
+  const other = renderMusic({ style: 'noir', seed: 3, duration: 6 });
   assert.notEqual(other.left[48000 * 3], m.left[48000 * 3], 'new seed, new music');
 });
 
@@ -154,4 +156,25 @@ test('fast cuts use a short swish instead of a sped-up one', () => {
   const { block, rate, lead } = pickContact([0.1, 0.06, 0.036], 0.04);
   assert.equal(block, 2);
   assert.ok(Math.abs(lead - 0.036 / rate) < 1e-12 && lead <= 0.04 + 1e-9);
+});
+
+test('jazz presets differ in tempo and feel', () => {
+  const tempo = (style) => compose({ style, seed: 1, duration: 10 }).bpm;
+  assert.ok(tempo('noir') < tempo('jazz') && tempo('jazz') < tempo('pizzicato'));
+  const piz = compose({ style: 'pizzicato', seed: 1, duration: 20 });
+  assert.ok(piz.events.some((e) => e.inst === 'snap'), 'finger snaps');
+  assert.ok(!piz.events.some((e) => e.inst === 'snare'));
+});
+
+test('flat items: the knife goes straight from the last vertical chop to the front-to-back chops', () => {
+  const flat = buildTimeline({ rounds: [10], item: 'donut' }).rounds[0];
+  const at = (t) => knifePose(flat, roundState(flat, t), t);
+  let prev = at(flat.start);
+  for (let t = flat.start; t < flat.end; t += 1 / 240) {
+    const p = at(t);
+    assert.ok(p.pos.every(Number.isFinite), `finite at ${t}`);
+    assert.ok(dist(p.pos, prev.pos) < 0.7, `jump at ${t.toFixed(3)}`);
+    prev = p;
+  }
+  assert.ok(!roundEvents(flat).some((e) => e.type === 'slice'));
 });

@@ -88,3 +88,13 @@ test('formatCount shows exact and approximate numbers', () => {
   assert.equal(formatCount(13752345, true, 'tr-TR'), '≈ 13.752.000');
   assert.equal(formatCount(0, true), '0');
 });
+
+test('flat items: needle-like pieces are drawn as near-cubes, the count stays real', () => {
+  const info = objectInfo(itemById('pizza'));
+  const small = displayGrid([5, 0, 5], 420000, info);
+  assert.ok(small.exact && small.dims[1] === 1, 'few cuts: real columns');
+  const big = displayGrid([500, 0, 500], 420000, info);
+  assert.ok(!big.exact && big.dims[1] > 4, `dims ${big.dims}`);
+  const cell = [0, 1, 2].map((k) => (info.bbox.max[k] - info.bbox.min[k]) / big.dims[k]);
+  assert.ok(cell[1] / Math.min(cell[0], cell[2]) < 2, 'roughly cubic');
+});

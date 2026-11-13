@@ -4,6 +4,7 @@ import { ITEMS, CATEGORIES, itemById, itemsInCategory, itemForRound, isValidSele
 import { objectInfo, measure, shapeOf } from '../js/object-info.js';
 import { META } from '../js/catalog/meta.js';
 import { itemGlsl } from '../js/object-glsl.js';
+import { isFlatItem } from '../js/timeline.js';
 
 test('catalog has unique ids and every category is filled', () => {
   assert.equal(new Set(ITEMS.map((i) => i.id)).size, ITEMS.length);
@@ -17,7 +18,8 @@ test('every item has names, a colour, a sound profile and a solid centre region'
     assert.ok(it.sound && typeof it.sound.cut === 'string', it.id);
     const info = objectInfo(it);
     assert.ok(info.volume > 0.5, `${it.id} volume ${info.volume}`);
-    assert.ok(info.boardY < -0.3 && info.boardY > -1.2, `${it.id} boardY ${info.boardY}`);
+    const lowest = isFlatItem(it, info) ? -0.08 : -0.3; // flat items (pizza, cookie) sit low
+    assert.ok(info.boardY < lowest && info.boardY > -1.2, `${it.id} boardY ${info.boardY}`);
     const { sdf } = shapeOf(it);
     assert.ok(sdf(0, info.boardY - 0.05, 0) > 0, `${it.id} nothing below the board`);
   }

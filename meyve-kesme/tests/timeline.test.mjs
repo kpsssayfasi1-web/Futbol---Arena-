@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { splitCuts, phaseDuration, planePositions, cutTimes, buildTimeline, roundState, cutsDone, releaseTimeForZ, roundIndexAt, ROUND_PRESETS } from '../js/timeline.js';
+import { splitCuts, phaseDuration, planePositions, cutTimes, buildTimeline, roundState, cutsDone, releaseTimeForZ, roundIndexAt, ROUND_PRESETS, TIMING } from '../js/timeline.js';
 
 test('splitCuts spreads cuts over the three axes and keeps the total', () => {
   assert.deepEqual(splitCuts(10), [4, 3, 3]);
@@ -26,7 +26,7 @@ test('phaseDuration grows slower than the number of cuts', () => {
 test('planePositions lie strictly inside the box in cutting order', () => {
   const bbox = { min: [-1, -1, -1], max: [1, 1, 1] };
   const x = planePositions(0, 3, bbox);
-  assert.deepEqual(x, [-0.5, 0, 0.5]);
+  assert.deepEqual(x, [0.5, 0, -0.5], 'X runs right to left');
   const z = planePositions(2, 3, bbox);
   assert.deepEqual(z, [0.5, 0, -0.5]);
 });
@@ -107,4 +107,26 @@ test('cutsDone and releaseTimeForZ agree with the cut schedule', () => {
   assert.equal(cutsDone(z, z.times[0]), 1);
   assert.equal(releaseTimeForZ(r, r.bbox.max[2] - 0.01), z.times[0]);
   assert.ok(releaseTimeForZ(r, r.bbox.min[2] + 0.01) > z.times[z.n - 1]);
+});
+
+test('flat items are cut only vertically and front to back', () => {
+  assert.deepEqual(splitCuts(10, true), [5, 0, 5]);
+  assert.deepEqual(splitCuts(1000, true), [500, 0, 500]);
+  const r = buildTimeline({ rounds: [10, 100], item: 'donut' }).rounds;
+  for (const round of r) {
+    assert.ok(round.flat);
+    assert.equal(round.split[1], 0);
+    assert.equal(round.cuts, round.split[0] + round.split[2]);
+    // the Z phase follows the X phase directly
+    assert.ok(Math.abs(round.phases[2].start - round.phases[0].end - TIMING.phaseGap) < 1e-9);
+    let prevTotal = 0;
+    for (let t = round.land; t < round.end; t += 0.01) {
+      const st = roundState(round, t);
+      assert.ok(st.total >= prevTotal);
+      prevTotal = st.total;
+      if (st.active) assert.notEqual(st.active.axis, 1);
+    }
+    assert.equal(prevTotal, round.cuts);
+  }
+  assert.ok(!buildTimeline({ rounds: [10], item: 'apple' }).rounds[0].flat);
 });

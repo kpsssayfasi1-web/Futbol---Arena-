@@ -25,7 +25,22 @@ export const AXIS_X = 0;
 export const AXIS_Y = 1;
 export const AXIS_Z = 2;
 
-export function splitCuts(total) {
+// Items flatter than this (height / smaller footprint side) get no horizontal
+// cuts: slicing a pizza into layers looks wrong and hides the cut pattern.
+export const FLAT_RATIO = 0.4;
+
+export function isFlatItem(item, info) {
+  if (typeof item.flat === 'boolean') return item.flat;
+  const e = [0, 1, 2].map((k) => info.bbox.max[k] - info.bbox.min[k]);
+  return e[1] / Math.min(e[0], e[2]) < FLAT_RATIO;
+}
+
+export function splitCuts(total, flat = false) {
+  if (flat) {
+    const n = Math.max(2, Math.round(total));
+    const nx = Math.ceil(n / 2);
+    return [nx, 0, n - nx];
+  }
   const n = Math.max(3, Math.round(total));
   const nx = Math.ceil(n / 3);
   const ny = Math.ceil((n - nx) / 2);
@@ -37,16 +52,13 @@ export function phaseDuration(n, speed = 1) {
   return Math.min(n * 0.26, 0.95 * Math.pow(n, 0.28)) / speed;
 }
 
-// Plane positions, in the order the knife makes them. X goes left to right,
-// Y top to bottom, Z front (camera side) to back.
+// Plane positions, in the order the knife makes them: every axis goes from
+// its max side, so X runs right to left (the knife starts on the side it rests
+// on), Y top to bottom, Z front (camera side) to back.
 export function planePositions(axis, n, bbox) {
-  const lo = bbox.min[axis];
-  const ext = bbox.max[axis] - lo;
+  const ext = bbox.max[axis] - bbox.min[axis];
   const out = new Array(n);
-  for (let i = 0; i < n; i++) {
-    const f = (i + 1) / (n + 1);
-    out[i] = axis === AXIS_X ? lo + f * ext : bbox.max[axis] - f * ext;
-  }
+  for (let i = 0; i < n; i++) out[i] = bbox.max[axis] - ((i + 1) / (n + 1)) * ext;
   return out;
 }
 
@@ -61,8 +73,10 @@ export function buildTimeline({ rounds = ROUND_PRESETS.classic, item = 'apple', 
   let t = 0;
   rounds.forEach((cuts, index) => {
     const itemId = itemForRound(item, index, seed);
-    const info = objectInfo(itemById(itemId));
-    const split = splitCuts(cuts);
+    const itemDef = itemById(itemId);
+    const info = objectInfo(itemDef);
+    const flat = isFlatItem(itemDef, info);
+    const split = splitCuts(cuts, flat);
     const start = t;
     const land = start + TIMING.drop;
     let cursor = land + TIMING.settle;
@@ -76,13 +90,13 @@ export function buildTimeline({ rounds = ROUND_PRESETS.classic, item = 'apple', 
         times: cutTimes(n, cursor, duration),
         planes: planePositions(axis, n, info.bbox),
       };
-      cursor = phase.end + TIMING.phaseGap;
+      if (n > 0) cursor = phase.end + TIMING.phaseGap;
       return phase;
     });
     const lastCut = phases[2].end;
     const isLast = index === rounds.length - 1;
     const end = lastCut + (isLast ? TIMING.finalHold : TIMING.tail);
-    list.push({ index, cuts: split[0] + split[1] + split[2], split, itemId, start, land, phases, lastCut, end, bbox: info.bbox, boardY: info.boardY });
+    list.push({ index, cuts: split[0] + split[1] + split[2], split, flat, itemId, start, land, phases, lastCut, end, bbox: info.bbox, boardY: info.boardY });
     t = end;
   });
   return { rounds: list, duration: t, speed };
@@ -142,9 +156,14 @@ export function roundState(round, t) {
 // as soon as the fruit touches the board.
 export function strokeStart(round, axis, index) {
   if (index > 0) return round.phases[axis].times[index - 1];
-  if (axis === 0) return round.land;
-  const prev = round.phases[axis - 1];
-  return prev.times[prev.n - 1];
+  const prev = previousPhase(round, axis);
+  return prev ? prev.times[prev.n - 1] : round.land;
+}
+
+// The last phase before `axis` that has any cuts (flat items skip Y).
+export function previousPhase(round, axis) {
+  for (let a = axis - 1; a >= 0; a--) if (round.phases[a].n > 0) return round.phases[a];
+  return null;
 }
 
 // Moment the last cut that frees a given z position happens (cells are freed

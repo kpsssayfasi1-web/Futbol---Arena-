@@ -8,6 +8,7 @@ import { releaseTimeForZ } from './timeline.js';
 
 export const GRAVITY = 15;
 export const COARSE_CELL_LIMIT = 12000;
+const NEEDLE_RATIO = 4;
 export const BOARD = { minX: -2.15, maxX: 2.15, minZ: -1.45, maxZ: 1.95 };
 
 // Display grid: the real grid when it fits the budget, otherwise a scaled one
@@ -17,6 +18,15 @@ export function displayGrid(split, budget, info) {
   const total = cells[0] * cells[1] * cells[2];
   const ext = [0, 1, 2].map((k) => info.bbox.max[k] - info.bbox.min[k]);
   const fill = Math.min(1, info.volume / (ext[0] * ext[1] * ext[2]));
+  // Flat item (no horizontal cuts): once the real pieces turn into needles
+  // much taller than wide, draw near-cubic pieces instead (the counter keeps
+  // the real number of pieces).
+  const width = Math.min(ext[0] / cells[0], ext[2] / cells[2]);
+  if (split[1] === 0 && ext[1] / width > NEEDLE_RATIO) {
+    const edge = Math.max(width, Math.cbrt((ext[0] * ext[1] * ext[2] * fill) / budget));
+    const dims = [0, 1, 2].map((k) => Math.max(k === 1 ? 1 : 2, Math.min(k === 1 ? Infinity : cells[k], Math.floor(ext[k] / edge))));
+    return { dims, exact: false };
+  }
   if (total * fill <= budget) return { dims: cells, exact: true };
   const s = Math.cbrt(budget / (total * fill));
   return { dims: cells.map((c) => Math.max(2, Math.floor(c * s))), exact: false };

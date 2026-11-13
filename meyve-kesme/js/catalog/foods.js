@@ -160,4 +160,70 @@ vec3 itemInner(vec3 p, float depth, float part) {
 float itemRough(float part, float skin) { return mix(0.3, 0.55, skin); }
 `,
   },
+  {
+    id: 'pizza', cat: 'food', tr: 'PİZZA', en: 'PIZZA', dot: '#e0552f', skinT: 0.015,
+    sound: { cut: 'crisp', hard: 0.25, wet: 0.2 },
+    bounds: [[-1.4, -0.3, -1.4], [1.4, 0.3, 1.4]],
+    shape: { op: 'union', k: 0.05, of: [
+      { type: 'cylinder', r: 1.1, h: 0.07, round: 0.03, part: 0 },
+      { type: 'torus', at: [0, 0.02, 0], R: 1.1, r: 0.13, lobes: { n: 11, amp: 0.02 }, part: 1 },
+    ] },
+    glsl: /* glsl */ `
+float pepMask(vec3 p) {
+  vec2 q = p.xz * 2.3;
+  vec2 c = floor(q);
+  vec3 h = fHash3(vec3(c, 3.0));
+  vec2 f = fract(q) - 0.5 - (h.xy - 0.5) * 0.3;
+  return (1.0 - smoothstep(0.24, 0.27, length(f))) * step(0.22, h.z) * (1.0 - smoothstep(0.86, 0.9, length(p.xz)));
+}
+vec3 crustCol(vec3 p) {
+  vec3 c = mix(vec3(0.42, 0.17, 0.04), vec3(0.62, 0.32, 0.09), fNoise(p * 7.0));
+  return mix(c, vec3(0.16, 0.06, 0.02), spots(p, 13.0, 0.16, 0.3) * 0.7);
+}
+vec3 itemSkin(vec3 p, float part) {
+  if (part > 0.5) return crustCol(p);
+  if (p.y < 0.02) return vec3(0.55, 0.3, 0.1) * (0.88 + 0.16 * fNoise(p * 9.0));
+  vec3 cheese = mix(vec3(0.68, 0.36, 0.05), vec3(0.55, 0.22, 0.03), fFbm(p * 6.0));
+  cheese = mix(cheese, vec3(0.32, 0.11, 0.02), spots(p, 8.0, 0.2, 0.4) * 0.5);
+  cheese = mix(cheese, vec3(0.6, 0.06, 0.02), spots(p * vec3(1.0, 0.0, 1.0) + 9.0, 6.0, 0.22, 0.25) * 0.35);
+  vec3 c = mix(cheese, vec3(0.38, 0.03, 0.015) * (0.85 + 0.25 * fNoise(p * 22.0)), pepMask(p));
+  return mix(c, vec3(0.03, 0.16, 0.02), spots(p * vec3(1.0, 0.0, 1.0) + 4.0, 4.5, 0.18, 0.3) * (1.0 - pepMask(p)));
+}
+vec3 itemInner(vec3 p, float depth, float part) {
+  vec3 bread = vec3(0.78, 0.55, 0.26) * (0.9 + 0.14 * fNoise(p * 26.0));
+  bread = mix(bread, vec3(0.6, 0.4, 0.17), spots(p, 22.0, 0.2, 0.4) * 0.6);
+  if (part > 0.5) return mix(crustCol(p), bread, smoothstep(0.0, 0.04, depth));
+  if (p.y < 0.0) return bread;
+  if (p.y < 0.025) return vec3(0.5, 0.04, 0.015) * (0.9 + 0.15 * fNoise(p * 30.0));
+  return pepMask(p) > 0.5 ? vec3(0.38, 0.03, 0.015) : vec3(0.78, 0.48, 0.1);
+}
+#define ITEM_BUMP
+float itemBump(vec3 p, float part) { return part < 0.5 && p.y > 0.02 ? pepMask(p) * 0.012 + fNoise(p * 28.0) * 0.003 : fNoise(p * 18.0) * 0.005; }
+#define ITEM_ROUGH
+float itemRough(float part, float skin) { return part > 0.5 ? 0.75 : mix(0.65, 0.5, skin); }
+`,
+  },
+  {
+    id: 'cookie', cat: 'food', tr: 'KURABİYE', en: 'COOKIE', dot: '#b97a3d', skinT: 0.025,
+    sound: { cut: 'crisp', hard: 0.55, wet: 0 },
+    bounds: [[-1.25, -0.3, -1.25], [1.25, 0.3, 1.25]],
+    shape: { type: 'cylinder', r: 1.05, h: 0.15, round: 0.11, lobes: { n: 9, amp: 0.035 } },
+    glsl: /* glsl */ `
+float chips(vec3 p) { return spots(p, 4.2, 0.32, 0.55); }
+vec3 itemSkin(vec3 p, float part) {
+  float rim = smoothstep(0.75, 1.05, length(p.xz));
+  vec3 dough = mix(vec3(0.68, 0.38, 0.12), vec3(0.45, 0.2, 0.05), rim * 0.8 + fFbm(p * 5.0) * 0.3);
+  dough *= 0.9 + 0.15 * fNoise(p * 24.0);
+  return mix(dough, vec3(0.06, 0.02, 0.008), chips(p));
+}
+vec3 itemInner(vec3 p, float depth, float part) {
+  vec3 dough = vec3(0.85, 0.6, 0.28) * (0.9 + 0.14 * fNoise(p * 30.0));
+  return mix(dough, vec3(0.07, 0.025, 0.01), chips(p));
+}
+#define ITEM_BUMP
+float itemBump(vec3 p, float part) { return fNoise(p * 14.0) * 0.008 + chips(p) * 0.006; }
+#define ITEM_ROUGH
+float itemRough(float part, float skin) { return 0.72; }
+`,
+  },
 ];
