@@ -99,6 +99,8 @@ export class App {
     if (s.music === 'off') return Promise.resolve(this.audio.setMusic(null));
     if (s.music === 'custom') return Promise.resolve(this.audio.setMusic(this.customMusic || null, true));
     const { key, job } = this.musicJob();
+    // Keep only the current score in memory (each one is tens of megabytes).
+    if (this.musicKey && this.musicKey !== key) this.hub.forget(this.musicKey);
     this.musicKey = key;
     return this.hub.request(key, job).then((m) => {
       if (this.musicKey !== key) return;
