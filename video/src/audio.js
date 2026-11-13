@@ -80,6 +80,19 @@ export function buildSoundtrack({ totalSeconds, matchStart, events, seed }) {
       addTone(buf, at, { freq: e.team === 0 ? 210 : 175, duration: 0.09, gain: 0.32, decay: 45 });
       addNoiseBurst(buf, at, rng, { duration: 0.02, gain: 0.25, attack: 0.001, decay: 200, smooth: 0.9 });
       lastTap = at;
+    } else if (e.type === 'kick') {
+      const shot = e.kind === 'shot';
+      addTone(buf, at, { freq: shot ? 120 : 160, duration: shot ? 0.16 : 0.08, gain: shot ? 0.6 : 0.3, decay: shot ? 22 : 45 });
+      addNoiseBurst(buf, at, rng, { duration: 0.03, gain: shot ? 0.5 : 0.25, attack: 0.001, decay: 150, smooth: 0.9 });
+    } else if (e.type === 'wall') {
+      addTone(buf, at, { freq: 95, duration: 0.18, gain: Math.min(0.5, e.speed / 30), decay: 18 });
+      addNoiseBurst(buf, at, rng, { duration: 0.06, gain: 0.3, attack: 0.002, decay: 60, smooth: 0.35 });
+    } else if (e.type === 'post') {
+      addTone(buf, at, { freq: 1480, duration: 0.6, gain: 0.25, decay: 6 });
+      addTone(buf, at, { freq: 2210, duration: 0.4, gain: 0.12, decay: 9 });
+      addNoiseBurst(buf, at + 0.05, rng, { duration: 1.2, gain: 1.1, attack: 0.1, decay: 2.5, smooth: 0.12 });
+    } else if (e.type === 'block') {
+      addNoiseBurst(buf, at + 0.05, rng, { duration: 0.8, gain: 0.7, attack: 0.08, decay: 3, smooth: 0.12 });
     } else if (e.type === 'clash') {
       addTone(buf, at, { freq: 620, duration: 0.12, gain: 0.35, decay: 35 });
       addTone(buf, at, { freq: 930, duration: 0.08, gain: 0.18, decay: 50 });

@@ -8,13 +8,15 @@
     "node": ">=20"
   },
   "scripts": {
-    "short": "node make-short.js",
-    "calibrate": "node calibrate.js",
+    "short3d": "node make-short3d.js",
+    "short2d": "node make-short.js",
+    "calibrate": "node calibrate-street.js",
     "test": "node --test \"test/*.test.js\"",
     "coverage": "node --test --experimental-test-coverage --test-coverage-exclude=\"test/**\" --test-coverage-exclude=\"../tournament/**\" \"test/*.test.js\""
   },
   "dependencies": {
     "@fontsource/inter": "^5.0.18",
-    "flag-icons": "^7.2.3"
+    "flag-icons": "^7.2.3",
+    "three": "^0.169.0"
   }
 }

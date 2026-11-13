@@ -1,0 +1,1116 @@
+{
+ "note": "3 star outfield players per team. number=null means no verifiable source was reachable; confirm before publishing.",
+ "sources": {
+  "wc2026": "2026 FIFA World Cup official squad lists (Wikipedia: 2026 FIFA World Cup squads)",
+  "squad-2026-11": "National team current squad, November 2026 call-up (Wikipedia national team page)",
+  "euro2024": "UEFA Euro 2024 squad number (Wikipedia: UEFA Euro 2024 squads), latest numbered tournament squad",
+  "copa2024": "2024 Copa América squad number (Wikipedia), latest numbered tournament squad",
+  "afcon2025": "2025 Africa Cup of Nations squad number (Wikipedia), latest numbered tournament squad"
+ },
+ "teams": {
+  "ESP": [
+   {
+    "name": "Lamine Yamal",
+    "label": "LAMINE YAMAL",
+    "number": 19,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Pedri",
+    "label": "PEDRI",
+    "number": 20,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Rodri",
+    "label": "RODRI",
+    "number": 16,
+    "position": "MF",
+    "source": "wc2026"
+   }
+  ],
+  "ARG": [
+   {
+    "name": "Lionel Messi",
+    "label": "MESSI",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Lautaro Martínez",
+    "label": "LAUTARO",
+    "number": 22,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Julián Alvarez",
+    "label": "J. ALVAREZ",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "FRA": [
+   {
+    "name": "Kylian Mbappé",
+    "label": "MBAPPÉ",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ousmane Dembélé",
+    "label": "DEMBÉLÉ",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Michael Olise",
+    "label": "OLISE",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "ENG": [
+   {
+    "name": "Harry Kane",
+    "label": "KANE",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Jude Bellingham",
+    "label": "BELLINGHAM",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Bukayo Saka",
+    "label": "SAKA",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "BRA": [
+   {
+    "name": "Vinícius Júnior",
+    "label": "VINI JR.",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Neymar",
+    "label": "NEYMAR JR",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Raphinha",
+    "label": "RAPHINHA",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "POR": [
+   {
+    "name": "Cristiano Ronaldo",
+    "label": "RONALDO",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Bruno Fernandes",
+    "label": "BRUNO F.",
+    "number": 8,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Bernardo Silva",
+    "label": "BERNARDO",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   }
+  ],
+  "NED": [
+   {
+    "name": "Virgil van Dijk",
+    "label": "VAN DIJK",
+    "number": 4,
+    "position": "DF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Cody Gakpo",
+    "label": "GAKPO",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Memphis Depay",
+    "label": "MEMPHIS",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "GER": [
+   {
+    "name": "Jamal Musiala",
+    "label": "MUSIALA",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Florian Wirtz",
+    "label": "WIRTZ",
+    "number": 17,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Kai Havertz",
+    "label": "HAVERTZ",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "ITA": [
+   {
+    "name": "Nicolò Barella",
+    "label": "BARELLA",
+    "number": 18,
+    "position": "MF",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Sandro Tonali",
+    "label": "TONALI",
+    "number": 8,
+    "position": "MF",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Pio Esposito",
+    "label": "ESPOSITO",
+    "number": 9,
+    "position": "FW",
+    "source": "squad-2026-11"
+   }
+  ],
+  "BEL": [
+   {
+    "name": "Kevin De Bruyne",
+    "label": "DE BRUYNE",
+    "number": 7,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Romelu Lukaku",
+    "label": "LUKAKU",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Jérémy Doku",
+    "label": "DOKU",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "CRO": [
+   {
+    "name": "Luka Modrić",
+    "label": "MODRIĆ",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ivan Perišić",
+    "label": "PERIŠIĆ",
+    "number": 14,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Andrej Kramarić",
+    "label": "KRAMARIĆ",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "COL": [
+   {
+    "name": "Luis Díaz",
+    "label": "LUIS DÍAZ",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "James Rodríguez",
+    "label": "JAMES",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Jhon Arias",
+    "label": "J. ARIAS",
+    "number": 11,
+    "position": "MF",
+    "source": "wc2026"
+   }
+  ],
+  "MAR": [
+   {
+    "name": "Achraf Hakimi",
+    "label": "HAKIMI",
+    "number": 2,
+    "position": "DF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Brahim Díaz",
+    "label": "BRAHIM",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ayoub El Kaabi",
+    "label": "EL KAABI",
+    "number": 20,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "URU": [
+   {
+    "name": "Federico Valverde",
+    "label": "VALVERDE",
+    "number": 8,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Darwin Núñez",
+    "label": "DARWIN",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Giorgian de Arrascaeta",
+    "label": "ARRASCAETA",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   }
+  ],
+  "JPN": [
+   {
+    "name": "Takefusa Kubo",
+    "label": "KUBO",
+    "number": 8,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ritsu Dōan",
+    "label": "DOAN",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ayase Ueda",
+    "label": "UEDA",
+    "number": 18,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "SUI": [
+   {
+    "name": "Granit Xhaka",
+    "label": "XHAKA",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Breel Embolo",
+    "label": "EMBOLO",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Manuel Akanji",
+    "label": "AKANJI",
+    "number": 5,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "DEN": [
+   {
+    "name": "Rasmus Højlund",
+    "label": "HØJLUND",
+    "number": 9,
+    "position": "FW",
+    "source": "euro2024"
+   },
+   {
+    "name": "Pierre-Emile Højbjerg",
+    "label": "HØJBJERG",
+    "number": 23,
+    "position": "MF",
+    "source": "euro2024"
+   },
+   {
+    "name": "Mikkel Damsgaard",
+    "label": "DAMSGAARD",
+    "number": 14,
+    "position": "FW",
+    "source": "euro2024"
+   }
+  ],
+  "TUR": [
+   {
+    "name": "Arda Güler",
+    "label": "ARDA",
+    "number": 8,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Hakan Çalhanoğlu",
+    "label": "HAKAN",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Kenan Yıldız",
+    "label": "KENAN",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "AUT": [
+   {
+    "name": "Marko Arnautović",
+    "label": "ARNAUTOVIĆ",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Marcel Sabitzer",
+    "label": "SABITZER",
+    "number": 9,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "David Alaba",
+    "label": "ALABA",
+    "number": 8,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "SEN": [
+   {
+    "name": "Sadio Mané",
+    "label": "MANÉ",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Nicolas Jackson",
+    "label": "N. JACKSON",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Kalidou Koulibaly",
+    "label": "KOULIBALY",
+    "number": 3,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "USA": [
+   {
+    "name": "Christian Pulisic",
+    "label": "PULISIC",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Weston McKennie",
+    "label": "McKENNIE",
+    "number": 8,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ricardo Pepi",
+    "label": "PEPI",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "MEX": [
+   {
+    "name": "Raúl Jiménez",
+    "label": "R. JIMÉNEZ",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Santiago Giménez",
+    "label": "S. GIMÉNEZ",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Edson Álvarez",
+    "label": "E. ÁLVAREZ",
+    "number": 4,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "NOR": [
+   {
+    "name": "Erling Haaland",
+    "label": "HAALAND",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Martin Ødegaard",
+    "label": "ØDEGAARD",
+    "number": 10,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Alexander Sørloth",
+    "label": "SØRLOTH",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "ECU": [
+   {
+    "name": "Moisés Caicedo",
+    "label": "M. CAICEDO",
+    "number": 23,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Enner Valencia",
+    "label": "E. VALENCIA",
+    "number": 13,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Piero Hincapié",
+    "label": "HINCAPIÉ",
+    "number": 3,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "KOR": [
+   {
+    "name": "Son Heung-min",
+    "label": "SON",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Lee Kang-in",
+    "label": "LEE KANG-IN",
+    "number": 19,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Kim Min-jae",
+    "label": "KIM MIN-JAE",
+    "number": 4,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "SRB": [
+   {
+    "name": "Aleksandar Mitrović",
+    "label": "MITROVIĆ",
+    "number": 9,
+    "position": "FW",
+    "source": "euro2024"
+   },
+   {
+    "name": "Dušan Tadić",
+    "label": "TADIĆ",
+    "number": 10,
+    "position": "MF",
+    "source": "euro2024"
+   },
+   {
+    "name": "Sergej Milinković-Savić",
+    "label": "MILINKOVIĆ-SAVIĆ",
+    "number": 20,
+    "position": "MF",
+    "source": "euro2024"
+   }
+  ],
+  "UKR": [
+   {
+    "name": "Artem Dovbyk",
+    "label": "DOVBYK",
+    "number": 11,
+    "position": "FW",
+    "source": "euro2024"
+   },
+   {
+    "name": "Heorhiy Sudakov",
+    "label": "SUDAKOV",
+    "number": 14,
+    "position": "MF",
+    "source": "euro2024"
+   },
+   {
+    "name": "Roman Yaremchuk",
+    "label": "YAREMCHUK",
+    "number": 9,
+    "position": "FW",
+    "source": "euro2024"
+   }
+  ],
+  "POL": [
+   {
+    "name": "Robert Lewandowski",
+    "label": "LEWANDOWSKI",
+    "number": 9,
+    "position": "FW",
+    "source": "euro2024"
+   },
+   {
+    "name": "Piotr Zieliński",
+    "label": "ZIELIŃSKI",
+    "number": 10,
+    "position": "MF",
+    "source": "euro2024"
+   },
+   {
+    "name": "Karol Świderski",
+    "label": "ŚWIDERSKI",
+    "number": 7,
+    "position": "FW",
+    "source": "euro2024"
+   }
+  ],
+  "SWE": [
+   {
+    "name": "Viktor Gyökeres",
+    "label": "GYÖKERES",
+    "number": 17,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Alexander Isak",
+    "label": "ISAK",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Anthony Elanga",
+    "label": "ELANGA",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "CAN": [
+   {
+    "name": "Alphonso Davies",
+    "label": "DAVIES",
+    "number": 19,
+    "position": "DF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Jonathan David",
+    "label": "J. DAVID",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Cyle Larin",
+    "label": "LARIN",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "CZE": [
+   {
+    "name": "Patrik Schick",
+    "label": "SCHICK",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Tomáš Souček",
+    "label": "SOUČEK",
+    "number": 22,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Ladislav Krejčí",
+    "label": "KREJČÍ",
+    "number": 7,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "NGA": [
+   {
+    "name": "Ademola Lookman",
+    "label": "LOOKMAN",
+    "number": 7,
+    "position": "FW",
+    "source": "afcon2025"
+   },
+   {
+    "name": "Alex Iwobi",
+    "label": "IWOBI",
+    "number": 17,
+    "position": "MF",
+    "source": "afcon2025"
+   },
+   {
+    "name": "Moses Simon",
+    "label": "M. SIMON",
+    "number": 15,
+    "position": "FW",
+    "source": "afcon2025"
+   }
+  ],
+  "AUS": [
+   {
+    "name": "Mathew Leckie",
+    "label": "LECKIE",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Jackson Irvine",
+    "label": "IRVINE",
+    "number": 22,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Nestory Irankunda",
+    "label": "IRANKUNDA",
+    "number": 17,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "HUN": [
+   {
+    "name": "Dominik Szoboszlai",
+    "label": "SZOBOSZLAI",
+    "number": 10,
+    "position": "MF",
+    "source": "euro2024"
+   },
+   {
+    "name": "Roland Sallai",
+    "label": "SALLAI",
+    "number": 20,
+    "position": "FW",
+    "source": "euro2024"
+   },
+   {
+    "name": "Barnabás Varga",
+    "label": "VARGA",
+    "number": 19,
+    "position": "FW",
+    "source": "euro2024"
+   }
+  ],
+  "CHI": [
+   {
+    "name": "Ben Brereton Díaz",
+    "label": "BRERETON",
+    "number": 22,
+    "position": "FW",
+    "source": "copa2024"
+   },
+   {
+    "name": "Darío Osorio",
+    "label": "D. OSORIO",
+    "number": 8,
+    "position": "FW",
+    "source": "copa2024"
+   },
+   {
+    "name": "Gabriel Suazo",
+    "label": "SUAZO",
+    "number": 2,
+    "position": "DF",
+    "source": "copa2024"
+   }
+  ],
+  "SCO": [
+   {
+    "name": "Scott McTominay",
+    "label": "McTOMINAY",
+    "number": 4,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "John McGinn",
+    "label": "McGINN",
+    "number": 7,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Andy Robertson",
+    "label": "ROBERTSON",
+    "number": 3,
+    "position": "DF",
+    "source": "wc2026"
+   }
+  ],
+  "EGY": [
+   {
+    "name": "Mohamed Salah",
+    "label": "SALAH",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Omar Marmoush",
+    "label": "MARMOUSH",
+    "number": 22,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Trézéguet",
+    "label": "TRÉZÉGUET",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "GRE": [
+   {
+    "name": "Vangelis Pavlidis",
+    "label": "PAVLIDIS",
+    "number": null,
+    "position": "FW",
+    "source": null
+   },
+   {
+    "name": "Anastasios Bakasetas",
+    "label": "BAKASETAS",
+    "number": null,
+    "position": "MF",
+    "source": null
+   },
+   {
+    "name": "Christos Tzolis",
+    "label": "TZOLIS",
+    "number": null,
+    "position": "FW",
+    "source": null
+   }
+  ],
+  "KSA": [
+   {
+    "name": "Salem Al-Dawsari",
+    "label": "AL-DAWSARI",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Firas Al-Buraikan",
+    "label": "AL-BURAIKAN",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Saleh Al-Shehri",
+    "label": "AL-SHEHRI",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "IRL": [
+   {
+    "name": "Troy Parrott",
+    "label": "PARROTT",
+    "number": null,
+    "position": "FW",
+    "source": null
+   },
+   {
+    "name": "Adam Idah",
+    "label": "IDAH",
+    "number": null,
+    "position": "FW",
+    "source": null
+   },
+   {
+    "name": "Nathan Collins",
+    "label": "COLLINS",
+    "number": null,
+    "position": "DF",
+    "source": null
+   }
+  ],
+  "WAL": [
+   {
+    "name": "Harry Wilson",
+    "label": "H. WILSON",
+    "number": null,
+    "position": "FW",
+    "source": null
+   },
+   {
+    "name": "Brennan Johnson",
+    "label": "B. JOHNSON",
+    "number": null,
+    "position": "FW",
+    "source": null
+   },
+   {
+    "name": "Daniel James",
+    "label": "D. JAMES",
+    "number": null,
+    "position": "FW",
+    "source": null
+   }
+  ],
+  "FIN": [
+   {
+    "name": "Joel Pohjanpalo",
+    "label": "POHJANPALO",
+    "number": 20,
+    "position": "FW",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Benjamin Källman",
+    "label": "KÄLLMAN",
+    "number": 19,
+    "position": "FW",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Oliver Antman",
+    "label": "ANTMAN",
+    "number": 7,
+    "position": "FW",
+    "source": "squad-2026-11"
+   }
+  ],
+  "QAT": [
+   {
+    "name": "Akram Afif",
+    "label": "AFIF",
+    "number": 11,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Almoez Ali",
+    "label": "ALMOEZ ALI",
+    "number": 19,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Hassan Al-Haydos",
+    "label": "AL-HAYDOS",
+    "number": 10,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "RSA": [
+   {
+    "name": "Lyle Foster",
+    "label": "FOSTER",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Oswin Appollis",
+    "label": "APPOLLIS",
+    "number": 7,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Teboho Mokoena",
+    "label": "MOKOENA",
+    "number": 4,
+    "position": "MF",
+    "source": "wc2026"
+   }
+  ],
+  "UAE": [
+   {
+    "name": "Fábio Lima",
+    "label": "FÁBIO LIMA",
+    "number": 10,
+    "position": "MF",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Ali Saleh",
+    "label": "ALI SALEH",
+    "number": 7,
+    "position": "FW",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Yahya Al-Ghassani",
+    "label": "AL-GHASSANI",
+    "number": 20,
+    "position": "MF",
+    "source": "squad-2026-11"
+   }
+  ],
+  "IDN": [
+   {
+    "name": "Ole Romeny",
+    "label": "ROMENY",
+    "number": 10,
+    "position": "FW",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Thom Haye",
+    "label": "HAYE",
+    "number": 19,
+    "position": "MF",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Kevin Diks",
+    "label": "DIKS",
+    "number": 2,
+    "position": "DF",
+    "source": "squad-2026-11"
+   }
+  ],
+  "NZL": [
+   {
+    "name": "Chris Wood",
+    "label": "WOOD",
+    "number": 9,
+    "position": "FW",
+    "source": "wc2026"
+   },
+   {
+    "name": "Elijah Just",
+    "label": "JUST",
+    "number": 11,
+    "position": "MF",
+    "source": "wc2026"
+   },
+   {
+    "name": "Kosta Barbarouses",
+    "label": "BARBAROUSES",
+    "number": 17,
+    "position": "FW",
+    "source": "wc2026"
+   }
+  ],
+  "MAS": [
+   {
+    "name": "Paulo Josué",
+    "label": "PAULO JOSUÉ",
+    "number": 19,
+    "position": "FW",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Dion Cools",
+    "label": "COOLS",
+    "number": 21,
+    "position": "DF",
+    "source": "squad-2026-11"
+   },
+   {
+    "name": "Fergus Tierney",
+    "label": "TIERNEY",
+    "number": 13,
+    "position": "FW",
+    "source": "squad-2026-11"
+   }
+  ]
+ }
+}
