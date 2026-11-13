@@ -1,14 +1,14 @@
 // Builds the cubes of one round: which grid cells hold fruit, when each cube is
 // cut free, where it lands in the pile and how it flies there. Pure data, so it
 // can run in a worker and be unit tested.
-import { fruitById, fruitInfo, isInsideBody, attachmentSamples, estimateCellCount, silhouette } from './fruits.js';
+import { itemById } from './catalog/index.js';
+import { objectInfo, shapeOf, estimateCellCount } from './object-info.js';
 import { mulberry32, hashSeed } from './rng.js';
 import { releaseTimeForZ } from './timeline.js';
 
 export const GRAVITY = 15;
 export const COARSE_CELL_LIMIT = 12000;
 export const BOARD = { minX: -2.15, maxX: 2.15, minZ: -1.45, maxZ: 1.95 };
-const MIN_PIECE = 0.014;
 
 // Display grid: the real grid when it fits the budget, otherwise a scaled one
 // (the counter still shows the real number of cubes).
@@ -28,11 +28,13 @@ export function trueCubeCount(split, info, exactCount, exact) {
   return Math.round(estimateCellCount(info, ext[0] / (split[0] + 1), ext[1] / (split[1] + 1), ext[2] / (split[2] + 1)));
 }
 
-function collectCells(fruit, bbox, dims, coarse) {
+// Cells that hold part of the object. Thin parts (leaves, stems, wicks) count
+// as soon as the surface passes close to a sample point.
+function collectCells(sdf, bbox, dims, coarse) {
   const cs = [0, 1, 2].map((k) => (bbox.max[k] - bbox.min[k]) / dims[k]);
   const cubes = [];
-  const taken = new Set();
   const S = coarse ? 4 : 1;
+  const reach = coarse ? Math.min(...cs) / S * 0.35 : Math.min(...cs) * 0.3;
   for (let i = 0; i < dims[0]; i++) {
     for (let j = 0; j < dims[1]; j++) {
       for (let k = 0; k < dims[2]; k++) {
@@ -43,51 +45,25 @@ function collectCells(fruit, bbox, dims, coarse) {
         for (let a = 0; a < S && !hit; a++) {
           for (let b = 0; b < S && !hit; b++) {
             for (let c = 0; c < S && !hit; c++) {
-              hit = isInsideBody(fruit, x0 + ((a + 0.5) / S) * cs[0], y0 + ((b + 0.5) / S) * cs[1], z0 + ((c + 0.5) / S) * cs[2]);
+              hit = sdf(x0 + ((a + 0.5) / S) * cs[0], y0 + ((b + 0.5) / S) * cs[1], z0 + ((c + 0.5) / S) * cs[2]) < reach;
             }
           }
         }
-        if (!hit) continue;
-        taken.add((i * dims[1] + j) * dims[2] + k);
-        cubes.push({ home: [x0 + cs[0] / 2, y0 + cs[1] / 2, z0 + cs[2] / 2], size: cs.slice(), mat: 0 });
+        if (hit) cubes.push({ home: [x0 + cs[0] / 2, y0 + cs[1] / 2, z0 + cs[2] / 2], size: cs.slice() });
       }
     }
-  }
-  // Stem and leaf pieces: tight boxes around the attachment inside each cell.
-  const pieces = new Map();
-  for (const s of attachmentSamples(fruit, coarse ? 1.5 : 1)) {
-    const idx = [0, 1, 2].map((k) => Math.min(dims[k] - 1, Math.max(0, Math.floor((s.p[k] - bbox.min[k]) / cs[k]))));
-    const key = (idx[0] * dims[1] + idx[1]) * dims[2] + idx[2];
-    if (taken.has(key)) continue;
-    const piece = pieces.get(key) || { min: [Infinity, Infinity, Infinity], max: [-Infinity, -Infinity, -Infinity], mat: s.mat };
-    for (let k = 0; k < 3; k++) {
-      piece.min[k] = Math.min(piece.min[k], s.p[k]);
-      piece.max[k] = Math.max(piece.max[k], s.p[k]);
-    }
-    pieces.set(key, piece);
-  }
-  for (const piece of pieces.values()) {
-    const size = [0, 1, 2].map((k) => Math.min(cs[k], Math.max(MIN_PIECE, piece.max[k] - piece.min[k] + 0.02)));
-    cubes.push({ home: [0, 1, 2].map((k) => (piece.min[k] + piece.max[k]) / 2), size, mat: piece.mat });
   }
   return { cubes, cs };
 }
 
-function makePile(cs, coarse, count, fruit) {
+function makePile(cs, coarse, count, info) {
   const base = Math.max(cs[0], cs[2]);
   const pc = coarse ? base * 1.05 : base * (count > 60000 ? 2 : 1.4);
   const nx = Math.max(4, Math.ceil((BOARD.maxX - BOARD.minX) / pc));
   const nz = Math.max(4, Math.ceil((BOARD.maxZ - BOARD.minZ) / pc));
-  const sil = silhouette(fruit, 180);
   const footprint = new Uint8Array(nx * nz);
   for (let i = 0; i < nx; i++) {
-    for (let k = 0; k < nz; k++) {
-      const x = BOARD.minX + (i + 0.5) * pc;
-      const z = BOARD.minZ + (k + 0.5) * pc;
-      const th = (Math.atan2(z, x) + Math.PI * 2) % (Math.PI * 2);
-      const r = sil[Math.floor((th / (Math.PI * 2)) * sil.length) % sil.length];
-      footprint[i * nz + k] = Math.hypot(x, z) < r * 0.97 ? 1 : 0;
-    }
+    for (let k = 0; k < nz; k++) footprint[i * nz + k] = info.footprint(BOARD.minX + (i + 0.5) * pc, BOARD.minZ + (k + 0.5) * pc) ? 1 : 0;
   }
   return { pc, nx, nz, height: new Float32Array(nx * nz), footprint };
 }
@@ -147,17 +123,17 @@ export function flightDuration(homeY, restY, v0) {
 }
 
 export function buildRoundCubes(round, { budget = 120000, seed = 1 } = {}) {
-  const fruit = fruitById(round.fruitId);
-  const info = fruitInfo(fruit);
+  const item = itemById(round.itemId);
+  const info = objectInfo(item);
   const grid = displayGrid(round.split, budget, info);
   const coarse = grid.dims[0] * grid.dims[1] * grid.dims[2] <= COARSE_CELL_LIMIT;
-  const { cubes, cs } = collectCells(fruit, round.bbox, grid.dims, coarse);
-  const rand = mulberry32(hashSeed(seed, round.index, round.cuts, round.fruitId));
+  const { cubes, cs } = collectCells(shapeOf(item).sdf, round.bbox, grid.dims, coarse);
+  const rand = mulberry32(hashSeed(seed, round.index, round.cuts, round.itemId));
   for (const c of cubes) {
     c.t0 = releaseTimeForZ(round, c.home[2]) + 0.015 + rand() * (coarse ? 0.07 : 0.1);
   }
   cubes.sort((a, b) => a.t0 - b.t0);
-  const pile = makePile(cs, coarse, cubes.length, fruit);
+  const pile = makePile(cs, coarse, cubes.length, info);
   const zPlanes = round.phases[2].planes;
   const N = cubes.length;
   const out = {
@@ -171,7 +147,7 @@ export function buildRoundCubes(round, { budget = 120000, seed = 1 } = {}) {
     size: new Float32Array(N * 3),
     rest: new Float32Array(N * 3),
     motion: new Float32Array(N * 4), // t0, duration, v0, seed
-    rot: new Float32Array(N * 3), // yaw, tumble, material
+    rot: new Float32Array(N * 3), // yaw, tumble, spare
   };
   for (let n = 0; n < N; n++) {
     const c = cubes[n];
@@ -185,7 +161,7 @@ export function buildRoundCubes(round, { budget = 120000, seed = 1 } = {}) {
     out.size.set(c.size, n * 3);
     out.rest.set(rest, n * 3);
     out.motion.set([c.t0, dur, v0, rand()], n * 4);
-    out.rot.set([(rand() - 0.5) * Math.PI * (0.4 + rand()), tumble, c.mat], n * 3);
+    out.rot.set([(rand() - 0.5) * Math.PI * (0.4 + rand()), tumble, 0], n * 3);
   }
   return out;
 }

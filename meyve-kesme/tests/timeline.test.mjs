@@ -45,13 +45,24 @@ test('buildTimeline chains rounds back to back', () => {
   assert.equal(tl.rounds.length, 6);
   for (let i = 1; i < tl.rounds.length; i++) assert.equal(tl.rounds[i].start, tl.rounds[i - 1].end);
   assert.equal(tl.duration, tl.rounds[5].end);
-  assert.ok(tl.duration > 50 && tl.duration < 95, `duration ${tl.duration}`);
+  assert.ok(tl.duration > 40 && tl.duration < 70, `duration ${tl.duration}`);
   assert.equal(tl.rounds[5].cuts, 1000);
 });
 
-test('mixed fruit mode rotates fruits per round', () => {
-  const tl = buildTimeline({ rounds: [10, 10, 10, 10, 10], fruit: 'mix' });
-  assert.deepEqual(tl.rounds.map((r) => r.fruitId), ['apple', 'watermelon', 'orange', 'kiwi', 'apple']);
+test('mixed mode picks a different item of the category every round', () => {
+  const tl = buildTimeline({ rounds: [10, 10, 10, 10], item: 'mix:veg', seed: 3 });
+  const ids = tl.rounds.map((r) => r.itemId);
+  assert.equal(new Set(ids).size, 4);
+  const again = buildTimeline({ rounds: [10, 10, 10, 10], item: 'mix:veg', seed: 3 });
+  assert.deepEqual(again.rounds.map((r) => r.itemId), ids, 'same seed, same order');
+});
+
+test('rounds follow each other without dead time', () => {
+  const tl = buildTimeline({ rounds: ROUND_PRESETS.classic });
+  for (let i = 0; i < tl.rounds.length - 1; i++) {
+    const gap = tl.rounds[i + 1].phases[0].times[0] - tl.rounds[i].lastCut;
+    assert.ok(gap < 1.6, `round ${i}: ${gap.toFixed(2)}s between last cut and next first cut`);
+  }
 });
 
 test('roundIndexAt finds the round for any time', () => {

@@ -4,7 +4,10 @@ import { buildTimeline, roundState } from '../js/timeline.js';
 import { knifePose, slerp, quatMul, quatAxisAngle, AXIS_QUAT } from '../js/knife-pose.js';
 import { roundEvents, eventsInWindow } from '../js/events.js';
 import { buildRoundCubes } from '../js/cubes-data.js';
-import { synthBank, filter, normalize, SAMPLE_RATE } from '../js/sfx.js';
+import { eventBank, impactGrain, PROFILES, filter, normalize, SAMPLE_RATE } from '../js/sfx.js';
+import { buildLandingTrack } from '../js/landing.js';
+import { renderMusic, compose, MUSIC_STYLES } from '../js/music.js';
+import { mulberry32 } from '../js/rng.js';
 
 const tl = buildTimeline({ rounds: [10] });
 const round = tl.rounds[0];
@@ -36,7 +39,7 @@ test('knife motion has no jumps', () => {
   let prev = poseAt(round.start);
   for (let t = round.start; t < round.end; t += 1 / 240) {
     const p = poseAt(t);
-    assert.ok(dist(p.pos, prev.pos) < 0.35, `jump at ${t.toFixed(3)}: ${dist(p.pos, prev.pos)}`);
+    assert.ok(dist(p.pos, prev.pos) < 0.7, `jump at ${t.toFixed(3)}: ${dist(p.pos, prev.pos)}`);
     prev = p;
   }
 });
@@ -48,39 +51,72 @@ test('quaternion helpers stay unit length', () => {
   assert.ok(Math.abs(Math.hypot(...r) - 1) < 1e-9);
 });
 
-test('round events include a drop, every slow cut and cube landings', () => {
-  const data = buildRoundCubes(round, { budget: 50000 });
-  const ev = roundEvents(round, data);
+test('round events include a drop and every slow cut', () => {
+  const ev = roundEvents(round);
   for (let i = 1; i < ev.length; i++) assert.ok(ev[i].t >= ev[i - 1].t);
   assert.equal(ev.filter((e) => e.type === 'drop').length, 1);
   assert.equal(ev.filter((e) => e.type === 'thock').length, round.split[0] + round.split[2]);
   assert.equal(ev.filter((e) => e.type === 'slice').length, round.split[1]);
-  assert.ok(ev.some((e) => e.type === 'tick'));
+  assert.ok(ev.every((e) => e.profile === 'crisp'));
   const w = eventsInWindow(ev, round.land - 0.01, round.land + 0.01);
   assert.ok(w.some((e) => e.type === 'drop'));
 });
 
 test('fast rounds are thinned to a playable number of knife sounds', () => {
   const big = buildTimeline({ rounds: [1000] }).rounds[0];
-  const ev = roundEvents(big, null);
-  const thocks = ev.filter((e) => e.type === 'thock');
+  const thocks = roundEvents(big).filter((e) => e.type === 'thock');
   assert.ok(thocks.length < 667, `${thocks.length}`);
-  const span = big.lastCut - big.land;
-  assert.ok(thocks.length / span < 40);
+  assert.ok(thocks.length / (big.lastCut - big.land) < 40);
 });
 
-test('sound bank renders finite, normalised samples', () => {
-  const bank = synthBank(1);
-  for (const [name, list] of Object.entries(bank)) {
-    for (const buf of list) {
-      let peak = 0;
-      for (const v of buf) {
-        assert.ok(Number.isFinite(v), name);
-        peak = Math.max(peak, Math.abs(v));
+const peakOf = (buf) => buf.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+
+test('every material profile renders finite, normalised event sounds', () => {
+  for (const p of PROFILES) {
+    for (const [name, list] of Object.entries(eventBank(p))) {
+      for (const buf of list) {
+        assert.ok(buf.every(Number.isFinite), `${p}/${name}`);
+        const peak = peakOf(buf);
+        assert.ok(peak > 0.3 && peak <= 1, `${p}/${name} peak ${peak}`);
       }
-      assert.ok(peak > 0.3 && peak <= 1, `${name} peak ${peak}`);
     }
   }
+});
+
+test('impact grains: big board hits are longer-ringing than small pile taps', () => {
+  const rand = mulberry32(3);
+  const energyAfter = (buf, ms) => buf.slice(Math.round((ms / 1000) * SAMPLE_RATE)).reduce((s, v) => s + v * v, 0);
+  const big = impactGrain(rand, { surface: 'board', size: 0.3, hard: 0.3 });
+  const tap = impactGrain(rand, { surface: 'pile', size: 0.03, hard: 0.3 });
+  assert.ok(energyAfter(big, 25) > energyAfter(tap, 25));
+  const metal = impactGrain(rand, { surface: 'board', size: 0.1, hard: 1, metal: true });
+  assert.ok(energyAfter(metal, 80) > energyAfter(big, 80), 'metal rings longest');
+});
+
+test('landing track places every cube in time and stays below clipping', () => {
+  const data = buildRoundCubes(round, { budget: 50000 });
+  const tr = buildLandingTrack(data, round, { cut: 'crisp', hard: 0.35 });
+  let first = Infinity;
+  for (let i = 0; i < data.count; i++) first = Math.min(first, data.motion[i * 4] + data.motion[i * 4 + 1]);
+  assert.ok(tr.start <= first && first - tr.start < 0.05);
+  assert.ok(tr.peak < 1 && tr.peak > 0.05);
+  assert.equal(tr.left.length, tr.right.length);
+});
+
+test('music: every style composes a full-length, non-silent, unclipped track', () => {
+  for (const s of MUSIC_STYLES) {
+    const song = compose({ style: s.id, seed: 4, duration: 8 });
+    assert.ok(song.events.length > 20, s.id);
+    assert.ok(song.events.some((e) => ['oboe', 'accordion'].includes(e.inst)), `${s.id} has a lead`);
+  }
+  const m = renderMusic({ style: 'waltz', seed: 2, duration: 6 });
+  assert.ok(m.left.length >= 6 * m.sampleRate);
+  const peak = peakOf(m.left);
+  assert.ok(peak > 0.3 && peak <= 0.86, `peak ${peak}`);
+  const again = renderMusic({ style: 'waltz', seed: 2, duration: 6 });
+  assert.equal(again.left[12345], m.left[12345], 'deterministic');
+  const other = renderMusic({ style: 'waltz', seed: 3, duration: 6 });
+  assert.notEqual(other.left[48000 * 3], m.left[48000 * 3], 'new seed, new music');
 });
 
 test('lowpass filter removes high frequency content', () => {

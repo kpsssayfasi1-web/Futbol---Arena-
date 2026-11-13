@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Meyve vs 1000 Kesim</title>
+<title>1000 Kesim Stüdyosu</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#0d0f0e">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,6 +89,17 @@ button { cursor: pointer; }
 .actionBtn.main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .actionBtn.main small { color: rgba(29, 21, 5, 0.7); }
 .note { font-size: 12px; color: var(--muted); margin: 0; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.tabs button { border: 0; background: none; padding: 6px 9px; border-radius: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.tabs button[aria-selected="true"] { color: var(--fg); background: var(--panel); box-shadow: inset 0 -2px 0 var(--accent); }
+.items button { font-size: 12.5px; }
+.fileRow, .rangeRow { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; font-weight: 600; }
+.rangeRow input { flex: 1; max-width: 170px; accent-color: var(--accent); }
+.fileRow input { max-width: 190px; font-size: 12px; }
+.copyBox { display: flex; gap: 8px; align-items: flex-start; border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 9px 10px; }
+.copyText { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.45; overflow-wrap: anywhere; user-select: text; }
+.copyBtn { flex: none; border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 5px 9px; font-size: 12px; font-weight: 700; }
+
 .sheetBtn { display: none; }
 .modal { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.6); z-index: 20; padding: 16px; }
 .modalCard { width: min(360px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 12px; }
@@ -124,7 +135,7 @@ button { cursor: pointer; }
 <body>
 <div class="app" id="app">
   <header class="top">
-    <div class="brand">Meyve <span>vs</span> Kesim</div>
+    <div class="brand">1000 <span>Kesim</span> Stüdyosu</div>
     <div class="pill" id="roundPill">Hazırlanıyor…</div>
   </header>
 
@@ -147,17 +158,12 @@ button { cursor: pointer; }
   <aside class="side" id="side">
     <div class="group">
       <h2>Video ayarları</h2>
-      <p class="note">Her değişiklik videoyu yeniden kurar. Ekranda gördüğün kare kaydedilen karedir.</p>
+      <p class="note">Ekranda gördüğün kare, kaydedilen karedir. Her değişiklik videoyu yeniden kurar.</p>
     </div>
     <div class="group">
-      <div class="label">Meyve</div>
-      <div class="seg" id="fruitSeg">
-        <button type="button" data-value="apple"><span class="dot" style="background:#c8281e"></span>Elma</button>
-        <button type="button" data-value="watermelon"><span class="dot" style="background:#2f7a2a"></span>Karpuz</button>
-        <button type="button" data-value="orange"><span class="dot" style="background:#f28a12"></span>Portakal</button>
-        <button type="button" data-value="kiwi"><span class="dot" style="background:#7cae2a"></span>Kivi</button>
-        <button type="button" data-value="mix"><span class="dot" style="background:conic-gradient(#c8281e 0 25%,#2f7a2a 0 50%,#f28a12 0 75%,#7cae2a 0)"></span>Karışık</button>
-      </div>
+      <div class="label">Ne kesilsin?</div>
+      <div class="tabs" id="catTabs" role="tablist"></div>
+      <div class="seg items" id="itemGrid"></div>
     </div>
     <div class="group">
       <div class="label">Turlar</div>
@@ -177,11 +183,27 @@ button { cursor: pointer; }
       </div>
     </div>
     <div class="group">
+      <div class="label">Müzik</div>
+      <div class="seg" id="musicSeg">
+        <button type="button" data-value="waltz">Gramofon Valsi</button>
+        <button type="button" data-value="swing">Kafe Caz</button>
+        <button type="button" data-value="baroque">Barok Çay Saati</button>
+        <button type="button" data-value="musette">Paris Musette</button>
+        <button type="button" data-value="custom">Kendi müziğim</button>
+        <button type="button" data-value="off">Kapalı</button>
+      </div>
+      <label class="fileRow" id="musicFileRow" hidden><span>Ses dosyası seç (mp3, wav, m4a)</span><input id="musicFile" type="file" accept="audio/*"></label>
+      <label class="rangeRow" for="musicVol"><span>Müzik seviyesi</span><input id="musicVol" type="range" min="0" max="1" step="0.05"></label>
+      <p class="note">Müzik her video için yeniden bestelenir; "Yeni varyasyon" farklı bir melodi ve karışık sıralama üretir.</p>
+      <button class="actionBtn" id="variantBtn" type="button"><span>Yeni varyasyon</span><small id="seedText"></small></button>
+    </div>
+    <div class="group">
       <div class="label">Ekran yazısı</div>
       <div class="seg" id="langSeg">
         <button type="button" data-value="tr">KESİM · KÜP</button>
         <button type="button" data-value="en">CUTS · CUBES</button>
       </div>
+      <div class="toggles"><label><input type="checkbox" id="hookToggle"> Açılış sorusu ("Bu elma 1000 kesime dayanabilir mi?")</label></div>
     </div>
     <div class="group">
       <label class="label" for="handleInput">Kanal adı (videoda görünür)</label>
@@ -195,18 +217,25 @@ button { cursor: pointer; }
         <button type="button" data-value="medium">Orta</button>
         <button type="button" data-value="high">Yüksek</button>
       </div>
-      <p class="note">Sayaç her zaman gerçek küp sayısını gösterir. Kalite yalnızca ekranda çizilen küp sayısını değiştirir.</p>
+      <p class="note">Sayaç her zaman gerçek küp sayısını gösterir. Kalite yalnızca ekranda çizilen küp sayısını değiştirir. Takılma olursa Düşük'ü seç.</p>
     </div>
     <div class="group toggles">
-      <label><input type="checkbox" id="soundToggle"> ASMR sesi</label>
+      <label><input type="checkbox" id="soundToggle"> Ses</label>
       <label><input type="checkbox" id="loopToggle"> Döngü</label>
     </div>
     <div class="group actions">
       <div class="label">Video çıktısı</div>
-      <button class="actionBtn main" id="exportBtn" type="button"><span>MP4 oluştur</span><small>kare kare, 1080×1920</small></button>
+      <button class="actionBtn main" id="exportBtn" type="button"><span>MP4 oluştur</span><small>kare kare, 1080×1920, sesli</small></button>
+      <button class="actionBtn" id="batchBtn" type="button"><span>Seri üret</span><small>3 farklı video, sırayla</small></button>
       <button class="actionBtn recBtn" id="recordBtn" type="button" aria-pressed="false"><span>Canlı kayıt</span><small>ekranı sesle kaydeder</small></button>
       <button class="actionBtn" id="cleanBtn" type="button"><span>Temiz ekran</span><small>çıkmak için ekrana dokun</small></button>
-      <p class="note" id="exportNote"></p>
+      <p class="note" id="exportNote" role="status"></p>
+    </div>
+    <div class="group">
+      <div class="label">Shorts metni</div>
+      <div class="copyBox"><div class="copyText" id="titleText"></div><button class="copyBtn" type="button" data-copy="titleText">Kopyala</button></div>
+      <div class="copyBox"><div class="copyText" id="descText"></div><button class="copyBtn" type="button" data-copy="descText">Kopyala</button></div>
+      <div class="copyBox"><div class="copyText" id="tagsText"></div><button class="copyBtn" type="button" data-copy="tagsText">Kopyala</button></div>
     </div>
   </aside>
 </div>

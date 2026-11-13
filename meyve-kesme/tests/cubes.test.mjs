@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTimeline } from '../js/timeline.js';
 import { buildRoundCubes, displayGrid, releasedCount, displayedCubeTotal, flightDuration, GRAVITY, BOARD } from '../js/cubes-data.js';
-import { FRUITS, fruitInfo } from '../js/fruits.js';
+import { itemById } from '../js/catalog/index.js';
+import { objectInfo } from '../js/object-info.js';
 import { formatCount } from '../js/format.js';
 
 const tl = buildTimeline({ rounds: [10, 1000] });
@@ -23,7 +24,7 @@ test('large rounds cap the display grid but estimate the real count', () => {
 });
 
 test('displayGrid keeps the real grid when it fits', () => {
-  const info = fruitInfo(FRUITS.apple);
+  const info = objectInfo(itemById('apple'));
   assert.deepEqual(displayGrid([4, 3, 3], 1000, info), { dims: [5, 4, 4], exact: true });
   const g = displayGrid([334, 333, 333], 10000, info);
   assert.equal(g.exact, false);

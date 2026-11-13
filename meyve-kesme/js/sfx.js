@@ -1,59 +1,38 @@
-// Procedural ASMR sound bank. Everything is synthesised once into Float32Arrays
-// with a seeded RNG, so live playback and offline export sound identical.
+// Procedural ASMR sound bank built from physical models: impacts excite the
+// resonant modes of the wooden board (modal synthesis), cuts are granular
+// crackle shaped per material. Seeded, so live playback and export match.
 import { mulberry32 } from './rng.js';
 
-export const SAMPLE_RATE = 44100;
+export const SAMPLE_RATE = 48000;
+const SR = SAMPLE_RATE;
+const TAU = Math.PI * 2;
 
-function biquad(type, freq, q, sr = SAMPLE_RATE) {
-  const w0 = (2 * Math.PI * Math.min(freq, sr * 0.45)) / sr;
+function biquad(type, freq, q) {
+  const w0 = (TAU * Math.min(freq, SR * 0.45)) / SR;
   const cos = Math.cos(w0);
   const alpha = Math.sin(w0) / (2 * q);
   let b0, b1, b2;
-  if (type === 'lowpass') {
-    b0 = (1 - cos) / 2;
-    b1 = 1 - cos;
-    b2 = (1 - cos) / 2;
-  } else if (type === 'highpass') {
-    b0 = (1 + cos) / 2;
-    b1 = -(1 + cos);
-    b2 = (1 + cos) / 2;
-  } else {
-    b0 = alpha;
-    b1 = 0;
-    b2 = -alpha;
-  }
+  if (type === 'lowpass') [b0, b1, b2] = [(1 - cos) / 2, 1 - cos, (1 - cos) / 2];
+  else if (type === 'highpass') [b0, b1, b2] = [(1 + cos) / 2, -(1 + cos), (1 + cos) / 2];
+  else [b0, b1, b2] = [alpha, 0, -alpha];
   const a0 = 1 + alpha;
   return { b0: b0 / a0, b1: b1 / a0, b2: b2 / a0, a1: (-2 * cos) / a0, a2: (1 - alpha) / a0 };
 }
 
 // Filter in place; freqAt(t) allows sweeps (coefficients refreshed every 32 samples).
-export function filter(buf, type, freqAt, q, sr = SAMPLE_RATE) {
+export function filter(buf, type, freqAt, q) {
   let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
   let c = null;
   const f = typeof freqAt === 'function' ? freqAt : () => freqAt;
   for (let i = 0; i < buf.length; i++) {
-    if ((i & 31) === 0) c = biquad(type, f(i / sr), q, sr);
+    if ((i & 31) === 0) c = biquad(type, f(i / SR), q);
     const x = buf[i];
     const y = c.b0 * x + c.b1 * x1 + c.b2 * x2 - c.a1 * y1 - c.a2 * y2;
-    x2 = x1;
-    x1 = x;
-    y2 = y1;
-    y1 = y;
+    x2 = x1; x1 = x; y2 = y1; y1 = y;
     buf[i] = y;
   }
   return buf;
 }
-
-const len = (s) => Math.max(1, Math.round(s * SAMPLE_RATE));
-const noise = (n, rand) => Float32Array.from({ length: n }, () => rand() * 2 - 1);
-const addInto = (dst, src, gain = 1, offset = 0) => {
-  for (let i = 0; i < src.length && i + offset < dst.length; i++) dst[i + offset] += src[i] * gain;
-  return dst;
-};
-const envelope = (buf, fn) => {
-  for (let i = 0; i < buf.length; i++) buf[i] *= fn(i / SAMPLE_RATE);
-  return buf;
-};
 
 export function normalize(buf, peak = 0.9) {
   let m = 0;
@@ -62,21 +41,93 @@ export function normalize(buf, peak = 0.9) {
   return buf;
 }
 
-function sine(n, freqAt, ampAt) {
+const len = (s) => Math.max(1, Math.round(s * SR));
+const noise = (n, rand) => Float32Array.from({ length: n }, () => rand() * 2 - 1);
+const add = (dst, src, gain = 1, offset = 0) => {
+  for (let i = 0; i < src.length && i + offset < dst.length; i++) dst[i + offset] += src[i] * gain;
+  return dst;
+};
+const env = (buf, fn) => {
+  for (let i = 0; i < buf.length; i++) buf[i] *= fn(i / SR);
+  return buf;
+};
+
+// Sum of exponentially decaying sines.
+function modes(n, list) {
   const out = new Float32Array(n);
-  let ph = 0;
-  for (let i = 0; i < n; i++) {
-    const t = i / SAMPLE_RATE;
-    ph += (2 * Math.PI * freqAt(t)) / SAMPLE_RATE;
-    out[i] = Math.sin(ph) * ampAt(t);
+  for (const { f, a, tau, ph = 0 } of list) {
+    const w = (TAU * f) / SR;
+    const k = Math.exp(-1 / (tau * SR));
+    let g = a;
+    for (let i = 0; i < n; i++) {
+      out[i] += g * Math.sin(w * i + ph);
+      g *= k;
+      if (g < 1e-5) break;
+    }
   }
   return out;
 }
 
-// Sparse crackle: many tiny noise bursts with spiky amplitudes.
+// Raised-cosine force pulse; longer contact = softer, darker impact.
+function contact(n, ms) {
+  const m = Math.max(2, Math.round((ms / 1000) * SR));
+  const out = new Float32Array(n);
+  for (let i = 0; i < m && i < n; i++) out[i] = 0.5 - 0.5 * Math.cos((TAU * i) / m);
+  return out;
+}
+
+// Board response: plate-like modes, random per strike position.
+const BOARD_F = [168, 251, 356, 447, 583, 702, 846, 1030, 1284, 1570, 1915, 2390, 2960, 3650];
+function boardModes(rand, brightness, strength = 1) {
+  return BOARD_F.map((f0, i) => {
+    const f = f0 * (0.94 + rand() * 0.12);
+    const tilt = Math.pow(1 + i, -1.15 + brightness * 0.9);
+    return { f, a: strength * tilt * (0.35 + rand() * 0.65), tau: Math.min(0.09, Math.max(0.006, 0.055 * Math.pow(220 / f, 0.7))), ph: rand() * TAU };
+  });
+}
+
+// Smooth lowpass approximation of a contact of `ms` milliseconds.
+function soften(buf, ms) {
+  const fc = Math.min(12000, 700 / Math.max(0.05, ms));
+  return filter(buf, 'lowpass', fc, 0.6);
+}
+
+// One falling cube. surface: 'board' | 'pile'; size in scene units; hard 0..1.
+export function impactGrain(rand, { surface, size, hard, metal }) {
+  const ms = 0.3 + (1 - hard) * 3.2 + size * 2;
+  const n = len(metal ? 0.32 : 0.12);
+  const out = new Float32Array(n);
+  if (surface === 'board') add(out, soften(modes(n, boardModes(rand, hard)), ms), 0.9);
+  const thud = env(filter(noise(n, rand), 'bandpass', 380 + hard * 1400 + rand() * 300, 1.2), (t) => Math.exp(-t / (0.004 + (1 - hard) * 0.008)));
+  add(out, thud, surface === 'board' ? 0.45 : 0.9);
+  if (hard > 0.6 || metal) {
+    const f = (metal ? 2400 : 3800) * (0.8 + rand() * 0.5) * Math.pow(0.1 / Math.max(0.02, size), 0.3);
+    const ring = metal
+      ? [1, 2.76, 5.4, 8.93].map((k, i) => ({ f: f * k, a: 0.5 / (1 + i), tau: 0.14 / (1 + i * 0.7), ph: rand() * TAU }))
+      : [1, 1.58, 2.31].map((k, i) => ({ f: f * k, a: 0.4 / (1 + i), tau: 0.012, ph: rand() * TAU }));
+    add(out, modes(n, ring), metal ? 0.7 : 0.35);
+  }
+  if (surface === 'pile') filter(out, 'lowpass', 2600 + hard * 5000, 0.7);
+  const c = contact(n, ms);
+  for (let i = 0; i < c.length && c[i] > 0; i++) out[i] += c[i] * 0.25 * (1 - hard);
+  filter(out, 'highpass', 60, 0.7);
+  return normalize(out, 0.9);
+}
+
+// Knife hitting the board through the item.
+function thock(rand) {
+  const n = len(0.22);
+  const out = soften(modes(n, boardModes(rand, 0.75, 1.3)), 0.25);
+  const table = modes(n, [{ f: 78 + rand() * 12, a: 0.6, tau: 0.05 }, { f: 121, a: 0.25, tau: 0.03 }]);
+  add(out, table, 0.9);
+  add(out, env(filter(noise(n, rand), 'highpass', 4000, 0.7), (t) => Math.exp(-t / 0.0018)), 0.35);
+  return normalize(out, 0.95);
+}
+
+// Granular crackle: many tiny noise bursts with spiky amplitudes.
 function grains(n, rate, rand, grainMs = [0.3, 1.6]) {
   const out = new Float32Array(n);
-  const count = Math.round((rate * n) / SAMPLE_RATE);
+  const count = Math.round((rate * n) / SR);
   for (let g = 0; g < count; g++) {
     const at = Math.floor(rand() * n);
     const glen = len((grainMs[0] + rand() * (grainMs[1] - grainMs[0])) / 1000);
@@ -86,118 +137,91 @@ function grains(n, rate, rand, grainMs = [0.3, 1.6]) {
   return out;
 }
 
-function thock(rand) {
-  const n = len(0.18);
-  const p = 0.9 + rand() * 0.25;
-  const body = sine(n, (t) => (95 + 170 * Math.exp(-t / 0.01)) * p, (t) => Math.exp(-t / 0.032));
-  const knock = envelope(filter(noise(n, rand), 'bandpass', 950 * p, 3.5), (t) => Math.exp(-t / 0.018));
-  const click = envelope(filter(noise(n, rand), 'highpass', 3500, 0.7), (t) => Math.exp(-t / 0.0025));
+const CUT_PROFILES = {
+  crisp: { rate: 1100, band: 3200, q: 0.7, wet: 0.15, dur: 0.2 },
+  juicy: { rate: 600, band: 1900, q: 0.8, wet: 0.55, dur: 0.24 },
+  soft: { rate: 160, band: 1100, q: 0.7, wet: 0.35, dur: 0.22 },
+  snap: { rate: 70, band: 4200, q: 1.2, wet: 0.0, dur: 0.16, snaps: 3 },
+  metal: { rate: 40, band: 5200, q: 6, wet: 0.0, dur: 0.32, scrape: true },
+  sand: { rate: 4200, band: 5200, q: 0.5, wet: 0.0, dur: 0.26 },
+  rubber: { rate: 120, band: 900, q: 1.0, wet: 0.2, dur: 0.22, squeak: true },
+  rock: { rate: 900, band: 1500, q: 0.7, wet: 0.0, dur: 0.24 },
+};
+
+function cutSound(rand, profile) {
+  const p = CUT_PROFILES[profile] || CUT_PROFILES.crisp;
+  const n = len(p.dur);
   const out = new Float32Array(n);
-  addInto(out, normalize(body), 0.8);
-  addInto(out, normalize(knock), 0.7);
-  addInto(out, normalize(click), 0.35);
-  return normalize(out, 0.95);
+  add(out, normalize(filter(grains(n, p.rate, rand), 'bandpass', p.band * (0.85 + rand() * 0.3), p.q)), 1);
+  if (p.wet > 0) {
+    const wet = filter(noise(n, rand), 'lowpass', 900, 0.8);
+    const bub = 18 + rand() * 20;
+    env(wet, (t) => 0.5 + 0.5 * Math.sin(TAU * bub * t) ** 2);
+    add(out, normalize(wet), p.wet);
+  }
+  if (p.snaps) for (let s = 0; s < p.snaps; s++) add(out, modes(len(0.05), [{ f: 2500 + rand() * 3000, a: 1, tau: 0.008 }]), 0.6, Math.floor(rand() * n * 0.7));
+  if (p.scrape) add(out, normalize(env(filter(noise(n, rand), 'bandpass', (t) => 3500 + 3000 * (t / p.dur), 9), (t) => Math.sin((Math.PI * t) / p.dur))), 0.7);
+  if (p.squeak) {
+    const f0 = 800 + rand() * 500;
+    let ph = 0;
+    for (let i = 0; i < n; i++) {
+      const t = i / SR;
+      ph += (TAU * f0 * (1 + 0.04 * Math.sin(TAU * 9 * t))) / SR;
+      out[i] += 0.25 * Math.sin(ph) * Math.sin((Math.PI * t) / p.dur) ** 2;
+    }
+  }
+  return normalize(env(out, (t) => Math.min(1, t / 0.01) * Math.max(0, 1 - t / p.dur) ** 1.3), 0.9);
 }
 
-function crunch(rand, dur = 0.22, rate = 900) {
-  const n = len(dur);
-  const g = filter(filter(grains(n, rate, rand), 'bandpass', 2600 + rand() * 900, 0.7), 'highpass', 800, 0.7);
-  const wet = filter(noise(n, rand), 'lowpass', 700, 0.8);
-  const out = new Float32Array(n);
-  addInto(out, normalize(g), 1);
-  addInto(out, normalize(wet), 0.22);
-  return normalize(envelope(out, (t) => Math.min(1, t / 0.012) * Math.max(0, 1 - t / dur) ** 1.4), 0.9);
-}
-
-function slice(rand) {
-  const dur = 0.3;
-  const n = len(dur);
-  const scrape = envelope(filter(noise(n, rand), 'bandpass', (t) => 3000 + 4000 * (t / dur), 7), (t) => Math.sin((Math.PI * t) / dur) ** 2);
-  const out = crunch(rand, dur, 650);
-  addInto(out, normalize(scrape), 0.45);
+function slice(rand, profile) {
+  const out = cutSound(rand, profile);
+  const n = out.length;
+  const scrape = env(filter(noise(n, rand), 'bandpass', (t) => 3000 + 4000 * t * 3, 7), (t) => Math.sin(Math.min(1, t / 0.3) * Math.PI) ** 2);
+  add(out, normalize(scrape), 0.35);
   return normalize(out, 0.85);
 }
 
-function tick(rand) {
-  const n = len(0.06);
-  const f = 420 + rand() * 520;
-  const tone = sine(n, () => f, (t) => Math.exp(-t / 0.011));
-  const tap = envelope(filter(noise(n, rand), 'bandpass', f * 3.2, 4), (t) => Math.exp(-t / 0.006));
-  const out = new Float32Array(n);
-  addInto(out, normalize(tone), 0.6);
-  addInto(out, normalize(tap), 0.55);
-  return normalize(out, 0.8);
-}
-
-// Dense rain of tiny pieces, used when thousands of cubes land at once.
-function pour(rand) {
-  const n = len(1.2);
-  const out = new Float32Array(n);
-  const blip = tick(rand);
-  const count = Math.round(1.2 * 1800);
-  for (let i = 0; i < count; i++) {
-    const at = Math.floor(rand() * (n - blip.length));
-    const gain = 0.05 + rand() ** 2 * 0.25;
-    const step = 1.6 + rand() * 1.6;
-    for (let k = 0; k * step < blip.length && at + k < n; k++) out[at + k] += blip[Math.floor(k * step)] * gain;
-  }
-  filter(out, 'highpass', 700, 0.7);
-  return normalize(envelope(out, (t) => Math.min(1, t / 0.08) * Math.min(1, (1.2 - t) / 0.15)), 0.75);
-}
-
 function drop(rand) {
-  const n = len(0.45);
-  const thud = sine(n, (t) => 70 - 22 * Math.min(1, t / 0.12), (t) => Math.exp(-t / 0.09));
-  const knock = envelope(filter(noise(n, rand), 'bandpass', 360, 2), (t) => Math.exp(-t / 0.03));
-  const ring = sine(n, () => 182, (t) => Math.exp(-t / 0.15));
-  const out = new Float32Array(n);
-  addInto(out, normalize(thud), 1);
-  addInto(out, normalize(knock), 0.55);
-  addInto(out, normalize(ring), 0.18);
+  const n = len(0.5);
+  const out = soften(modes(n, boardModes(rand, 0.4, 1.5)), 2.5);
+  add(out, modes(n, [{ f: 62, a: 1, tau: 0.08 }, { f: 96, a: 0.4, tau: 0.05 }]), 1.2);
   return normalize(out, 0.95);
 }
 
 function whoosh(rand) {
-  const dur = 0.5;
-  const n = len(dur);
-  const out = filter(noise(n, rand), 'bandpass', (t) => 400 + 1800 * Math.sin((Math.PI * t) / dur), 1.2);
-  return normalize(envelope(out, (t) => Math.sin((Math.PI * t) / dur) ** 2), 0.6);
+  const dur = 0.45;
+  const out = filter(noise(len(dur), rand), 'bandpass', (t) => 380 + 1700 * Math.sin((Math.PI * t) / dur), 1.1);
+  return normalize(env(out, (t) => Math.sin((Math.PI * t) / dur) ** 2), 0.55);
 }
 
-function crumble(rand) {
-  const dur = 0.4;
+function crumble(rand, profile) {
+  const p = CUT_PROFILES[profile] || CUT_PROFILES.crisp;
+  const dur = 0.35;
   const n = len(dur);
-  const g = filter(grains(n, 1600, rand, [0.5, 3]), 'bandpass', 1700, 0.8);
-  const low = sine(n, () => 120, (t) => Math.exp(-t / 0.05));
-  const out = new Float32Array(n);
-  addInto(out, normalize(g), 1);
-  addInto(out, normalize(low), 0.3);
-  return normalize(envelope(out, (t) => Math.min(1, t / 0.01) * Math.max(0, 1 - t / dur) ** 2), 0.8);
+  const out = filter(grains(n, Math.max(300, p.rate), rand, [0.5, 2.5]), 'bandpass', p.band * 0.7, 0.8);
+  return normalize(env(out, (t) => Math.min(1, t / 0.01) * Math.max(0, 1 - t / dur) ** 2), 0.8);
 }
 
-export function synthBank(seed = 42) {
-  const rand = mulberry32(seed);
-  const many = (k, fn) => Array.from({ length: k }, () => fn(rand));
-  return {
-    thock: many(4, thock),
-    crunch: many(6, (r) => crunch(r)),
-    slice: many(3, slice),
-    tick: many(8, tick),
-    pour: many(2, pour),
-    drop: many(2, drop),
-    whoosh: many(2, whoosh),
-    crumble: many(3, crumble),
-  };
+// Event sounds for one material profile.
+const banks = new Map();
+export function eventBank(profile = 'crisp') {
+  if (banks.has(profile)) return banks.get(profile);
+  const rand = mulberry32(1000 + Object.keys(CUT_PROFILES).indexOf(profile));
+  const many = (k, fn) => Array.from({ length: k }, () => fn(rand, profile));
+  const bank = { thock: many(4, thock), cut: many(6, cutSound), slice: many(3, slice), drop: many(2, drop), whoosh: many(2, whoosh), crumble: many(3, crumble) };
+  banks.set(profile, bank);
+  return bank;
 }
+
+export const PROFILES = Object.keys(CUT_PROFILES);
 
 // Short exponential-noise impulse response for a small, warm room.
-export function roomImpulse(seconds = 0.45, sr = SAMPLE_RATE) {
+export function roomImpulse(seconds = 0.45, sr = SR) {
   const rand = mulberry32(9);
   const n = Math.round(seconds * sr);
-  const ch = [0, 1].map(() => {
+  return [0, 1].map(() => {
     const b = new Float32Array(n);
     for (let i = 0; i < n; i++) b[i] = (rand() * 2 - 1) * Math.exp((-i / sr) * 9);
-    return filter(b, 'lowpass', 4500, 0.7, sr);
+    return filter(b, 'lowpass', 4500, 0.7);
   });
-  return ch;
 }

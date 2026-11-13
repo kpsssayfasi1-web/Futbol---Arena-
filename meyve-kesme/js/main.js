@@ -1,13 +1,16 @@
-// Page controller: settings, transport, recording and export UI.
+// Page controller: settings, item picker, transport, music, export and batch.
 import { App } from './app.js';
 import { canExport } from './exporter.js';
 import { pickRecorderMime } from './recorder.js';
 import { roundIndexAt } from './timeline.js';
-import { fruitById } from './fruits.js';
+import { CATEGORIES, ITEMS, itemById, itemsInCategory, isValidSelection } from './catalog/index.js';
+import { shortsCopy } from './titles.js';
+import { displayedCubeTotal } from './cubes-data.js';
 
 const $ = (id) => document.getElementById(id);
-const STORAGE_KEY = 'meyve-kesme-settings-v1';
-const DEFAULTS = { fruit: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false };
+const STORAGE_KEY = 'kesim-studyosu-settings-v2';
+const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'waltz', musicVolume: 0.35, hook: true, seed: 1 };
+const MUSIC = ['waltz', 'swing', 'baroque', 'musette', 'custom', 'off'];
 const params = new URLSearchParams(location.search);
 
 function loadSettings() {
@@ -18,21 +21,27 @@ function loadSettings() {
     saved = {};
   }
   const s = { ...DEFAULTS, ...saved };
-  for (const key of ['fruit', 'preset', 'speed', 'lang', 'quality', 'handle']) if (params.has(key)) s[key] = params.get(key);
+  for (const key of ['item', 'preset', 'speed', 'lang', 'quality', 'handle', 'music', 'seed']) if (params.has(key)) s[key] = params.get(key);
   if (params.has('sound')) s.sound = params.get('sound') !== '0';
+  if (params.has('hook')) s.hook = params.get('hook') !== '0';
+  if (params.has('shadow')) s.shadowSize = Math.min(4096, Math.max(256, Number(params.get('shadow')) || 1024));
   s.speed = String(Math.min(2, Math.max(0.5, Number(s.speed) || 1)));
   s.handle = String(s.handle || '').trim().slice(0, 32);
+  s.seed = Math.max(1, Math.floor(Number(s.seed) || 1));
+  s.musicVolume = Number.isFinite(Number(s.musicVolume)) ? Math.min(1, Math.max(0, Number(s.musicVolume))) : DEFAULTS.musicVolume;
   if (!['tr', 'en'].includes(s.lang)) s.lang = DEFAULTS.lang;
   if (!['auto', 'low', 'medium', 'high'].includes(s.quality)) s.quality = DEFAULTS.quality;
-  if (!['apple', 'watermelon', 'orange', 'kiwi', 'mix'].includes(s.fruit)) s.fruit = DEFAULTS.fruit;
+  if (!isValidSelection(s.item)) s.item = DEFAULTS.item;
   if (!['classic', 'short', 'legend'].includes(s.preset)) s.preset = DEFAULTS.preset;
-  if (params.has('shadow')) s.shadowSize = Math.min(4096, Math.max(256, Number(params.get('shadow')) || 1024));
+  // A custom track is not stored, so a reload falls back to the default style.
+  if (!MUSIC.includes(s.music) || s.music === 'custom') s.music = DEFAULTS.music;
   return s;
 }
 
 function saveSettings(s) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+    const { shadowSize, ...rest } = s;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
   } catch {
     /* storage unavailable: settings just won't persist */
   }
@@ -70,6 +79,11 @@ function fit() {
 }
 new ResizeObserver(fit).observe(stage);
 
+const rebuild = () => {
+  app.rebuild();
+  updateInfo(true);
+};
+
 function bindSeg(id, key, onChange) {
   const el = $(id);
   const sync = () => el.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === String(settings[key]))));
@@ -79,24 +93,118 @@ function bindSeg(id, key, onChange) {
     settings[key] = b.dataset.value;
     sync();
     saveSettings(settings);
-    onChange();
+    onChange(b.dataset.value);
   });
   sync();
+  return sync;
 }
 
-const rebuild = () => {
-  app.rebuild();
-  updateInfo();
-};
-bindSeg('fruitSeg', 'fruit', rebuild);
+// ---------- item picker ----------
+let activeCat = settings.item.startsWith('mix:') ? settings.item.slice(4) : itemById(settings.item).cat;
+if (activeCat !== 'all' && !CATEGORIES.some((c) => c.id === activeCat)) activeCat = 'fruit';
+
+function renderTabs() {
+  const tabs = [...CATEGORIES.map((c) => ({ id: c.id, label: c.tr })), { id: 'all', label: 'Hepsi' }];
+  $('catTabs').innerHTML = '';
+  for (const t of tabs) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.textContent = t.label;
+    b.setAttribute('aria-selected', String(t.id === activeCat));
+    b.addEventListener('click', () => {
+      activeCat = t.id;
+      renderTabs();
+      renderItems();
+    });
+    $('catTabs').appendChild(b);
+  }
+}
+
+function itemButton(value, label, color) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.dataset.value = value;
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dot.style.background = color;
+  b.append(dot, label);
+  b.setAttribute('aria-pressed', String(settings.item === value));
+  return b;
+}
+
+function renderItems() {
+  const grid = $('itemGrid');
+  grid.innerHTML = '';
+  const list = activeCat === 'all' ? ITEMS : itemsInCategory(activeCat);
+  const mixLabel = activeCat === 'all' ? 'Hepsinden karışık' : 'Karışık';
+  grid.appendChild(itemButton(`mix:${activeCat}`, mixLabel, 'conic-gradient(#c8281e 0 25%,#2f7a2a 0 50%,#f28a12 0 75%,#2f6fd1 0)'));
+  for (const it of list) grid.appendChild(itemButton(it.id, it.tr.charAt(0) + it.tr.slice(1).toLocaleLowerCase('tr-TR'), it.dot));
+}
+$('itemGrid').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  settings.item = b.dataset.value;
+  saveSettings(settings);
+  renderItems();
+  app.seek(0);
+  rebuild();
+});
+renderTabs();
+renderItems();
+
 bindSeg('presetSeg', 'preset', () => {
   app.seek(0);
   rebuild();
 });
 bindSeg('speedSeg', 'speed', rebuild);
-bindSeg('langSeg', 'lang', () => app.hud.invalidate());
+bindSeg('langSeg', 'lang', () => {
+  app.hud.invalidate();
+  updateInfo(true);
+});
 bindSeg('qualitySeg', 'quality', rebuild);
+const syncMusic = bindSeg('musicSeg', 'music', (v) => {
+  $('musicFileRow').hidden = v !== 'custom';
+  if (v === 'custom' && !app.customMusic) $('exportNote').textContent = 'Bir ses dosyası seç. Seçmezsen video müziksiz olur.';
+  app.refreshMusic();
+});
+$('musicFileRow').hidden = settings.music !== 'custom';
+$('musicFile').addEventListener('change', async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try {
+    const ctx = app.audio.ensure();
+    const buffer = await ctx.decodeAudioData(await file.arrayBuffer());
+    await app.setCustomMusic(buffer);
+    $('exportNote').textContent = `Müzik yüklendi: ${file.name} (${Math.round(buffer.duration)} sn, gerekirse başa sarar).`;
+  } catch {
+    $('exportNote').textContent = 'Bu ses dosyası açılamadı. mp3, wav veya m4a dene.';
+  }
+});
+$('musicVol').value = String(settings.musicVolume);
+$('musicVol').addEventListener('input', (e) => {
+  settings.musicVolume = Number(e.target.value);
+  saveSettings(settings);
+  if (settings.music !== 'off') app.audio.setVolumes({ music: settings.musicVolume });
+});
+function showSeed() {
+  $('seedText').textContent = `şu an #${settings.seed}`;
+}
+showSeed();
+$('variantBtn').addEventListener('click', () => {
+  settings.seed = (settings.seed % 9999) + 1 + Math.floor(Math.random() * 50);
+  saveSettings(settings);
+  showSeed();
+  app.seek(0);
+  rebuild();
+});
 
+$('hookToggle').checked = settings.hook !== false;
+$('hookToggle').addEventListener('change', (e) => {
+  settings.hook = e.target.checked;
+  saveSettings(settings);
+  app.hud.invalidate();
+});
 $('handleInput').value = settings.handle;
 $('handleInput').addEventListener('input', (e) => {
   settings.handle = e.target.value.trim().slice(0, 32);
@@ -115,6 +223,7 @@ $('loopToggle').addEventListener('change', (e) => {
   saveSettings(settings);
 });
 
+// ---------- transport ----------
 function setPlaying(on) {
   if (on) app.play();
   else app.pause();
@@ -150,6 +259,28 @@ stage.addEventListener('click', (e) => {
   setTimeout(fit, 50);
 });
 
+// ---------- copy ----------
+document.querySelectorAll('.copyBtn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const el = $(btn.dataset.copy);
+    const done = () => {
+      btn.textContent = 'Kopyalandı';
+      setTimeout(() => (btn.textContent = 'Kopyala'), 1500);
+    };
+    const select = () => {
+      const r = document.createRange();
+      r.selectNodeContents(el);
+      const sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      btn.textContent = 'Seçildi';
+    };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(el.textContent).then(done, select);
+    else select();
+  });
+});
+
+// ---------- output ----------
 $('recordBtn').addEventListener('click', () => {
   if (app.recorder) {
     app.finishRecording();
@@ -168,25 +299,33 @@ let cancelled = false;
 $('cancelExport').addEventListener('click', () => {
   cancelled = true;
 });
+
+function runExport(label) {
+  $('exportTitle').textContent = label;
+  $('exportBar').style.width = '0%';
+  $('exportStatus').textContent = 'Ses ve müzik hazırlanıyor…';
+  return app.exportVideo({
+    onProgress: (p) => {
+      $('exportBar').style.width = `${(p * 100).toFixed(1)}%`;
+      $('exportStatus').textContent = `Kareler işleniyor: %${Math.round(p * 100)}`;
+    },
+    isCancelled: () => cancelled,
+  });
+}
+
+function exportBlocked() {
+  if (canExport()) return false;
+  $('exportNote').textContent = 'Bu tarayıcı kare kare MP4 oluşturmayı desteklemiyor. Chrome, Edge veya güncel Safari kullan; ya da Canlı kayıt düğmesini dene.';
+  return true;
+}
+
 $('exportBtn').addEventListener('click', async () => {
-  if (!canExport()) {
-    $('exportNote').textContent = 'Bu tarayıcı kare kare MP4 oluşturmayı desteklemiyor. Chrome, Edge veya güncel Safari kullan; ya da Canlı kayıt düğmesini dene.';
-    return;
-  }
+  if (exportBlocked()) return;
   cancelled = false;
   $('exportModal').hidden = false;
-  $('exportBar').style.width = '0%';
-  $('exportStatus').textContent = 'Ses hazırlanıyor…';
-  $('startOverlay').hidden = true;
   setPlaying(false);
   try {
-    const res = await app.exportVideo({
-      onProgress: (p) => {
-        $('exportBar').style.width = `${(p * 100).toFixed(1)}%`;
-        $('exportStatus').textContent = `Kareler işleniyor: %${Math.round(p * 100)}`;
-      },
-      isCancelled: () => cancelled,
-    });
+    const res = await runExport('MP4 hazırlanıyor');
     if (!res) $('exportNote').textContent = 'MP4 oluşturma iptal edildi.';
     else if (res.saved === 'declined') $('exportNote').textContent = 'Video kaydedilmedi. Tekrar denemek için MP4 oluştur düğmesine bas.';
     else $('exportNote').textContent = `Video kaydedildi (${res.codec}${res.audio ? ` + ${res.audio}` : ', sessiz'}).`;
@@ -197,30 +336,72 @@ $('exportBtn').addEventListener('click', async () => {
   }
 });
 
+// Batch: three videos with different items (from the open category) and music.
+$('batchBtn').addEventListener('click', async () => {
+  if (exportBlocked()) return;
+  const original = { ...settings };
+  const pool = activeCat === 'all' ? ITEMS : itemsInCategory(activeCat);
+  const picks = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
+  const styles = ['waltz', 'swing', 'baroque', 'musette'];
+  const keepMusic = settings.music === 'off' || settings.music === 'custom';
+  cancelled = false;
+  $('exportModal').hidden = false;
+  setPlaying(false);
+  let saved = 0;
+  try {
+    for (let i = 0; i < picks.length && !cancelled; i++) {
+      Object.assign(settings, { item: picks[i].id, seed: Math.floor(Math.random() * 9000) + 1, music: keepMusic ? settings.music : styles[(styles.indexOf(original.music) + i + 4) % 4] });
+      app.seek(0);
+      app.rebuild();
+      const res = await runExport(`Video ${i + 1}/${picks.length}: ${picks[i].tr}`);
+      if (res && res.saved !== 'declined') saved++;
+    }
+    $('exportNote').textContent = cancelled ? `Seri durduruldu, ${saved} video kaydedildi.` : `${saved} video kaydedildi.`;
+  } catch (err) {
+    $('exportNote').textContent = `Seri üretim durdu: ${err.message}`;
+  } finally {
+    Object.assign(settings, original);
+    syncMusic();
+    app.seek(0);
+    rebuild();
+    $('exportModal').hidden = true;
+  }
+});
+
 if (pickRecorderMime() === null) $('recordBtn').disabled = true;
 
-function updateInfo() {
+// ---------- info ----------
+function updateInfo(copyToo = false) {
   const tl = app.timeline;
   const ri = roundIndexAt(tl, app.time);
   const r = tl.rounds[ri];
-  const name = fruitById(r.fruitId).tr;
-  $('roundPill').textContent = `Tur ${ri + 1}/${tl.rounds.length} · ${name} · ${r.cuts.toLocaleString('tr-TR')} kesim${app.buffering ? ' · hazırlanıyor…' : ''}`;
+  $('roundPill').textContent = `Tur ${ri + 1}/${tl.rounds.length} · ${itemById(r.itemId).tr} · ${r.cuts.toLocaleString('tr-TR')} kesim${app.buffering ? ' · hazırlanıyor…' : ''}`;
   $('timeText').textContent = `${fmt(app.time)} / ${fmt(app.duration)}`;
   if (!scrubbing) $('scrub').value = String(Math.round((app.time / app.duration) * 1000));
+  if (copyToo) {
+    const last = tl.rounds[tl.rounds.length - 1];
+    const pile = app.piles.get(last.index);
+    const copy = shortsCopy(settings, tl, pile ? displayedCubeTotal(pile.data, last.end) : 0);
+    $('titleText').textContent = copy.title;
+    $('descText').textContent = copy.description;
+    $('tagsText').textContent = copy.tags;
+  }
 }
 
 let lastInfo = 0;
+let infoTicks = 0;
 function loop(now) {
   requestAnimationFrame(loop);
   app.frame(now);
-  if (now - lastInfo > 200) {
+  if (now - lastInfo > 250) {
     lastInfo = now;
-    updateInfo();
+    updateInfo(++infoTicks % 8 === 0);
   }
 }
 
 document.fonts?.load('800 100px Poppins').then(() => app.hud.invalidate()).catch(() => {});
 fit();
+updateInfo(true);
 if (params.has('t')) {
   app.seek(Number(params.get('t')));
   $('startOverlay').hidden = true;

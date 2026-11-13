@@ -1,105 +1,97 @@
-// WebAudio playback of the sound events, live (scheduled slightly ahead of the
-// playhead) or offline (whole video rendered into one AudioBuffer for export).
-import { synthBank, roomImpulse, SAMPLE_RATE } from './sfx.js';
+// WebAudio playback: knife events (scheduled slightly ahead of the playhead),
+// one pre-mixed landing track per round, and the background music bed. The
+// same mix renders offline for export.
+import { roomImpulse } from './sfx.js';
+import { eventsInWindow } from './events.js';
 
-let bankCache = null;
-function bankData() {
-  if (!bankCache) bankCache = synthBank(42);
-  return bankCache;
+export function toBuffer({ left, right, sampleRate }) {
+  const b = new AudioBuffer({ length: left.length, numberOfChannels: 2, sampleRate });
+  b.copyToChannel(left, 0);
+  b.copyToChannel(right || left, 1);
+  return b;
 }
 
-function toBuffers(ctx) {
-  const out = {};
-  for (const [name, list] of Object.entries(bankData())) {
-    out[name] = list.map((samples) => {
-      const b = ctx.createBuffer(1, samples.length, SAMPLE_RATE);
-      b.copyToChannel(samples, 0);
-      return b;
-    });
-  }
-  return out;
+function monoBuffer(samples, sampleRate) {
+  const b = new AudioBuffer({ length: samples.length, numberOfChannels: 1, sampleRate });
+  b.copyToChannel(samples, 0);
+  return b;
 }
 
 function buildGraph(ctx) {
-  const input = ctx.createGain();
   const comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -14;
+  comp.threshold.value = -12;
   comp.knee.value = 8;
-  comp.ratio.value = 4;
+  comp.ratio.value = 3.5;
   comp.attack.value = 0.003;
-  comp.release.value = 0.12;
+  comp.release.value = 0.15;
+  const master = ctx.createGain();
+  master.gain.value = 0.95;
+  const sfx = ctx.createGain();
+  const landing = ctx.createGain();
+  const music = ctx.createGain();
   const verb = ctx.createConvolver();
   const ir = roomImpulse(0.45, ctx.sampleRate);
-  const irBuf = ctx.createBuffer(2, ir[0].length, ctx.sampleRate);
-  irBuf.copyToChannel(ir[0], 0);
-  irBuf.copyToChannel(ir[1], 1);
-  verb.buffer = irBuf;
+  verb.buffer = toBuffer({ left: ir[0], right: ir[1], sampleRate: ctx.sampleRate });
   const wet = ctx.createGain();
-  wet.gain.value = 0.14;
-  const master = ctx.createGain();
-  master.gain.value = 0.9;
-  input.connect(comp);
-  input.connect(verb);
+  wet.gain.value = 0.12;
+  sfx.connect(comp);
+  landing.connect(comp);
+  sfx.connect(verb);
+  landing.connect(verb);
   verb.connect(wet);
   wet.connect(comp);
   comp.connect(master);
+  music.connect(master);
   master.connect(ctx.destination);
-  return { input, master };
+  return { sfx, landing, music, master };
 }
 
-function playEvent(ctx, graph, buffers, ev, when, track) {
-  const list = buffers[ev.type];
-  if (!list) return;
+function playEvent(ctx, graph, banks, ev, when, gain, track) {
+  const list = banks.get(ev.profile)?.[ev.type];
+  if (!list || !list.length) return;
   const src = ctx.createBufferSource();
   src.buffer = list[ev.variant % list.length];
   src.playbackRate.value = ev.rate || 1;
   const g = ctx.createGain();
+  g.gain.value = ev.gain * gain;
   src.connect(g);
-  g.connect(graph.input);
-  const start = Math.max(when, ctx.currentTime);
-  if (ev.duration) {
-    const d = ev.duration;
-    g.gain.setValueAtTime(0, start);
-    g.gain.linearRampToValueAtTime(ev.gain, start + 0.04);
-    g.gain.setValueAtTime(ev.gain, start + d - 0.05);
-    g.gain.linearRampToValueAtTime(0, start + d);
-    const offset = ((ev.variant * 0.37 + ev.t * 1.7) % 1) * Math.max(0, src.buffer.duration - d - 0.05);
-    src.start(start, offset);
-    src.stop(start + d + 0.02);
-  } else {
-    g.gain.value = ev.gain;
-    src.start(start);
-  }
-  if (track) track(src);
+  g.connect(graph.sfx);
+  src.start(Math.max(when, ctx.currentTime));
+  track?.(src);
 }
 
-export async function renderOfflineAudio(events, duration, sampleRate = 48000) {
-  const ctx = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate);
-  const graph = buildGraph(ctx);
-  const buffers = toBuffers(ctx);
-  for (const ev of events) if (ev.t >= 0 && ev.t < duration) playEvent(ctx, graph, buffers, ev, ev.t);
-  return ctx.startRendering();
+function startBed(ctx, bus, buffer, when, offset, loop, track) {
+  const src = ctx.createBufferSource();
+  src.buffer = buffer;
+  src.loop = loop;
+  src.connect(bus);
+  src.start(Math.max(when, ctx.currentTime), loop ? offset % buffer.duration : offset);
+  track?.(src);
+  return src;
 }
 
 export class AudioEngine {
   constructor() {
     this.ctx = null;
     this.enabled = true;
+    this.banks = new Map(); // profile -> { type: AudioBuffer[] }
+    this.landings = new Map(); // round index -> { buffer, start }
+    this.music = null; // { buffer, loop }
+    this.volumes = { sfx: 1, landing: 1, music: 0.35 };
     this.sources = new Set();
-    this.scheduledUntil = 0;
+    this.reset(0);
   }
 
-  // Must be called from a user gesture the first time.
   ensure() {
     if (!this.ctx) {
       const Ctx = window.AudioContext || window.webkitAudioContext;
       this.ctx = new Ctx({ latencyHint: 'interactive' });
       this.graph = buildGraph(this.ctx);
-      this.buffers = toBuffers(this.ctx);
       if (this.ctx.createMediaStreamDestination) {
         this.streamDest = this.ctx.createMediaStreamDestination();
         this.graph.master.connect(this.streamDest);
       }
+      this.applyVolumes();
     }
     if (this.ctx.state === 'suspended') this.ctx.resume();
     return this.ctx;
@@ -109,8 +101,35 @@ export class AudioEngine {
     return !!this.ctx && this.ctx.state === 'running';
   }
 
-  get now() {
-    return this.ctx ? this.ctx.currentTime : 0;
+  setBank(profile, raw) {
+    const bank = {};
+    for (const [name, list] of Object.entries(raw)) bank[name] = list.map((s) => monoBuffer(s, 48000));
+    this.banks.set(profile, bank);
+  }
+
+  setLanding(index, track) {
+    if (!track) return;
+    this.landings.set(index, { buffer: toBuffer(track), start: track.start });
+  }
+
+  dropLandings(keep) {
+    for (const k of [...this.landings.keys()]) if (!keep(k)) this.landings.delete(k);
+  }
+
+  setMusic(buffer, loop = false) {
+    this.music = buffer ? { buffer, loop } : null;
+    this.musicStarted = false;
+  }
+
+  setVolumes(v) {
+    Object.assign(this.volumes, v);
+    this.applyVolumes();
+  }
+
+  applyVolumes() {
+    if (!this.graph) return;
+    this.graph.landing.gain.value = this.volumes.landing;
+    this.graph.music.gain.value = this.volumes.music;
   }
 
   reset(t) {
@@ -123,19 +142,54 @@ export class AudioEngine {
     }
     this.sources.clear();
     this.scheduledUntil = t;
+    this.landingStarted = new Set();
+    this.musicStarted = false;
   }
 
-  update(t, getEvents) {
+  track = (src) => {
+    this.sources.add(src);
+    src.onended = () => this.sources.delete(src);
+  };
+
+  update(t, getEvents, duration) {
     if (!this.running || !this.enabled) return;
+    const now = this.ctx.currentTime;
+    if (this.music && !this.musicStarted && t < duration) {
+      this.musicStarted = true;
+      if (this.music.loop || t < this.music.buffer.duration) {
+        const src = startBed(this.ctx, this.graph.music, this.music.buffer, now, t, this.music.loop, this.track);
+        if (this.music.loop) src.stop(now + (duration - t));
+      }
+    }
+    for (const [index, l] of this.landings) {
+      if (this.landingStarted.has(index)) continue;
+      const end = l.start + l.buffer.duration;
+      if (t + 0.25 < l.start || t >= end) continue;
+      this.landingStarted.add(index);
+      if (t <= l.start) startBed(this.ctx, this.graph.landing, l.buffer, now + (l.start - t), 0, false, this.track);
+      else startBed(this.ctx, this.graph.landing, l.buffer, now, t - l.start, false, this.track);
+    }
     const ahead = t + 0.2;
     if (ahead <= this.scheduledUntil) return;
     const from = Math.max(this.scheduledUntil, t);
-    for (const ev of getEvents(from, ahead)) {
-      playEvent(this.ctx, this.graph, this.buffers, ev, this.ctx.currentTime + (ev.t - t), (src) => {
-        this.sources.add(src);
-        src.onended = () => this.sources.delete(src);
-      });
-    }
+    for (const ev of getEvents(from, ahead)) playEvent(this.ctx, this.graph, this.banks, ev, now + (ev.t - t), this.volumes.sfx, this.track);
     this.scheduledUntil = ahead;
   }
+}
+
+// Whole soundtrack for export: events + landing tracks + music.
+export async function renderOfflineAudio({ events, landings, banks, music, volumes, duration, sampleRate = 48000 }) {
+  const ctx = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate);
+  const graph = buildGraph(ctx);
+  graph.landing.gain.value = volumes.landing;
+  graph.music.gain.value = volumes.music;
+  for (const ev of eventsInWindow(events, 0, duration)) playEvent(ctx, graph, banks, ev, ev.t, volumes.sfx);
+  for (const l of landings) startBed(ctx, graph.landing, l.buffer, l.start, 0, false);
+  if (music) {
+    const src = startBed(ctx, graph.music, music.buffer, 0, 0, music.loop);
+    if (music.loop) src.stop(duration);
+    graph.music.gain.setValueAtTime(volumes.music, Math.max(0, duration - 1.6));
+    graph.music.gain.linearRampToValueAtTime(0, duration);
+  }
+  return ctx.startRendering();
 }

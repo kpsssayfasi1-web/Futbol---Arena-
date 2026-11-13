@@ -1,6 +1,7 @@
 // The whole video is a pure function of time. This module lays out every round,
 // phase and individual cut so any moment can be rendered (or seeked) directly.
-import { FRUIT_ORDER, fruitById, fruitInfo } from './fruits.js';
+import { itemById, itemForRound } from './catalog/index.js';
+import { objectInfo } from './object-info.js';
 
 export const ROUND_PRESETS = {
   classic: [10, 50, 100, 250, 500, 1000],
@@ -8,14 +9,15 @@ export const ROUND_PRESETS = {
   legend: [10, 100, 500, 1000, 2500, 5000],
 };
 
+// Tight pacing: the next item is already falling while the last slab lands.
 export const TIMING = {
-  drop: 0.5, // fruit falls onto the board
-  settle: 0.3, // squash and bounce
-  phaseGap: 0.1,
-  tail: 1.7, // last slab crumbles
-  hold: 0.9,
-  finalHold: 2.4,
-  outro: 0.45, // previous pile shrinks while the next fruit drops
+  drop: 0.36, // item falls onto the board
+  settle: 0.12, // knife starts its approach while the item squashes
+  phaseGap: 0.04,
+  tail: 0.62, // last cut -> next round starts
+  finalHold: 2.6, // the final pile and total stay on screen
+  outro: 0.4, // previous pile shrinks while the next item drops
+  hook: 1.7, // opening question on screen
   accel: 0.7, // < 1: the knife speeds up during a phase
 };
 
@@ -32,7 +34,7 @@ export function splitCuts(total) {
 
 export function phaseDuration(n, speed = 1) {
   if (n <= 0) return 0;
-  return Math.min(n * 0.33, Math.pow(n, 0.28)) / speed;
+  return Math.min(n * 0.26, 0.95 * Math.pow(n, 0.28)) / speed;
 }
 
 // Plane positions, in the order the knife makes them. X goes left to right,
@@ -54,17 +56,12 @@ export function cutTimes(n, start, duration, accel = TIMING.accel) {
   return out;
 }
 
-export function fruitForRound(mode, index) {
-  if (mode === 'mix') return FRUIT_ORDER[index % FRUIT_ORDER.length];
-  return fruitById(mode).id;
-}
-
-export function buildTimeline({ rounds = ROUND_PRESETS.classic, fruit = 'apple', speed = 1 } = {}) {
+export function buildTimeline({ rounds = ROUND_PRESETS.classic, item = 'apple', speed = 1, seed = 0 } = {}) {
   const list = [];
   let t = 0;
   rounds.forEach((cuts, index) => {
-    const fruitId = fruitForRound(fruit, index);
-    const info = fruitInfo(fruitById(fruitId));
+    const itemId = itemForRound(item, index, seed);
+    const info = objectInfo(itemById(itemId));
     const split = splitCuts(cuts);
     const start = t;
     const land = start + TIMING.drop;
@@ -84,8 +81,8 @@ export function buildTimeline({ rounds = ROUND_PRESETS.classic, fruit = 'apple',
     });
     const lastCut = phases[2].end;
     const isLast = index === rounds.length - 1;
-    const end = lastCut + TIMING.tail + (isLast ? TIMING.finalHold : TIMING.hold);
-    list.push({ index, cuts: split[0] + split[1] + split[2], split, fruitId, start, land, phases, lastCut, end, bbox: info.bbox, boardY: info.boardY });
+    const end = lastCut + (isLast ? TIMING.finalHold : TIMING.tail);
+    list.push({ index, cuts: split[0] + split[1] + split[2], split, itemId, start, land, phases, lastCut, end, bbox: info.bbox, boardY: info.boardY });
     t = end;
   });
   return { rounds: list, duration: t, speed };
