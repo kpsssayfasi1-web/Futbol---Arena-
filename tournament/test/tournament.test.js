@@ -60,6 +60,7 @@ test('titles never reveal the score and fit YouTube length', () => {
     assert.ok([...m.title].length <= 100, m.title);
     assert.ok(!m.title.includes(`${m.score.home}-${m.score.away}`));
     assert.ok(m.description.includes('physics simulation'));
+    assert.ok(m.description.includes('not affiliated'));
   }
   const final = withText.find((m) => m.stage === 'FINAL');
   assert.match(final.title, /THE FINAL/);

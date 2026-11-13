@@ -3,6 +3,7 @@
 const MAX_TITLE_LENGTH = 100;
 const UNDERDOG_GAP = 12;
 const DISCLOSURE = 'Every match is a real, unedited physics simulation. Team ratings shape the odds, and upsets happen!';
+const AFFILIATION = 'Fan-made simulation, not affiliated with any player, club or federation.';
 const HASHTAGS = '#Shorts #football #soccer #physics #simulation';
 
 function side(team) {
@@ -52,6 +53,7 @@ export function buildDescription(match, teamsByCode, tournamentName) {
     'Who wins? Drop your prediction in the comments 👇',
     '',
     DISCLOSURE,
+    AFFILIATION,
     '',
     HASHTAGS,
   ].join('\n');
