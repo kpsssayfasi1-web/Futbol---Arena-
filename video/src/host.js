@@ -13,7 +13,7 @@ const { chromium } = createRequire(import.meta.url)('playwright');
 
 export const REPO = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.json': 'application/json' };
-const JPEG_QUALITY = 0.93;
+const JPEG_QUALITY = 0.96;
 
 export function log(message) {
   process.stdout.write(`${message}\n`);
@@ -50,7 +50,8 @@ function startEncoder(outFile, wavFile, fps) {
     '-y', '-loglevel', 'error',
     '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'mjpeg', '-i', '-',
     '-i', wavFile,
-    '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p',
+    '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-tune', 'animation', '-profile:v', 'high', '-pix_fmt', 'yuv420p',
+    '-color_primaries', 'bt709', '-color_trc', 'bt709', '-colorspace', 'bt709',
     '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', outFile,
   ];
   const ffmpeg = spawn('ffmpeg', args, { stdio: ['pipe', 'inherit', 'inherit'] });

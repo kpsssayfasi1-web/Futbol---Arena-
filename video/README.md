@@ -5,15 +5,15 @@
 ## 3D sokak futbolu (güncel)
 
 ```bash
-node make-short3d.js --match M007                      # tam MP4 (bu sunucuda ~20 dk)
+node make-short3d.js --match M007                      # tam MP4, 1440x2560 (bu sunucuda ~30 dk)
 node make-short3d.js --match M007 --stills 400,600     # sadece önizleme kareleri (saniyeler)
 node calibrate-street.js 500                           # doğal gol dağılımı
 ```
 
-- **Motor** (`src/street/`): 14×24 m'lik kafes saha, duvarlar topu sektiriyor, köşeler pahlı. Kaleler 4,4 m genişliğinde. Takım başına 3 oyuncu (presçi, savunmacı, destek rolleri her an yeniden dağıtılır). İki takımın fizik ve yapay zekâsı birebir aynı. Golü atan ve asist yapan oyuncu kaydedilir. Savunmacıya çarpıp giren şut, şutu çekenin golü sayılır.
+- **Motor** (`src/street/`): 14×24 m'lik kafes saha, duvarlar topu sektiriyor, köşeler pahlı. Kaleler 4,4 m genişliğinde. Takım başına 3 oyuncu. Sabit mevki yok: topa sahip takımda üç oyuncu da hücuma çıkar (presser, striker, wide). Rakip topa sahipken her oyuncu savunma yapar (baskı ve adam adama markaj, top kaleye yaklaşınca biri kale önüne düşer). Roller her 0,1 saniyede yeniden dağıtılır, santrada diziliş karıştırılır. İki takımın fizik ve yapay zekâsı birebir aynı. Golü atan ve asist yapan oyuncu kaydedilir. Savunmacıya çarpıp giren şut, şutu çekenin golü sayılır.
 - **Kadrolar** (`tournament/data/rosters.json`): Takım başına 3 yıldız oyuncu ve forma numaraları, kaynaklarıyla birlikte. `number: null` olanlar doğrulanamadı, yayından önce kontrol edilmeli.
 - **Görsel** (`web3d/`): Three.js ile gece sahnesi, kafes, grafitili duvarlar, projektörler, seyirciler. Oyuncular stilize karakterler, gerçek kişilere benzetilmedi. Takip kamerası kullanılıyor, gollerde golcüye yakınlaşıyor.
-- **Hız:** Bu sunucuda ekran kartı yok, WebGL işlemcide (SwiftShader) çalışıyor. Bu yüzden kare başına yaklaşık 0,6 saniye sürüyor. Ekran kartı olan bir bilgisayarda çok daha hızlı olması beklenir.
+- **Hız:** Bu sunucuda ekran kartı yok, WebGL işlemcide (SwiftShader) çalışıyor. Bu yüzden 1440p'de kare başına yaklaşık 1,1 saniye sürüyor. Ekran kartı olan bir bilgisayarda çok daha hızlı olması beklenir.
 
 ## 2D daire formatı (eski)
 

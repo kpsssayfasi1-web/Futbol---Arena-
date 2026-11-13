@@ -22,32 +22,54 @@ function canvasTexture(w, h, draw, repeat = null) {
   draw(c.getContext('2d'), w, h);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
+  tex.anisotropy = 16;
   if (repeat) { tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(...repeat); }
   return tex;
 }
 
+// Artificial turf: mowing stripes, crisp lines and the floodlight pools
+// baked in (cheaper than real lights on software GL). No per-pixel noise:
+// fine grain shimmers and turns to mush after YouTube compression.
 function turfTexture() {
-  const pxPerM = 48;
+  const pxPerM = 80;
   return canvasTexture(PITCH_W * pxPerM, PITCH_L * pxPerM, (g, w, h) => {
+    const m = (v) => v * pxPerM;
     for (let i = 0; i < 12; i += 1) {
-      g.fillStyle = i % 2 ? '#2f8a4c' : '#277a41';
+      g.fillStyle = i % 2 ? '#2e9150' : '#287f46';
       g.fillRect(0, (i * h) / 12, w, h / 12 + 1);
     }
-    g.strokeStyle = 'rgba(255,255,255,.92)';
-    g.lineWidth = 0.1 * pxPerM;
-    const m = (v) => v * pxPerM;
+    // Soft, large-scale wear so the surface is not perfectly flat.
+    for (let i = 0; i < 70; i += 1) {
+      const x = rnd() * w;
+      const y = rnd() * h;
+      const r = m(0.8 + rnd() * 2.2);
+      const blob = g.createRadialGradient(x, y, 0, x, y, r);
+      const light = rnd() < 0.5;
+      blob.addColorStop(0, light ? 'rgba(190,255,190,.05)' : 'rgba(0,30,10,.07)');
+      blob.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = blob; g.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    // Floodlight pools from the four corner masts, darker towards the edges.
+    for (const [cx, cy] of [[0.15, 0.12], [0.85, 0.12], [0.15, 0.88], [0.85, 0.88]]) {
+      const pool = g.createRadialGradient(cx * w, cy * h, 0, cx * w, cy * h, h * 0.55);
+      pool.addColorStop(0, 'rgba(255,248,220,.10)');
+      pool.addColorStop(1, 'rgba(255,248,220,0)');
+      g.fillStyle = pool; g.fillRect(0, 0, w, h);
+    }
+    const edge = g.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, h * 0.62);
+    edge.addColorStop(0, 'rgba(0,0,0,0)');
+    edge.addColorStop(1, 'rgba(0,10,4,.28)');
+    g.fillStyle = edge; g.fillRect(0, 0, w, h);
+
+    g.strokeStyle = 'rgba(255,255,255,.95)';
+    g.lineWidth = m(0.1);
     g.strokeRect(m(0.15), m(0.15), w - m(0.3), h - m(0.3));
     g.beginPath(); g.moveTo(0, h / 2); g.lineTo(w, h / 2); g.stroke();
     g.beginPath(); g.arc(w / 2, h / 2, m(2.2), 0, Math.PI * 2); g.stroke();
-    g.beginPath(); g.arc(w / 2, h / 2, m(0.15), 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill();
+    g.beginPath(); g.arc(w / 2, h / 2, m(0.18), 0, Math.PI * 2); g.fillStyle = '#fff'; g.fill();
     for (const y of [0, h]) {
       g.beginPath(); g.arc(w / 2, y, m(3.6), 0, Math.PI * 2); g.stroke();
-    }
-    // turf grain
-    for (let i = 0; i < 9000; i += 1) {
-      g.fillStyle = `rgba(0,0,0,${rnd() * 0.06})`;
-      g.fillRect(rnd() * w, rnd() * h, 2, 2);
+      g.beginPath(); g.arc(w / 2, y === 0 ? m(2.6) : h - m(2.6), m(0.12), 0, Math.PI * 2); g.fill();
     }
   });
 }
@@ -64,7 +86,7 @@ function concreteTexture() {
 }
 
 function graffitiTexture(colors, label) {
-  return canvasTexture(1024, 96, (g, w, h) => {
+  return canvasTexture(2048, 192, (g, w, h) => {
     g.fillStyle = '#1b1e26'; g.fillRect(0, 0, w, h);
     for (let i = 0; i < 26; i += 1) {
       g.fillStyle = colors[i % colors.length];
@@ -72,25 +94,25 @@ function graffitiTexture(colors, label) {
       g.beginPath();
       const x = rnd() * w;
       const y = rnd() * h;
-      g.ellipse(x, y, 20 + rnd() * 70, 8 + rnd() * 26, rnd() * 3, 0, Math.PI * 2);
+      g.ellipse(x, y, 40 + rnd() * 140, 16 + rnd() * 52, rnd() * 3, 0, Math.PI * 2);
       g.fill();
     }
     g.globalAlpha = 1;
-    g.font = "900 54px 'Inter', sans-serif";
+    g.font = "900 108px 'Inter', sans-serif";
     g.textBaseline = 'middle';
-    g.lineWidth = 8; g.strokeStyle = '#0d0f14';
-    g.strokeText(label, 40, h / 2 + 2);
+    g.lineWidth = 16; g.strokeStyle = '#0d0f14';
+    g.strokeText(label, 80, h / 2 + 4);
     g.fillStyle = '#ffffff';
-    g.fillText(label, 40, h / 2 + 2);
+    g.fillText(label, 80, h / 2 + 4);
   }, [2, 1]);
 }
 
 function fenceTexture() {
-  return canvasTexture(64, 64, (g) => {
-    g.clearRect(0, 0, 64, 64);
-    g.strokeStyle = 'rgba(200,210,225,.85)';
-    g.lineWidth = 2.2;
-    g.beginPath(); g.moveTo(0, 0); g.lineTo(64, 64); g.moveTo(64, 0); g.lineTo(0, 64); g.stroke();
+  return canvasTexture(128, 128, (g) => {
+    g.clearRect(0, 0, 128, 128);
+    g.strokeStyle = 'rgba(190,200,215,.55)';
+    g.lineWidth = 5;
+    g.beginPath(); g.moveTo(0, 0); g.lineTo(128, 128); g.moveTo(128, 0); g.lineTo(0, 128); g.stroke();
   }, [1, 1]);
 }
 
@@ -101,6 +123,13 @@ function netTexture() {
     g.lineWidth = 3;
     g.strokeRect(0, 0, 64, 64);
   }, [1, 1]);
+}
+
+// Board box faces: graffiti on the long sides, a plain cap on top and
+// ends (the texture would read upside down from the camera there).
+const BOARD_CAP = new THREE.MeshStandardMaterial({ color: '#15181f', roughness: 0.8 });
+function boardFaces(mat) {
+  return [BOARD_CAP, BOARD_CAP, BOARD_CAP, BOARD_CAP, mat, mat];
 }
 
 // Perimeter of the cage as a closed polyline (chamfered corners).
@@ -248,10 +277,10 @@ export function buildScene({ home, away, rand, label, shadowSize = 2048, spotlig
   const postMat = new THREE.MeshStandardMaterial({ color: '#7d8796', roughness: 0.5, metalness: 0.6 });
   for (const [a, b, endLine] of segments()) {
     const mat = (a[0] + b[0]) / 2 < 0 || (endLine && a[1] > 0) ? boardHome : boardAway;
-    addWall(scene, a, b, BOARD_H, mat);
+    addWall(scene, a, b, BOARD_H, boardFaces(mat));
     const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
     const fm = fenceMat.clone();
-    fm.map = fenceTexture(); fm.map.repeat.set(len / 0.35, FENCE_H / 0.35);
+    fm.map = fenceTexture(); fm.map.repeat.set(len / 0.5, FENCE_H / 0.5);
     addWall(scene, a, b, FENCE_H, fm, BOARD_H, 0.02);
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, FENCE_H + BOARD_H, 6), postMat);
     post.position.set(a[0], (FENCE_H + BOARD_H) / 2, a[1]);
@@ -260,8 +289,12 @@ export function buildScene({ home, away, rand, label, shadowSize = 2048, spotlig
   addGoal(scene, -PITCH_L / 2);
   addGoal(scene, PITCH_L / 2);
 
-  scene.add(new THREE.HemisphereLight('#a9c4ff', '#262c3a', spotlights ? 0.55 : 0.95));
-  const key = new THREE.DirectionalLight('#fff6e8', spotlights ? 1.6 : 2.3);
+  scene.add(new THREE.HemisphereLight('#b4ccff', '#2a3326', spotlights ? 0.6 : 1.05));
+  // Cool rim light from behind the camera's far side gives players an edge.
+  const rim = new THREE.DirectionalLight('#8fb4ff', 0.9);
+  rim.position.set(-8, 10, -18);
+  scene.add(rim);
+  const key = new THREE.DirectionalLight('#fff3df', spotlights ? 1.7 : 2.4);
   key.position.set(6, 22, 10);
   key.castShadow = true;
   key.shadow.mapSize.set(shadowSize, shadowSize);

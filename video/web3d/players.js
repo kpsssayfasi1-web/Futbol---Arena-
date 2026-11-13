@@ -11,20 +11,20 @@ function material(color, roughness = 0.75) {
 }
 
 function capsule(radius, length, mat) {
-  const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 4, 10), mat);
+  const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(radius, length, 6, 16), mat);
   mesh.castShadow = true;
   return mesh;
 }
 
 function numberTexture(number, shirt, ink) {
   const c = document.createElement('canvas');
-  c.width = 128; c.height = 128;
+  c.width = 256; c.height = 256;
   const g = c.getContext('2d');
-  g.fillStyle = shirt; g.fillRect(0, 0, 128, 128);
+  g.fillStyle = shirt; g.fillRect(0, 0, 256, 256);
   g.fillStyle = ink;
-  g.font = "900 92px 'Inter', sans-serif";
+  g.font = "900 184px 'Inter', sans-serif";
   g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillText(number === null ? '' : String(number), 64, 70);
+  g.fillText(number === null ? '' : String(number), 128, 140);
   const tex = new THREE.CanvasTexture(c);
   tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
@@ -93,11 +93,22 @@ export function createPlayer({ kit, number, seed }) {
     return shoulder;
   });
 
-  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), skin);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.17, 24, 18), skin);
   head.position.y = 1.74; head.castShadow = true;
-  const cap = new THREE.Mesh(new THREE.SphereGeometry(0.178, 16, 8, 0, Math.PI * 2, 0, Math.PI * 0.55), hair);
+  // A few generic hair shapes (buzz, short, tall top) for variety.
+  const style = seed % 3;
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(style === 0 ? 0.174 : 0.182, 24, 12, 0, Math.PI * 2, 0, Math.PI * (style === 0 ? 0.45 : 0.55)), hair);
   cap.position.y = 1.755; cap.rotation.x = -0.25;
   body.add(head, cap);
+  if (style === 2) {
+    const top = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 10), hair);
+    top.scale.set(1.2, 0.7, 1.3); top.position.set(0, 1.9, -0.02);
+    body.add(top);
+  }
+  // Collar trim in the shorts colour.
+  const collar = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.025, 8, 20), shorts);
+  collar.rotation.x = Math.PI / 2; collar.position.y = 1.55;
+  body.add(collar);
 
   return { root, body, legs, arms, phase: 0 };
 }

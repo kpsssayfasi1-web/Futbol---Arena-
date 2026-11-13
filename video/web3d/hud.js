@@ -54,6 +54,24 @@ export function createHud(ctx, flags) {
   return { text, fit, box, flag, dim, ctx };
 }
 
+// Soft cinematic vignette and a darker band behind the top HUD, so the
+// pitch reads brighter in the middle and text stays legible.
+export function drawVignette(h) {
+  const { ctx } = h;
+  const g = ctx.createRadialGradient(CX, H * 0.55, H * 0.25, CX, H * 0.55, H * 0.75);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,.55)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  const top = ctx.createLinearGradient(0, 0, 0, 460);
+  top.addColorStop(0, 'rgba(3,6,15,.75)');
+  top.addColorStop(1, 'rgba(3,6,15,0)');
+  ctx.fillStyle = top; ctx.fillRect(0, 0, W, 460);
+  const bottom = ctx.createLinearGradient(0, H - 420, 0, H);
+  bottom.addColorStop(0, 'rgba(3,6,15,0)');
+  bottom.addColorStop(1, 'rgba(3,6,15,.7)');
+  ctx.fillStyle = bottom; ctx.fillRect(0, H - 420, W, 420);
+}
+
 export function drawHeader(h, P, alpha = 1) {
   const { text, box, ctx } = h;
   text(P.context.tournamentName.toUpperCase(), CX, 120, { size: 32, color: GOLD, spacing: 8, alpha, stroke: { width: 6, color: 'rgba(0,0,0,.5)' } });
@@ -103,27 +121,124 @@ export function drawFooter(h, P) {
   text('Who wins? Comment your prediction 👇', CX, 1700, { size: 30, weight: 800, color: 'rgba(230,238,255,.9)', stroke });
 }
 
+const ORDINAL_TAGS = { 2: 'BRACE!', 3: 'HAT-TRICK!', 4: 'FOUR GOALS!', 5: 'FIVE GOALS!' };
+
+// Tiny deterministic hash so confetti is identical however frames are reached.
+const hash = (n) => { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+function confetti(h, colors, t, salt) {
+  const { ctx } = h;
+  for (let i = 0; i < 70; i += 1) {
+    const r = (k) => hash(salt * 97 + i * 13 + k);
+    const delay = r(1) * 0.35;
+    const age = t - delay;
+    if (age <= 0) continue;
+    const x = r(2) * W + Math.sin(age * (2 + r(3) * 3) + r(4) * 6) * 40;
+    const y = -40 + age * (520 + r(5) * 480);
+    if (y > H + 40) continue;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(age * (4 + r(6) * 8));
+    ctx.scale(1, Math.abs(Math.cos(age * (5 + r(7) * 6))) + 0.15);
+    ctx.fillStyle = i % 5 === 4 ? GOLD : colors[i % colors.length];
+    ctx.fillRect(-9, -5, 18, 10);
+    ctx.restore();
+  }
+}
+
+// Goal sequence (celebrationSeconds long): flash, "GOAL!" punching in
+// letter by letter, then a scorer card on a diagonal band in the team's
+// colours with the shirt number, name, minute, brace/hat-trick tag and
+// assist. Kept out of the middle of the frame, where the camera is
+// zooming in on the scorer.
 export function drawGoalBanner(h, P, goal, t) {
   const { text, flag, ctx, fit } = h;
+  const info = P.goals.find((g) => Math.abs(g.playTime - goal.playTime) < 1e-6) ?? { minute: 0, tally: 1, score: [0, 0], index: 0 };
   const team = goal.team === 0 ? P.context.home : P.context.away;
+  const [c1, c2] = team.colors;
   const scorer = goal.scorer === null ? null : P.players[goal.scorer];
-  const alpha = clamp((P.celebrationSeconds - t) / 0.3, 0, 1);
-  const flash = clamp(1 - t / 0.25, 0, 1);
-  if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash * 0.3})`; ctx.fillRect(0, 0, W, H); }
-  const s = 0.6 + 0.4 * easeOut(t / 0.35);
+  const out = clamp((P.celebrationSeconds - t) / 0.35, 0, 1);
+  const exit = (1 - easeOut(out)) * W * 1.2;
+
+  const flash = clamp(1 - t / 0.2, 0, 1);
+  if (flash > 0) { ctx.fillStyle = `rgba(255,255,255,${flash * 0.45})`; ctx.fillRect(0, 0, W, H); }
+  confetti(h, [c1, c2, '#ffffff'], t, info.index + 1);
+
+  // "GOAL!" letters drop in one after another with an overshoot.
+  const word = goal.ownGoal ? 'OWN GOAL!' : 'GOAL!';
+  const size = goal.ownGoal ? 150 : 210;
+  ctx.font = `900 ${size}px ${FONT}`;
+  const widths = [...word].map((ch) => ctx.measureText(ch).width);
+  let x = CX - widths.reduce((a, b) => a + b, 0) / 2;
+  [...word].forEach((ch, i) => {
+    const k = clamp((t - 0.05 - i * 0.06) / 0.28, 0, 1);
+    const pop = k < 1 ? easeOut(k) * (1 + 0.25 * Math.sin(Math.PI * k)) : 1;
+    ctx.save();
+    ctx.translate(x + widths[i] / 2 - exit, 610 - (1 - easeOut(k)) * 120);
+    ctx.scale(pop, pop);
+    ctx.rotate(-0.06);
+    ctx.shadowColor = c1; ctx.shadowBlur = 50;
+    text(ch, 0, 0, { size, color: GOLD, alpha: k > 0 ? 1 : 0, stroke: { width: 16, color: 'rgba(0,0,0,.7)' } });
+    ctx.restore();
+    x += widths[i];
+  });
+
+  // Diagonal band sweeping in from the left.
+  const sweep = easeOut((t - 0.25) / 0.35);
+  const bandY = 1320;
+  const off = (1 - sweep) * -W * 1.3 - exit;
   ctx.save();
-  ctx.translate(CX, 820); ctx.scale(s, s);
-  ctx.shadowColor = team.colors[0]; ctx.shadowBlur = 40;
-  text(goal.ownGoal ? 'OWN GOAL!' : 'GOAL!', 0, 0, { size: goal.ownGoal ? 140 : 190, color: GOLD, alpha, stroke: { width: 14, color: 'rgba(0,0,0,.6)' } });
-  ctx.restore();
-  ctx.globalAlpha = alpha;
-  h.box(140, 930, 800, 110, 55, 'rgba(8,14,30,.88)', team.colors[0]);
-  flag(team, 205, 985, 38, false);
+  ctx.translate(off, 0);
+  ctx.beginPath();
+  ctx.moveTo(-60, bandY - 120); ctx.lineTo(W + 60, bandY - 175); ctx.lineTo(W + 60, bandY + 120); ctx.lineTo(-60, bandY + 175);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, c1); grad.addColorStop(1, c2 === '#ffffff' || c2.toLowerCase() === '#fff' ? c1 : c2);
+  ctx.fillStyle = grad; ctx.fill();
   ctx.globalAlpha = 1;
-  const who = scorer ? `${scorer.number ?? ''} ${scorer.label}`.trim() : team.name.toUpperCase();
-  text(who, 265, 985, { size: fit(who, 640, 54), align: 'left', alpha });
-  if (goal.assist !== null && P.players[goal.assist]) {
-    text(`assist: ${P.players[goal.assist].label}`, CX, 1075, { size: 30, weight: 800, color: '#dbe6ff', alpha, stroke: { width: 6, color: 'rgba(0,0,0,.5)' } });
+  ctx.fillStyle = 'rgba(8,14,30,.93)';
+  ctx.beginPath();
+  ctx.moveTo(-60, bandY - 100); ctx.lineTo(W + 60, bandY - 150); ctx.lineTo(W + 60, bandY + 100); ctx.lineTo(-60, bandY + 150);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+
+  const reveal = easeOut((t - 0.45) / 0.35);
+  if (reveal <= 0) return;
+  const shift = (1 - reveal) * 80 - exit;
+  ctx.save();
+  ctx.translate(shift, 0);
+  // Giant outlined shirt number behind the name.
+  if (scorer && scorer.number !== null && !goal.ownGoal) {
+    ctx.save();
+    ctx.globalAlpha = 0.9 * reveal;
+    const numSize = fit(String(scorer.number), 270, 300);
+    ctx.font = `900 ${numSize}px ${FONT}`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 6; ctx.strokeStyle = GOLD;
+    ctx.strokeText(String(scorer.number), 190, bandY + 12);
+    ctx.restore();
+  }
+  flag(team, 400, bandY - 52, 40, false);
+  const name = goal.ownGoal ? 'OWN GOAL' : scorer ? scorer.label : team.name.toUpperCase();
+  text(name, 460, bandY - 50, { size: fit(name, 560, 78), align: 'left', alpha: reveal });
+  const tag = goal.ownGoal ? (scorer ? `off ${scorer.label}` : '') : (ORDINAL_TAGS[info.tally] ?? '');
+  const minuteLine = `${info.minute}'${tag ? '   ' : ''}`;
+  text(minuteLine, 362, bandY + 38, { size: 50, color: '#dbe6ff', align: 'left', alpha: reveal });
+  if (tag) {
+    ctx.font = `900 50px ${FONT}`;
+    const mx = 362 + ctx.measureText(minuteLine).width;
+    const pulse = 1 + 0.08 * Math.sin(t * 12);
+    ctx.save(); ctx.translate(mx, bandY + 38); ctx.scale(pulse, pulse);
+    text(tag, 0, 0, { size: fit(tag, 1000 - mx, 50), color: GOLD, align: 'left', alpha: reveal });
+    ctx.restore();
+  }
+  ctx.restore();
+
+  const late = easeOut((t - 0.75) / 0.3) * out;
+  if (goal.assist !== null && P.players[goal.assist] && !goal.ownGoal) {
+    const a = P.players[goal.assist];
+    const line = `assist  ${a.number ?? ''} ${a.label}`.replace(/\s+/g, ' ');
+    text(line, CX, bandY + 215, { size: 38, weight: 800, color: '#ffffff', alpha: late, stroke: { width: 8, color: 'rgba(0,0,0,.6)' } });
   }
 }
 

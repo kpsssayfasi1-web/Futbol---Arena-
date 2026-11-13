@@ -7,17 +7,17 @@ import { buildScene, ballTexture } from './scene.js';
 import { createPlayer, posePlayer, celebrate, kitFor } from './players.js';
 import {
   W, H, createHud, drawHeader, drawScoreboard, drawNameTag, drawFooter,
-  drawGoalBanner, drawIntro, drawFullTime, drawOutro,
+  drawGoalBanner, drawIntro, drawFullTime, drawOutro, drawVignette,
 } from './hud.js';
 
-const BASE_FOV = 26;
-const GOAL_FOV = 18;
 // Broadcast-style follow camera: fixed offset from the look point, which
-// tracks the ball along the pitch (clamped so both goals stay framed).
-const CAMERA_OFFSET = new THREE.Vector3(0, 52, 37);
+// tracks the ball (clamped so the frame never leaves the cage).
+const CAM = {
+  offset: [0, 28, 25], fov: 30, goalFov: 20,
+  lookX: [-3, 3], lookZ: [-8.5, 7], followX: 0.55, followZ: 0.75, ease: 0.07,
+};
+const CAMERA_OFFSET = new THREE.Vector3(...CAM.offset);
 const BASE_LOOK = new THREE.Vector3(0, 0, 0);
-const LOOK_Z_RANGE = [-5, 4];
-const FOLLOW = 0.06;
 const BALL_R = 0.22;
 
 const out = document.getElementById('c');
@@ -42,6 +42,8 @@ function loadImage(src) {
 
 window.setup = async (payload) => {
   P = payload;
+  if (P.camera) Object.assign(CAM, P.camera);
+  CAMERA_OFFSET.set(...CAM.offset);
   await Promise.all([
     document.fonts.load('900 40px Inter'), document.fonts.load('800 40px Inter'),
     document.fonts.load("40px 'Noto Color Emoji'"),
@@ -52,18 +54,22 @@ window.setup = async (payload) => {
   }
   hud = createHud(ctx, flags);
 
-  const q = { antialias: true, shadows: true, shadowSize: 2048, spotlights: true, renderScale: 1, ...(P.quality ?? {}) };
+  const q = { antialias: true, shadows: true, shadowSize: 2048, spotlights: true, renderScale: 1, width: W, height: H, ...(P.quality ?? {}) };
+  // The HUD is laid out on a 1080x1920 grid and scaled to the output size.
+  out.width = q.width; out.height = q.height;
+  ctx.setTransform(q.width / W, 0, 0, q.height / H, 0, 0);
+  ctx.imageSmoothingQuality = 'high';
   renderer = new THREE.WebGLRenderer({ antialias: q.antialias, preserveDrawingBuffer: true });
-  renderer.setSize(Math.round(W * q.renderScale), Math.round(H * q.renderScale), false);
+  renderer.setSize(Math.round(q.width * q.renderScale), Math.round(q.height * q.renderScale), false);
   renderer.setPixelRatio(1);
   renderer.shadowMap.enabled = q.shadows;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
 
   const rng = createRng(`scene:${P.seed}`);
   world = buildScene({ home: P.context.home, away: P.context.away, rand: () => rng.next(), label: P.context.tournamentName.toUpperCase(), shadowSize: q.shadowSize, spotlights: q.spotlights });
-  camera = new THREE.PerspectiveCamera(BASE_FOV, W / H, 0.1, 200);
+  camera = new THREE.PerspectiveCamera(CAM.fov, W / H, 0.1, 200);
   camera.position.copy(BASE_LOOK).add(CAMERA_OFFSET);
 
   ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_R, 24, 16), new THREE.MeshStandardMaterial({ map: ballTexture(), roughness: 0.45 }));
@@ -92,16 +98,16 @@ function placeBall(snap, prev, dt) {
 }
 
 function aimCamera(snap, celebrateT) {
-  const z = Math.max(LOOK_Z_RANGE[0], Math.min(LOOK_Z_RANGE[1], snap.ball.y * 0.55));
-  const target = new THREE.Vector3(snap.ball.x * 0.1, 0, z);
-  let fov = BASE_FOV;
+  const clampTo = (v, [lo, hi]) => Math.max(lo, Math.min(hi, v));
+  const target = new THREE.Vector3(clampTo(snap.ball.x * CAM.followX, CAM.lookX), 0, clampTo(snap.ball.y * CAM.followZ, CAM.lookZ));
+  let fov = CAM.fov;
   if (snap.celebration && snap.celebration.scorer !== null) {
     const s = snap.players[snap.celebration.scorer];
     const k = Math.min(1, celebrateT / 0.6);
     target.lerp(new THREE.Vector3(s.x, 0.8, s.y), k * 0.7);
-    fov = BASE_FOV + (GOAL_FOV - BASE_FOV) * k;
+    fov = CAM.fov + (CAM.goalFov - CAM.fov) * k;
   }
-  look.lerp(target, FOLLOW);
+  look.lerp(target, CAM.ease);
   camera.fov += (fov - camera.fov) * 0.1;
   camera.updateProjectionMatrix();
   camera.position.copy(look).add(CAMERA_OFFSET);
@@ -124,6 +130,7 @@ function drawWorld(snap, prev, celebrateT, draw = true) {
   if (!draw) return;
   renderer.render(world.scene, camera);
   ctx.drawImage(renderer.domElement, 0, 0, W, H);
+  drawVignette(hud);
 }
 
 function nameTags(snap) {
@@ -162,8 +169,8 @@ window.renderFrame = (i, draw = true) => {
     nameTags(snap);
     drawHeader(hud, P);
     drawScoreboard(hud, P, snap, snap.celebration ? snap.celebration.team : null, age);
-    drawFooter(hud, P);
     if (snap.celebration) drawGoalBanner(hud, P, snap.celebration, age);
+    else drawFooter(hud, P);
     return;
   }
   const last = frames[frames.length - 1];

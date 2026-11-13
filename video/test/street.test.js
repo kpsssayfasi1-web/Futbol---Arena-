@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runToEnd, recordFrames, ENGINE } from '../src/street/engine.js';
 import { PITCH, goalScored, collideBallWithCage, clampPlayer, goalCenter, ownGoalCenter } from '../src/street/pitch.js';
-import { assignRoles, chooseKick } from '../src/street/ai.js';
+import { assignRoles, chooseKick, possessionTeam } from '../src/street/ai.js';
 import { createRng } from '../../tournament/src/rng.js';
 import { findSeed } from '../src/seed-search.js';
 
@@ -76,14 +76,48 @@ test('AI: nearest player presses, a shot is taken near goal with a clear lane', 
   const mk = (id, team, x, y) => ({ id, team, x, y, vx: 0, vy: 0, r: 0.45 });
   const players = [mk(0, 0, 0, -6), mk(1, 0, -3, 0), mk(2, 0, 3, 2), mk(3, 1, 6, 6), mk(4, 1, -6, 6), mk(5, 1, 0, 10)];
   const ball = { x: 0, y: -6.6, vx: 0, vy: 0, r: 0.24 };
-  const roles = assignRoles(players, ball, 0);
+  const { roles } = assignRoles(players, ball, 0);
   assert.equal(roles.presser.id, 0);
   const kick = chooseKick(players[0], ball, players, createRng('ai'));
   assert.equal(kick.kind, 'shot');
   assert.ok(kick.vy < 0, 'shoots towards the goal it attacks');
 });
 
+test('no fixed defender: in possession all three attack, out of it all three defend', () => {
+  const mk = (id, team, x, y) => ({ id, team, x, y, vx: 0, vy: 0, r: 0.45 });
+  const players = [mk(0, 0, 0, 4.6), mk(1, 0, -3, 9), mk(2, 0, 3, 11), mk(3, 1, 4, 1), mk(4, 1, -4, -1), mk(5, 1, 0, -3)];
+  const ball = { x: 0, y: 4, vx: 0, vy: 0, r: 0.24 };
+  assert.equal(possessionTeam(players, ball), 0);
+  const attack = assignRoles(players, ball, 0, 0).roles;
+  assert.deepEqual(Object.keys(attack).sort(), ['presser', 'striker', 'wide']);
+  assert.equal(attack.striker.id, 1, 'the more advanced team-mate makes the forward run');
+  const defend = assignRoles(players, ball, 1, 0);
+  assert.deepEqual(Object.keys(defend.roles).sort(), ['markerA', 'markerB', 'presser']);
+  assert.deepEqual(Object.values(defend.marks).map((p) => p.id).sort(), [1, 2], 'each marker picks up an opponent off the ball');
+});
+
+test('goals are shared across all three players of a team', () => {
+  const byPlayer = [0, 0, 0, 0, 0, 0];
+  for (let i = 0; i < 150; i += 1) {
+    for (const g of runToEnd(`share-${i}`).scorers) if (!g.ownGoal && g.scorer !== null) byPlayer[g.scorer] += 1;
+  }
+  for (const team of [0, 1]) {
+    const mine = byPlayer.slice(team * 3, team * 3 + 3);
+    const total = mine.reduce((a, b) => a + b, 0);
+    for (const n of mine) assert.ok(n / total > 0.22 && n / total < 0.45, `goal shares ${mine.join('/')}`);
+  }
+});
+
 test('seed search works with the street engine', () => {
   const { seed } = findSeed('street-test', { home: 2, away: 1 }, { run: runToEnd, maxTries: 20000 });
   assert.deepEqual(runToEnd(seed).score, [2, 1]);
+});
+
+test('out of possession near our goal, one player drops in to cover', () => {
+  const mk = (id, team, x, y) => ({ id, team, x, y, vx: 0, vy: 0, r: 0.45 });
+  const players = [mk(0, 0, 0, 3), mk(1, 0, -3, 0), mk(2, 0, 3, 2), mk(3, 1, 0, 6), mk(4, 1, -4, 4), mk(5, 1, 3, -2)];
+  const ball = { x: 0, y: 6.5, vx: 0, vy: 0, r: 0.24 };
+  const { roles } = assignRoles(players, ball, 0, 1);
+  assert.ok(roles.cover, 'a cover role appears when the ball is near our goal');
+  assert.notEqual(roles.cover, roles.presser);
 });

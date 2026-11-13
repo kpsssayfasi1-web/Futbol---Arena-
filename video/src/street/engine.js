@@ -3,13 +3,13 @@
 
 import { createRng } from '../../../tournament/src/rng.js';
 import { PITCH, collideBallWithCage, clampPlayer, goalScored } from './pitch.js';
-import { AI, assignRoles, targetFor, chooseKick } from './ai.js';
+import { AI, assignRoles, targetFor, chooseKick, possessionTeam } from './ai.js';
 
 export const ENGINE = Object.freeze({
   step: 1 / 120,
-  playSeconds: 50,
+  playSeconds: 34,
   decisionInterval: 0.1,
-  celebrationSeconds: 2.2,
+  celebrationSeconds: 2.5,
   playerRadius: 0.45,
   playerMaxSpeed: 5.6,
   playerAccel: 16,
@@ -29,27 +29,49 @@ function formationSpot(team, index) {
   return { x: f.x * sign, y: sign * f.y * (PITCH.length / 2) };
 }
 
+// Who stands where is reshuffled at every kickoff (seeded), so no player
+// is tied to a position: anyone can take the kickoff or start out wide.
 function kickoffPositions(state, kickingTeam) {
-  state.players.forEach((p) => {
-    const spot = formationSpot(p.team, p.index);
-    p.x = spot.x; p.y = spot.y; p.vx = 0; p.vy = 0; p.kickTimer = 0; p.cooldown = 0.3;
-  });
-  // The kicking team's first player starts just behind the ball.
-  const taker = state.players.find((p) => p.team === kickingTeam && p.index === 0);
+  for (const team of [0, 1]) {
+    const squad = state.players.filter((p) => p.team === team);
+    const slots = [0, 1, 2];
+    for (let i = slots.length - 1; i > 0; i -= 1) {
+      const j = Math.floor(state.rng.next() * (i + 1));
+      [slots[i], slots[j]] = [slots[j], slots[i]];
+    }
+    squad.forEach((p, k) => {
+      const spot = formationSpot(team, slots[k]);
+      p.slot = slots[k];
+      p.x = spot.x; p.y = spot.y; p.vx = 0; p.vy = 0; p.kickTimer = 0; p.cooldown = 0.3;
+    });
+  }
+  // The kicking team's central player starts just behind the ball.
+  const taker = state.players.find((p) => p.team === kickingTeam && p.slot === 0);
   taker.y = (kickingTeam === 0 ? 1 : -1) * (taker.r + state.ball.r + 0.15);
   Object.assign(state.ball, { x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 });
 }
 
+// Match conditions (how sharp the finishing is on the night) vary from
+// match to match but are always the same for both teams. They widen the
+// natural spread of scores, from tight 0-0s to 5-goal nights.
+export const CONDITIONS = Object.freeze({ shootRange: [5.8, 9.6], shotSpread: [0.12, 0.26] });
+
+function matchConditions(rng) {
+  const pick = ([lo, hi]) => lo + rng.next() * (hi - lo);
+  return Object.freeze({ ...AI, shootRange: pick(CONDITIONS.shootRange), shotSpread: pick(CONDITIONS.shotSpread) });
+}
+
 export function createMatch(seed, cfg = ENGINE) {
   const rng = createRng(seed);
+  const ai = matchConditions(rng);
   const players = [0, 1].flatMap((team) => [0, 1, 2].map((index) => ({
     id: team * 3 + index, team, index, r: cfg.playerRadius,
     x: 0, y: 0, vx: 0, vy: 0, facing: team === 0 ? -Math.PI / 2 : Math.PI / 2,
     target: { x: 0, y: 0 }, role: 'support', kickTimer: 0, cooldown: 0,
   })));
   const state = {
-    rng, cfg, time: 0, playTime: 0, decisionClock: 0,
-    score: [0, 0], pause: 0, celebration: null, finished: false,
+    rng, cfg, ai, time: 0, playTime: 0, decisionClock: 0,
+    score: [0, 0], possession: null, pause: 0, celebration: null, finished: false,
     ball: { r: cfg.ballRadius, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 },
     players, touches: [], events: [], scorers: [],
   };
@@ -67,11 +89,13 @@ function touch(state, player, kind) {
 }
 
 function decide(state) {
+  state.possession = possessionTeam(state.players, state.ball, state.possession);
   for (const team of [0, 1]) {
-    const roles = assignRoles(state.players, state.ball, team);
-    for (const [role, player] of Object.entries(roles)) {
+    const { roles, marks } = assignRoles(state.players, state.ball, team, state.possession);
+    for (const [key, player] of Object.entries(roles)) {
+      const role = key.startsWith('marker') ? 'marker' : key;
       player.role = role;
-      player.target = targetFor(player, role, state.ball, state.players);
+      player.target = targetFor(player, role, state.ball, state.players, state.ai, marks[player.id] ?? null);
     }
   }
 }
@@ -119,7 +143,7 @@ function tryKicks(state) {
   for (const p of state.players) {
     if (p.role !== 'presser' || p.cooldown > 0) continue;
     if (Math.hypot(ball.x - p.x, ball.y - p.y) > p.r + ball.r + AI.kickReach || ball.z > 0.6) continue;
-    const kick = chooseKick(p, ball, state.players, state.rng);
+    const kick = chooseKick(p, ball, state.players, state.rng, state.ai);
     ball.vx = kick.vx; ball.vy = kick.vy;
     ball.vz = kick.kind === 'shot' ? 3 + state.rng.next() * 3 : kick.kind === 'pass' ? 1.2 : 0;
     p.cooldown = AI.kickCooldown;
@@ -236,7 +260,7 @@ export function step(state) {
 export function runToEnd(seed, cfg = ENGINE) {
   const state = createMatch(seed, cfg);
   while (!state.finished) step(state);
-  return { score: state.score, scorers: state.scorers, events: state.events, duration: state.time };
+  return { score: state.score, scorers: state.scorers, events: state.events, duration: state.time, conditions: state.ai };
 }
 
 const round = (v) => Math.round(v * 1000) / 1000;

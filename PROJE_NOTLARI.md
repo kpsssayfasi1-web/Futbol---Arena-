@@ -1,8 +1,8 @@
 # Physics World Cup: Proje Notları
 
-> **Yeni oturum için:** Bu dosya, önceki sohbette alınan bütün kararları ve projenin şu anki durumunu özetler. Çalışma dalı `claude/amazing-gauss-btfh8s`. Önce bu dosyayı, sonra `tournament/README.md` ve `video/README.md` dosyalarını oku. Buradaki kararları kullanıcıya yeniden sorma. Yeni bir karar gerekirse sor.
+> **Yeni oturum için:** Bu dosya, önceki sohbette alınan bütün kararları ve projenin şu anki durumunu özetler. Çalışma dalı `claude/amazing-gauss-btfh8s`, 2. oturumda `claude/confident-sagan-ol1hgo` dalında devam edildi. Önce bu dosyayı, sonra `tournament/README.md` ve `video/README.md` dosyalarını oku. Buradaki kararları kullanıcıya yeniden sorma. Yeni bir karar gerekirse sor.
 
-Son güncelleme: 13 Kasım 2026
+Son güncelleme: 13 Kasım 2026 (2. oturum: görüntü kalitesi, süre, dinamik roller, gol kartı)
 
 ---
 
@@ -104,18 +104,24 @@ Playwright bu ortamda global olarak kurulu ve `createRequire` ile yükleniyor. K
 
 ## 6. Teknik notlar ve ayarlar
 
-- **Sokak futbolu motoru:** Maç 50 saniye oynanıyor (saatte 90 dakika olarak gösteriliyor). Takım başına ortalama 1,21 gol, model ortalaması 1,3. Seed taraması bir maçı 12 ms'de oynatıyor, tipik bir skoru 100–1000 denemede buluyor. Maksimum 100.000 deneme.
+- **Sokak futbolu motoru:** Maç 34 saniye oynanıyor (saatte 90 dakika olarak gösteriliyor). Takım başına ortalama 1,54 gol, model ortalaması 1,3. Seed taraması bir maçı yaklaşık 10 ms'de oynatıyor. Tipik bir skoru 100–1000 denemede buluyor, 5–0 gibi uç skorlar yaklaşık 1 dakika sürüyor. Maksimum 100.000 deneme.
+- **Sabit rol yok (kullanıcı isteği):** Roller her 0,1 saniyede yeniden dağıtılıyor. Topa sahip takımda topa en yakın oyuncu topu taşıyor (presser), daha ilerideki takım arkadaşı ceza sahasına koşuyor (striker), diğeri karşı kanatta pas seçeneği oluyor (wide). Rakip topa sahipken topa en yakın oyuncu baskı yapıyor, diğer ikisi top dışındaki rakipleri adam adama markajlıyor. Top kendi kalesine 13 m'den yakınsa, daha az tehlikeli rakibi markajlayan oyuncu kale önüne düşüyor (cover). Her santrada oyuncuların dizilişi seed'e göre karıştırılıyor. Sonuç: goller üç oyuncuya eşit dağılıyor (yaklaşık %33'er), gollerin %28'i asistli, kendi kalesine gol oranı %7.
+- **Maç koşulları:** Şut mesafesi (5,8–9,6 m) ve şut isabeti (sapma 0,12–0,26) her maç için seed'den çekiliyor. Bu değerler iki takım için her zaman aynı. Amaç skor çeşitliliğini artırmak, böylece 0–0 da çıkabiliyor 5 gollü maç da.
 - **Gol kuralı:** Savunmacıya çarpıp giren şut, şutu çekenin golü sayılır (1,5 saniye kuralı). Bunun dışında son dokunuş rakipteyse kendi kalesine gol.
-- **Render:** Bu bulut ortamında ekran kartı yok, WebGL işlemcide (SwiftShader) çalışıyor. Kare başına yaklaşık 0,6 saniye, 72 saniyelik bir video yaklaşık 22 dakika. Paralel tarayıcı neredeyse hız kazandırmıyor (4 çekirdek). Spot ışıklar kapalı (%15 tasarruf). Kalite ayarları `make-short3d.js` içindeki `QUALITY` değişkeninde.
-- **Kamera:** Ofset (0, 52, 37), görüş açısı 26°, gollerde 18°. Bakış noktası topu takip ediyor (z ekseninde -5 ile 4 arası).
+- **Video süresi:** Açılış 2 sn, maç 34 sn, her gol için 2,5 sn kutlama, "Full Time" 1 sn, kapanış 4,5 sn. 3 gollü bir maç yaklaşık 49 sn, 6 gollü bir maç yaklaşık 56 sn sürüyor.
+- **Çıktı:** 1440×2560 MP4. YouTube 1440p ve üstü yüklemeleri daha iyi bir codec ve bit hızıyla yeniden kodluyor, bu yüzden video yüklendikten sonra da net kalıyor. Arayüz bu çözünürlükte doğrudan çiziliyor (1080×1920 ızgarada tasarlanıp ölçekleniyor). Kodlama: x264, `slow` preset, CRF 16, `tune animation`, kareler JPEG %96.
+- **Render:** Bu bulut ortamında ekran kartı yok, WebGL işlemcide (SwiftShader) çalışıyor. 1440p'de kare başına yaklaşık 1,1 saniye, 56 saniyelik bir video yaklaşık 30 dakika. `renderScale` 0.75 yapılırsa 3D katman 1080p'de çiziliyor ve büyütülüyor, bu da yalnızca %25 hız kazandırıyor. Paralel tarayıcı neredeyse hız kazandırmıyor (4 çekirdek). Spot ışıklar kapalı (%15 tasarruf). Kalite ayarları `make-short3d.js` içindeki `QUALITY` değişkeninde.
+- **Görsel:** Zemin dokusu metre başına 80 piksel. Projektör ışık havuzları dokuya işlenmiş, ince piksel gürültüsü yok (gürültü YouTube sıkıştırmasında bulanıklaşıyor). Yumuşak gölgeler, arkadan mavi kontur ışığı, kenar karartması (vinyet). Oyuncularda üç saç tipi ve yaka var. Pano yazıları yüksek çözünürlükte, panoların üst yüzü düz renk.
+- **Kamera:** Ofset (0, 28, 25), görüş açısı 30°, gollerde 20°. Bakış noktası topu iki eksende takip ediyor (x: -3 ile 3, z: -8,5 ile 7 arası). Ayarlar `web3d/main.js` içindeki `CAM` değişkeninde. Denemek için: `--camera '{"fov":27}'`.
+- **Gol kartı (2,5 sn):** Beyaz parlama, takım renklerinde konfeti, harf harf düşen "GOAL!" yazısı, ardından takım renklerinde çapraz bir bant. Bantta büyük forma numarası, bayrak, oyuncu adı, dakika, BRACE! veya HAT-TRICK! etiketi ve asist var. Kart ekranın alt yarısında duruyor, çünkü kamera golcüye ortadan yakınlaşıyor. Kendi kalesine gollerde "OWN GOAL" ve "off <oyuncu>" yazıyor. Kutlama sırasında alttaki tahmin yazısı gizleniyor.
 - **Araştırma kısıtı:** Bu ortamdan yalnızca **Wikipedia** erişilebilir. football365, transfermarkt, uefa.com vb. ağ ayarları nedeniyle kapalı. Ham veri için `https://en.wikipedia.org/w/index.php?title=<Sayfa>&action=raw` kullan. `api.php` hızla istek sınırına takılıyor.
 
 ## 7. Açık işler (öncelik sırasıyla)
 
-1. **Kullanıcının test videosuna (M007-3d) geri bildirimi.** Görünüm, kamera, oyun akışı ve ses değerlendirilecek.
+1. **Kullanıcının yeni test videosuna (M007-3d, 2. sürüm) geri bildirimi.** İlk sürüme gelen geri bildirimle şunlar yapıldı: görüntü kalitesi artırıldı, süre kısaltıldı, sabit savunmacı rolü kaldırıldı ve gol kartı yenilendi.
 2. **Eksik forma numaraları:** Yunanistan, İrlanda ve Galler için kullanıcıdan istenecek.
 3. **Render ortamı kararı:** Bulutta 104 video yaklaşık 38 saat sürer. Ekran kartı olan bir bilgisayarda (Chrome'u GPU ile çalıştırarak) test edilmeli. Alternatif olarak kalite düşürülebilir (`renderScale` 0.75 ile yaklaşık %25 daha hızlı).
-4. **Video süresi:** Bir maç yaklaşık 65–75 saniye sürüyor. 60 saniyenin altı istenirse gol sevinci (2,2 sn), açılış (3 sn) ve kapanış (5 sn) kısaltılabilir.
+4. **Video süresi:** Yapıldı, artık 60 saniyenin altında (bkz. bölüm 6).
 5. **Penaltı atışları:** Elemelerde beraberlik bitince ayrı bir penaltı sahnesi yapılacak. Şu an sonuç sadece kapanış kartında yazıyla gösteriliyor.
 6. **Toplu render:** Bütün maçları tek komutla sırayla üretmek, yarıda kalınca kaldığı yerden devam etmek.
 7. **Uzun videolar:** Grup derlemeleri ve turnuvanın tamamı.
@@ -124,4 +130,4 @@ Playwright bu ortamda global olarak kurulu ve `createRequire` ile yükleniyor. K
 
 ## 8. Test sezonu hakkında
 
-`season-1` yalnızca test için kullanıldı. Brezilya kuralı eklendikten sonra şampiyon Arjantin oldu, finalde Yunanistan'ı yendi. Test videosu M007: Arjantin 4–2 Meksika (Grup D, 1. hafta). Fizik seed'i `street:season-1:M007:154`.
+`season-1` yalnızca test için kullanıldı. Brezilya kuralı eklendikten sonra şampiyon Arjantin oldu, finalde Yunanistan'ı yendi. Test videosu M007: Arjantin 4–2 Meksika (Grup D, 1. hafta). Motor değiştiği için fizik seed'i de değişti. Eski seed `street:season-1:M007:154`, yeni seed `street:season-1:M007:215`. Yeni sürümde golcüler: Messi 2, J. Álvarez 2, R. Jiménez 1, S. Giménez 1.

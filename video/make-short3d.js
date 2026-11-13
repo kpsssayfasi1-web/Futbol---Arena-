@@ -15,13 +15,16 @@ import { hashSeed } from '../tournament/src/rng.js';
 import { REPO, log, readJson, renderVideo, renderStills } from './src/host.js';
 
 const FPS = 30;
-const INTRO_SECONDS = 3;
-const FULLTIME_SECONDS = 1.3;
-const OUTRO_SECONDS = 5;
+const INTRO_SECONDS = 2;
+const FULLTIME_SECONDS = 1;
+const OUTRO_SECONDS = 4.5;
 const PAGE = 'video/web3d/index.html';
 const SEED_SEARCH_TRIES = 100000;
+// Output is 1440x2560: YouTube re-encodes 1440p+ uploads with a better
+// codec and bitrate, so the Short stays sharp after upload. The HUD is
+// drawn natively at that size; the 3D layer renders at renderScale of it.
 // Spotlights cost ~15% per frame on software GL for little visual gain.
-const QUALITY = { antialias: true, shadows: true, shadowSize: 2048, spotlights: false, renderScale: 1 };
+const QUALITY = { width: 1440, height: 2560, antialias: true, shadows: true, shadowSize: 2048, spotlights: false, renderScale: 1 };
 
 function celebrationAges(frames) {
   let start = null;
@@ -52,6 +55,19 @@ function scorerLines(scorers, players, context) {
   }).filter(Boolean);
 }
 
+// Per-goal facts for the goal card: minute, the scorer's running tally
+// in this match (for BRACE! / HAT-TRICK!) and the score after it.
+function goalFacts(scorers) {
+  const tally = new Map();
+  const score = [0, 0];
+  return scorers.map((g, index) => {
+    score[g.team] += 1;
+    const key = g.ownGoal || g.scorer === null ? null : g.scorer;
+    if (key !== null) tally.set(key, (tally.get(key) ?? 0) + 1);
+    return { index, playTime: g.playTime, minute: minute(g.playTime), tally: key === null ? 1 : tally.get(key), score: [...score] };
+  });
+}
+
 function withRosters(context, rosters) {
   const squad = (code) => rosters.teams[code].map((p) => ({ number: p.number, label: p.label, name: p.name }));
   return {
@@ -68,6 +84,7 @@ async function main() {
       tournament: { type: 'string', default: join(REPO, 'tournament/output/tournament.json') },
       out: { type: 'string', default: join(REPO, 'video/output') },
       stills: { type: 'string' },
+      camera: { type: 'string' },
     },
   });
   if (!values.match || !/^M\d{3}$/.test(values.match)) throw new Error('Pass a match id, e.g. --match M001');
@@ -93,10 +110,12 @@ async function main() {
   };
   const totalFrames = timeline.intro + timeline.match + timeline.fulltime + timeline.outro;
   const payload = {
-    seed, seedNumber: hashSeed(seed) % 997, fps: FPS, quality: QUALITY, context, timeline, players,
+    seed, seedNumber: hashSeed(seed) % 997, fps: FPS, quality: QUALITY,
+    camera: values.camera ? JSON.parse(values.camera) : null, context, timeline, players,
     frames: rec.frames, celebrationAge: celebrationAges(rec.frames),
     celebrationSeconds: ENGINE.celebrationSeconds,
     scorerLines: scorerLines(rec.scorers, players, context),
+    goals: goalFacts(rec.scorers),
   };
 
   mkdirSync(values.out, { recursive: true });

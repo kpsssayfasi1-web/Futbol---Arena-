@@ -1,17 +1,27 @@
 // Player decision-making. Both teams use exactly the same logic and
 // numbers; only the physics seed differs between matches.
 //
-// Each team, every decision tick:
+// There are no fixed positions: roles are re-dealt every decision tick
+// from who is nearest the ball and which team has it, so every player
+// attacks, defends, scores and assists.
+//
 //   presser - teammate nearest the ball: runs at it and kicks
-//   cover   - of the other two, the one nearer its own goal: guards the goal
-//   support - the remaining player: finds space up the pitch for a pass
+//   In possession, the other two both push up:
+//     striker - the more advanced one: runs into the box for a pass/shot
+//     wide    - the other: an option on the far flank, level with the ball
+//   Out of possession, the other two each mark an opponent goal-side:
+//     marker  - one per remaining opponent (whole team defends)
+//     cover   - when the ball is near our goal, whichever marker has the
+//               less dangerous opponent drops in front of the goal instead
 
 import { PITCH, attackDirection, goalCenter, ownGoalCenter } from './pitch.js';
 
+// shootRange and shotSpread are defaults; each match draws its own values
+// from CONDITIONS in engine.js (always the same for both teams).
 export const AI = Object.freeze({
-  shootRange: 11,
+  shootRange: 8.5,
   shotSpeed: 17,
-  shotSpread: 0.09,
+  shotSpread: 0.14,
   passSpeedMin: 7,
   passSpeedMax: 12,
   passSpread: 0.07,
@@ -19,26 +29,62 @@ export const AI = Object.freeze({
   dribbleSpread: 0.25,
   kickReach: 0.32,
   kickCooldown: 0.4,
-  coverDepth: 0.5,
   supportAhead: 4.5,
-  passLaneClearance: 1.1,
-  shotLaneClearance: 0.75,
-  blindShotChance: 0.35,
+  strikerAhead: 7,
+  strikerGoalGap: 3.2,
+  wideX: 4.6,
+  markDistance: 1.5,
+  coverZone: 13,
+  coverDepth: 0.25,
+  possessionMargin: 0.6,
+  passLaneClearance: 0.7,
+  shotLaneClearance: 1.0,
+  blindShotChance: 0.12,
   jockeyDistance: 1.6,
+  roundBallGap: 0.5,
   takeOnRange: 2.2,
   takeOnAngle: 0.8,
+  layOffBack: 2,
 });
 
 const SHOT_AIMS = [-0.8, -0.45, 0, 0.45, 0.8];
 
 const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-export function assignRoles(players, ball, team) {
+// Which team has the ball: the one whose nearest player is clearly
+// closer to it. `current` adds hysteresis so possession does not flicker.
+export function possessionTeam(players, ball, current = null, ai = AI) {
+  const nearest = [0, 1].map((team) => Math.min(...players.filter((p) => p.team === team).map((p) => dist(p, ball))));
+  if (nearest[0] + ai.possessionMargin < nearest[1]) return 0;
+  if (nearest[1] + ai.possessionMargin < nearest[0]) return 1;
+  return current;
+}
+
+const advance = (p) => -attackDirection(p.team) * p.y; // smaller = further up the pitch
+
+// Returns { presser, ... } plus, for markers, the opponent each one marks.
+export function assignRoles(players, ball, team, possession = null) {
   const mine = players.filter((p) => p.team === team);
   const presser = mine.reduce((best, p) => (dist(p, ball) < dist(best, ball) ? p : best));
+  const others = mine.filter((p) => p !== presser);
+  if (possession === team) {
+    const [striker, wide] = [...others].sort((a, b) => advance(a) - advance(b));
+    return { roles: { presser, striker, wide }, marks: {} };
+  }
+  // Mark the two opponents not on the ball, pairing to minimise running.
+  const rivals = players.filter((p) => p.team !== team);
+  const carrier = rivals.reduce((best, p) => (dist(p, ball) < dist(best, ball) ? p : best));
+  const [r1, r2] = rivals.filter((p) => p !== carrier);
+  const [a, b] = others;
+  const straight = dist(a, r1) + dist(b, r2);
+  const swapped = dist(a, r2) + dist(b, r1);
+  const marks = straight <= swapped ? { [a.id]: r1, [b.id]: r2 } : { [a.id]: r2, [b.id]: r1 };
   const own = ownGoalCenter(team);
-  const others = mine.filter((p) => p !== presser).sort((a, b) => dist(a, own) - dist(b, own));
-  return { presser, cover: others[0], support: others[1] };
+  if (dist(ball, own) < AI.coverZone) {
+    const [danger, safe] = [a, b].sort((p, q) => dist(marks[p.id], own) - dist(marks[q.id], own));
+    return { roles: { presser, markerA: danger, cover: safe }, marks };
+  }
+  return { roles: { presser, markerA: a, markerB: b }, marks };
 }
 
 function clampToPitch(point, margin = 1) {
@@ -48,13 +94,14 @@ function clampToPitch(point, margin = 1) {
   };
 }
 
-// Where each player wants to be.
-export function targetFor(player, role, ball, players = [], ai = AI) {
+// Where each player wants to be. `mark` is the opponent a marker guards.
+export function targetFor(player, role, ball, players = [], ai = AI, mark = null) {
   const goal = goalCenter(player.team);
+  const own = ownGoalCenter(player.team);
+  const dir = attackDirection(player.team);
   if (role === 'presser') {
     // If an opponent already has the ball, jockey goal-side instead of
     // crashing into it; otherwise get behind the ball and attack.
-    const own = ownGoalCenter(player.team);
     const rival = players.find((p) => p.team !== player.team && dist(p, ball) < p.r + ball.r + ai.kickReach + 0.15);
     if (rival && dist(player, ball) > dist(rival, ball)) {
       const ox = own.x - ball.x;
@@ -67,14 +114,41 @@ export function targetFor(player, role, ball, players = [], ai = AI) {
     const dy = goal.y - lead.y;
     const d = Math.hypot(dx, dy) || 1;
     const back = player.r + ball.r * 0.6;
+    // Caught on the wrong side of the ball: loop round it instead of
+    // running through it (which would push it towards our own goal).
+    const ahead = ((player.x - lead.x) * dx + (player.y - lead.y) * dy) / d;
+    if (ahead > -back * 0.5) {
+      const px = -dy / d;
+      const py = dx / d;
+      const s = Math.sign((player.x - lead.x) * px + (player.y - lead.y) * py) || 1;
+      const wide = player.r + ball.r + ai.roundBallGap;
+      return { x: lead.x + px * s * wide - (dx / d) * back, y: lead.y + py * s * wide - (dy / d) * back };
+    }
     return { x: lead.x - (dx / d) * back, y: lead.y - (dy / d) * back };
   }
+  const side = ball.x >= 0 ? 1 : -1;
+  if (role === 'striker') {
+    // Run in behind, towards the box, on the far side of the ball.
+    const furthest = goal.y - dir * ai.strikerGoalGap;
+    const wanted = ball.y + dir * ai.strikerAhead;
+    const y = dir < 0 ? Math.max(furthest, wanted) : Math.min(furthest, wanted);
+    return clampToPitch({ x: -side * 1.6, y }, 1.2);
+  }
+  if (role === 'wide') {
+    return clampToPitch({ x: -side * ai.wideX, y: ball.y + dir * ai.supportAhead * 0.4 }, 1.2);
+  }
   if (role === 'cover') {
-    const own = ownGoalCenter(player.team);
     return clampToPitch({ x: own.x + (ball.x - own.x) * ai.coverDepth, y: own.y + (ball.y - own.y) * ai.coverDepth });
   }
-  const dir = attackDirection(player.team);
-  return clampToPitch({ x: -ball.x * 0.6 + (ball.x >= 0 ? -1.5 : 1.5), y: ball.y + dir * ai.supportAhead }, 1.5);
+  if (mark) {
+    // Stay between the opponent and our goal, a step off them.
+    const ox = own.x - mark.x;
+    const oy = own.y - mark.y;
+    const od = Math.hypot(ox, oy) || 1;
+    const k = Math.min(ai.markDistance, od * 0.5);
+    return clampToPitch({ x: mark.x + (ox / od) * k, y: mark.y + (oy / od) * k }, 0.8);
+  }
+  return clampToPitch({ x: -ball.x * 0.6, y: ball.y + dir * ai.supportAhead }, 1.5);
 }
 
 // A lane is blocked by an opponent standing in it further than
@@ -116,9 +190,18 @@ export function chooseKick(player, ball, players, rng, ai = AI) {
     }
   }
 
+  // Blocked by a goal-side defender? Then a square or slightly backward
+  // lay-off is also fine; otherwise only passes that move the ball forward.
+  const toGoal = Math.atan2(goal.y - ball.y, goal.x - ball.x);
+  const blocker = opponents.find((o) => {
+    const along = (o.x - ball.x) * Math.cos(toGoal) + (o.y - ball.y) * Math.sin(toGoal);
+    const lateral = Math.abs(-(o.x - ball.x) * Math.sin(toGoal) + (o.y - ball.y) * Math.cos(toGoal));
+    return along > 0 && along < ai.takeOnRange && lateral < 1.2;
+  });
+  const minGain = blocker ? -ai.layOffBack : 1;
   const options = players
     .filter((p) => p.team === player.team && p !== player)
-    .filter((p) => (p.y - ball.y) * dir > 1 && laneIsClear(ball, p, opponents, ai.passLaneClearance))
+    .filter((p) => (p.y - ball.y) * dir > minGain && laneIsClear(ball, p, opponents, ai.passLaneClearance))
     .sort((a, b) => dist(a, goal) - dist(b, goal));
   if (options.length > 0) {
     const mate = options[0];
@@ -129,12 +212,6 @@ export function chooseKick(player, ball, players, rng, ai = AI) {
 
   // Dribble: carry the ball at the goal, or take on a goal-side defender
   // by pushing the ball diagonally past them.
-  const toGoal = Math.atan2(goal.y - ball.y, goal.x - ball.x);
-  const blocker = opponents.find((o) => {
-    const along = (o.x - ball.x) * Math.cos(toGoal) + (o.y - ball.y) * Math.sin(toGoal);
-    const lateral = Math.abs(-(o.x - ball.x) * Math.sin(toGoal) + (o.y - ball.y) * Math.cos(toGoal));
-    return along > 0 && along < ai.takeOnRange && lateral < 1.2;
-  });
   let angle = toGoal;
   if (blocker) {
     const side = Math.sign(-(blocker.x - ball.x) * Math.sin(toGoal) + (blocker.y - ball.y) * Math.cos(toGoal)) || 1;
