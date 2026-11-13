@@ -12,6 +12,41 @@ Karakterler dizideki görünüşlerine benzeyecek şekilde tarif edildi. Kaynak 
 
 ---
 
+## ⭐ Önerilen yöntem: dizi karesiyle benzerlik
+
+Yazıyla tarif edilen yüzü ChatGPT birebir yakalayamıyor. En güçlü yöntem, dizideki karakterin bir karesini referans verip bizim çizgi stilimizle yeniden çizdirmek.
+
+**Adımlar**
+1. Google Görseller'de aşağıdaki aramayla karakterin **dizideki** (2009–2011) net bir karesini bul. Oyuncunun güncel fotoğrafını değil, dizi karesini kullan; oyuncuların görünüşü değişti.
+2. İyi kare: yüz önden ya da hafif yandan, iyi aydınlatılmış, üzerinde yazı veya logo yok. Gerekirse yüze yakın kırp.
+3. ChatGPT'ye sırayla **1) stil referansı `A2b.png`** ve **2) dizi karesini** ekle, aşağıdaki promptu yapıştır. `[KIYAFET]` yerine tablodaki kıyafeti yaz.
+4. Benzerlik yetmezse aynı sohbette şunu yaz: `Make the face resemble the person in the photo more closely, keep the comic style.`
+5. ChatGPT gerçek kişi olduğu için reddederse promptta oyuncu ya da karakter adı geçmediğinden emin ol. Yine reddederse aşağıdaki yazılı tarif yöntemine dön ve hangi kartta takıldığını bana söyle.
+
+**Prompt (her karakter için aynı)**
+```
+Character reference sheet. Redraw the person shown in the second attached image in the exact comic-book style of the first attached image: clean confident black ink outlines, semi-realistic facial anatomy, flat two-tone cel shading, light hatching in shadows, muted desaturated palette with cool teal shadows and warm amber key light, subtle paper grain. Keep the facial likeness as close as possible: the same face shape, hairline and hairstyle, facial hair, eyebrows, eye shape, nose and mouth. Do not make it photorealistic; it must look like the comic style of the first image. Plain flat light grey background. Two head-and-shoulders portraits of the same person side by side: left facing the viewer, right in three-quarter view. Outfit: [KIYAFET]. No text, no letters, no logos. Horizontal 3:2 format.
+```
+
+| Karakter | Google araması | `[KIYAFET]` |
+|---|---|---|
+| Ezel | `Ezel Bayraktar Kenan İmirzalıoğlu Ezel dizisi` | `a black tailored suit and a black shirt open at the collar, no tie` |
+| Eyşan | `Eyşan Cansu Dere Ezel dizisi` | `a deep crimson evening dress with thin straps and a delicate thin necklace` |
+| Cengiz | `Cengiz Yiğit Özşener Ezel dizisi` | `an expensive light grey suit, a white shirt and a loosened dark tie` |
+| Ali | `Ali Barış Falay Ezel dizisi` | `a black leather jacket over a dark shirt` |
+| Ramiz Dayı | `Ramiz Dayı Tuncel Kurtiz Ezel` | `a dark wool overcoat over a dark suit, a large gold ring visible on his hand` |
+| Kenan Birkan | `Kenan Birkan Haluk Bilginer Ezel` | `an impeccable dark navy three-piece suit` |
+| Ömer (1997) | `Ömer Uçar İsmail Filiz Ezel` | `grease-stained navy mechanic's overalls over a grey t-shirt` |
+| Serdar | `Serdar Salih Kalyon Ezel dizisi` | `a worn brown tweed jacket over a striped shirt` |
+
+Kartlar bu yöntemle üretildiyse sahne promptları aynen geçerli. Sahnelerde yine bu kartları referans olarak ekle.
+
+---
+
+## Yedek yöntem: yazıyla tarif
+
+Dizi karesi bulamazsan ya da ChatGPT reddederse aşağıdaki promptları kullan.
+
 ## Karakter kartları
 
 **Her kartta ortak olan kısım** (aşağıdaki promptların başında zaten var):
