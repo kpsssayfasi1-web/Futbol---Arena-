@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Meyve vs 1000 Kesim</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0d0f0e">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Manrope:wght@500;600;700&family=Poppins:wght@600;800&display=swap">
+<style>
+/* Layout: one 9:16 stage (what you see is what gets recorded) + a control column that becomes a bottom sheet on phones. */
+:root {
+  --bg: #0d0f0e;
+  --panel: #161a18;
+  --line: #29302c;
+  --fg: #f2efe8;
+  --muted: #9aa49e;
+  --accent: #f2b43c;
+  --accent-ink: #1d1505;
+  --rec: #e5484d;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "Manrope", "Segoe UI", system-ui, sans-serif;
+  --radius: 12px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 500 14px/1.45 var(--font-ui);
+  overflow: hidden;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.app {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "top side" "stage side" "transport side";
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 10px;
+  column-gap: 20px;
+}
+.top { grid-area: top; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; }
+.brand { font: 800 20px/1 var(--font-display); letter-spacing: -0.01em; }
+.brand span { color: var(--accent); }
+.pill { font-size: 12px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.stageWrap { grid-area: stage; min-height: 0; display: grid; place-items: center; position: relative; }
+.stage { position: relative; height: 100%; max-height: 100%; aspect-ratio: 9 / 16; max-width: 100%; background: #000; border-radius: 10px; overflow: hidden; }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.overlay { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(5, 6, 5, 0.45); }
+.startBtn { border: 0; border-radius: 999px; padding: 16px 28px; background: var(--accent); color: var(--accent-ink); font: 800 18px/1 var(--font-display); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45); }
+.badge { position: absolute; top: 10px; left: 10px; display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; background: rgba(0, 0, 0, 0.6); font-size: 12px; font-weight: 700; }
+.badge.rec::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--rec); animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.25; } }
+.transport { grid-area: transport; display: flex; align-items: center; gap: 10px; padding-top: 10px; }
+.iconBtn { flex: none; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; font-size: 16px; }
+.iconBtn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.scrub { flex: 1; min-width: 0; accent-color: var(--accent); }
+.time { flex: none; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 82px; text-align: right; }
+.side { grid-area: side; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 4px 2px 16px; }
+.side h2 { margin: 0; font: 800 15px/1.2 var(--font-display); letter-spacing: 0.02em; }
+.group { display: flex; flex-direction: column; gap: 8px; }
+.label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg button { border: 1px solid var(--line); background: var(--panel); border-radius: 999px; padding: 7px 12px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.preset { display: grid; gap: 6px; }
+.preset button { text-align: left; border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 9px 12px; display: flex; justify-content: space-between; gap: 10px; }
+.preset button small { color: var(--muted); font-variant-numeric: tabular-nums; }
+.preset button[aria-pressed="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.field { width: 100%; border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 10px 12px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 14px; }
+.toggles label { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.toggles input { accent-color: var(--accent); width: 18px; height: 18px; }
+.actions { display: grid; gap: 8px; }
+.actionBtn { border: 1px solid var(--line); background: var(--panel); border-radius: var(--radius); padding: 12px 14px; font-weight: 700; text-align: left; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.actionBtn small { font-weight: 500; color: var(--muted); }
+.actionBtn.recBtn[aria-pressed="true"] { border-color: var(--rec); color: var(--rec); }
+.actionBtn.main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.actionBtn.main small { color: rgba(29, 21, 5, 0.7); }
+.note { font-size: 12px; color: var(--muted); margin: 0; }
+.sheetBtn { display: none; }
+.modal { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.6); z-index: 20; padding: 16px; }
+.modalCard { width: min(360px, 100%); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: grid; gap: 12px; }
+.modalCard h3 { margin: 0; font: 800 18px/1.2 var(--font-display); }
+.bar { height: 8px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bar > div { height: 100%; width: 0; background: var(--accent); transition: width 0.2s; }
+.clean .top, .clean .transport, .clean .side, .clean .sheetBtn { display: none !important; }
+.clean.app { grid-template-areas: "stage" ; grid-template-columns: 1fr; grid-template-rows: 1fr; padding: 0; }
+.clean .stage { border-radius: 0; }
+@media (max-width: 860px) {
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "stage" "transport"; }
+  .side {
+    position: fixed; left: 0; right: 0; bottom: 0; max-height: 72%; z-index: 15;
+    background: var(--bg); border-top: 1px solid var(--line); border-radius: 18px 18px 0 0;
+    padding: 18px max(16px, env(safe-area-inset-right, 0px)) calc(18px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+    transform: translateY(105%); transition: transform 0.25s ease;
+  }
+  .side.open { transform: none; box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.5); }
+  .sheetBtn { display: grid; }
+}
+@media (prefers-reduced-motion: reduce) { .side { transition: none; } .badge.rec::before { animation: none; } }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+    "mp4-muxer": "https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.5/build/mp4-muxer.mjs"
+  }
+}
+</script>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand">Meyve <span>vs</span> Kesim</div>
+    <div class="pill" id="roundPill">Hazırlanıyor…</div>
+  </header>
+
+  <main class="stageWrap">
+    <div class="stage" id="stage">
+      <canvas id="view" aria-label="Kesim animasyonu"></canvas>
+      <div class="overlay" id="startOverlay"><button class="startBtn" id="startBtn" type="button">▶ Başlat</button></div>
+      <div class="badge" id="statusBadge" hidden></div>
+    </div>
+  </main>
+
+  <div class="transport">
+    <button class="iconBtn primary" id="playBtn" type="button" aria-label="Oynat">▶</button>
+    <button class="iconBtn" id="restartBtn" type="button" aria-label="Baştan başlat">↺</button>
+    <input class="scrub" id="scrub" type="range" min="0" max="1000" value="0" aria-label="Zaman çizelgesi">
+    <div class="time" id="timeText">0:00 / 0:00</div>
+    <button class="iconBtn sheetBtn" id="sheetBtn" type="button" aria-label="Ayarlar">⚙</button>
+  </div>
+
+  <aside class="side" id="side">
+    <div class="group">
+      <h2>Video ayarları</h2>
+      <p class="note">Her değişiklik videoyu yeniden kurar. Ekranda gördüğün kare kaydedilen karedir.</p>
+    </div>
+    <div class="group">
+      <div class="label">Meyve</div>
+      <div class="seg" id="fruitSeg">
+        <button type="button" data-value="apple"><span class="dot" style="background:#c8281e"></span>Elma</button>
+        <button type="button" data-value="watermelon"><span class="dot" style="background:#2f7a2a"></span>Karpuz</button>
+        <button type="button" data-value="orange"><span class="dot" style="background:#f28a12"></span>Portakal</button>
+        <button type="button" data-value="kiwi"><span class="dot" style="background:#7cae2a"></span>Kivi</button>
+        <button type="button" data-value="mix"><span class="dot" style="background:conic-gradient(#c8281e 0 25%,#2f7a2a 0 50%,#f28a12 0 75%,#7cae2a 0)"></span>Karışık</button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="label">Turlar</div>
+      <div class="preset" id="presetSeg">
+        <button type="button" data-value="classic"><span>Klasik</span><small>10 · 50 · 100 · 250 · 500 · 1000</small></button>
+        <button type="button" data-value="short"><span>Kısa</span><small>10 · 100 · 1000</small></button>
+        <button type="button" data-value="legend"><span>Efsane</span><small>10 → 5000</small></button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="label">Hız</div>
+      <div class="seg" id="speedSeg">
+        <button type="button" data-value="0.75">0.75×</button>
+        <button type="button" data-value="1">1×</button>
+        <button type="button" data-value="1.25">1.25×</button>
+        <button type="button" data-value="1.5">1.5×</button>
+      </div>
+    </div>
+    <div class="group">
+      <div class="label">Ekran yazısı</div>
+      <div class="seg" id="langSeg">
+        <button type="button" data-value="tr">KESİM · KÜP</button>
+        <button type="button" data-value="en">CUTS · CUBES</button>
+      </div>
+    </div>
+    <div class="group">
+      <label class="label" for="handleInput">Kanal adı (videoda görünür)</label>
+      <input class="field" id="handleInput" type="text" maxlength="32" placeholder="@kanalin" autocomplete="off">
+    </div>
+    <div class="group">
+      <div class="label">Küp kalitesi</div>
+      <div class="seg" id="qualitySeg">
+        <button type="button" data-value="auto">Otomatik</button>
+        <button type="button" data-value="low">Düşük</button>
+        <button type="button" data-value="medium">Orta</button>
+        <button type="button" data-value="high">Yüksek</button>
+      </div>
+      <p class="note">Sayaç her zaman gerçek küp sayısını gösterir. Kalite yalnızca ekranda çizilen küp sayısını değiştirir.</p>
+    </div>
+    <div class="group toggles">
+      <label><input type="checkbox" id="soundToggle"> ASMR sesi</label>
+      <label><input type="checkbox" id="loopToggle"> Döngü</label>
+    </div>
+    <div class="group actions">
+      <div class="label">Video çıktısı</div>
+      <button class="actionBtn main" id="exportBtn" type="button"><span>MP4 oluştur</span><small>kare kare, 1080×1920</small></button>
+      <button class="actionBtn recBtn" id="recordBtn" type="button" aria-pressed="false"><span>Canlı kayıt</span><small>ekranı sesle kaydeder</small></button>
+      <button class="actionBtn" id="cleanBtn" type="button"><span>Temiz ekran</span><small>çıkmak için ekrana dokun</small></button>
+      <p class="note" id="exportNote"></p>
+    </div>
+  </aside>
+</div>
+
+<div class="modal" id="exportModal" hidden>
+  <div class="modalCard" role="dialog" aria-labelledby="exportTitle">
+    <h3 id="exportTitle">MP4 hazırlanıyor</h3>
+    <div class="bar"><div id="exportBar"></div></div>
+    <p class="note" id="exportStatus">Ses hazırlanıyor…</p>
+    <button class="actionBtn" id="cancelExport" type="button"><span>İptal</span></button>
+  </div>
+</div>
+
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
