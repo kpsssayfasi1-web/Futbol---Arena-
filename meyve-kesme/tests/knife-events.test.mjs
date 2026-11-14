@@ -3,11 +3,9 @@ import assert from 'node:assert/strict';
 import { buildTimeline, roundState } from '../js/timeline.js';
 import { knifePose, slerp, quatMul, quatAxisAngle, AXIS_QUAT } from '../js/knife-pose.js';
 import { roundEvents, eventsInWindow, pickContact } from '../js/events.js';
-import { buildRoundCubes } from '../js/cubes-data.js';
-import { eventBank, impactGrain, PROFILES, filter, normalize, SAMPLE_RATE } from '../js/sfx.js';
-import { buildLandingTrack } from '../js/landing.js';
+import { runJob } from '../js/work.js';
+import { eventBank, PROFILES, filter, normalize, SAMPLE_RATE } from '../js/sfx.js';
 import { renderMusic, compose, MUSIC_STYLES } from '../js/music.js';
-import { mulberry32 } from '../js/rng.js';
 
 const tl = buildTimeline({ rounds: [10] });
 const round = tl.rounds[0];
@@ -55,7 +53,7 @@ test('round events include a drop and every slow cut', () => {
   const ev = roundEvents(round);
   for (let i = 1; i < ev.length; i++) assert.ok(ev[i].t >= ev[i - 1].t);
   assert.equal(ev.filter((e) => e.type === 'drop').length, 1);
-  assert.equal(ev.filter((e) => e.type === 'thock').length, round.split[0] + round.split[1] + round.split[2]);
+  assert.equal(ev.filter((e) => e.type === 'thock').length, round.split[0] + round.split[2]);
   assert.equal(ev.filter((e) => e.type === 'slice').length, round.split[1]);
   assert.ok(ev.every((e) => e.profile === 'crisp'));
   const w = eventsInWindow(ev, round.land - 0.01, round.land + 0.01);
@@ -83,24 +81,71 @@ test('every material profile renders finite, normalised event sounds', () => {
   }
 });
 
-test('impact grains: big board hits are longer-ringing than small pile taps', () => {
-  const rand = mulberry32(3);
-  const energyAfter = (buf, ms) => buf.slice(Math.round((ms / 1000) * SAMPLE_RATE)).reduce((s, v) => s + v * v, 0);
-  const big = impactGrain(rand, { surface: 'board', size: 0.3, hard: 0.3 });
-  const tap = impactGrain(rand, { surface: 'pile', size: 0.03, hard: 0.3 });
-  assert.ok(energyAfter(big, 25) > energyAfter(tap, 25));
-  const metal = impactGrain(rand, { surface: 'board', size: 0.1, hard: 1, metal: true });
-  assert.ok(energyAfter(metal, 80) > energyAfter(big, 80), 'metal rings longest');
+test('horizontal slices are a slide only: no board knock under the blade', () => {
+  const ev = roundEvents(round);
+  const slices = round.phases[1];
+  for (const t of slices.times) {
+    assert.ok(!ev.some((e) => e.type === 'thock' && Math.abs(e.t - t) < 0.02), `knock at slice ${t}`);
+  }
+  assert.ok(!ev.some((e) => e.type === 'crumble'), 'no falling-cube sounds');
 });
 
-test('landing track places every cube in time and stays below clipping', () => {
-  const data = buildRoundCubes(round, { budget: 50000 });
-  const tr = buildLandingTrack(data, round, { cut: 'crisp', hard: 0.35 });
-  let first = Infinity;
-  for (let i = 0; i < data.count; i++) first = Math.min(first, data.motion[i * 4] + data.motion[i * 4 + 1]);
-  assert.ok(tr.start <= first && first - tr.start < 0.05);
-  assert.ok(tr.peak < 1 && tr.peak > 0.05);
-  assert.equal(tr.left.length, tr.right.length);
+// Short-time energy in windows of `ms`, used to look at a sound's envelope.
+const frames = (buf, ms) => {
+  const w = Math.round((ms / 1000) * SAMPLE_RATE);
+  const out = [];
+  for (let i = 0; i + w <= buf.length; i += w) out.push(buf.slice(i, i + w).reduce((s, v) => s + v * v, 0) / w);
+  return out;
+};
+
+test('slice sounds glide smoothly, with no click or knock in them', () => {
+  for (const p of PROFILES) {
+    for (const buf of eventBank(p).slice) {
+      const fine = frames(buf, 1);
+      const coarse = frames(buf, 12);
+      // A transient shows up as a 1 ms window far louder than its 12 ms surroundings.
+      const ratio = Math.max(...fine) / Math.max(...coarse);
+      assert.ok(ratio < 3, `${p} slice transient ratio ${ratio.toFixed(2)}`);
+    }
+  }
+});
+
+// Spectral centroid (Hz) of the first `ms` of a sound, by direct DFT.
+function centroid(buf, ms = 60) {
+  const n = Math.min(buf.length, Math.round((ms / 1000) * SAMPLE_RATE));
+  let num = 0;
+  let den = 0;
+  for (let f = 40; f < 12000; f += 40) {
+    let re = 0;
+    let im = 0;
+    const w = (2 * Math.PI * f) / SAMPLE_RATE;
+    for (let i = 0; i < n; i++) {
+      re += buf[i] * Math.cos(w * i);
+      im += buf[i] * Math.sin(w * i);
+    }
+    const mag = Math.hypot(re, im);
+    num += f * mag;
+    den += mag;
+  }
+  return num / den;
+}
+
+test('board knock: a short, woody tok centred in the low mids', () => {
+  for (const buf of eventBank('crisp').thock) {
+    const c = centroid(buf);
+    assert.ok(c > 500 && c < 2200, `centroid ${c.toFixed(0)} Hz`);
+    const e = frames(buf, 10);
+    const total = e.reduce((s, v) => s + v, 0);
+    const late = e.slice(12).reduce((s, v) => s + v, 0);
+    assert.ok(late / total < 0.02, `tail after 120 ms ${(late / total).toFixed(3)}`);
+    assert.ok(e.indexOf(Math.max(...e)) <= 1, 'attack within the first 20 ms');
+  }
+});
+
+test('falling cubes make no sound: the cube job carries no landing track', () => {
+  const { result } = runJob({ kind: 'cubes', params: { rounds: [10] }, index: 0, budget: 20000 });
+  assert.ok(result.count > 0);
+  assert.equal(result.landing, undefined);
 });
 
 test('music: every style composes a full-length, non-silent, unclipped track', () => {

@@ -69,16 +69,16 @@ float itemRough(float part, float skin) { return 0.35; }
     ] },
     glsl: /* glsl */ `
 vec3 itemSkin(vec3 p, float part) {
-  vec3 c = vec3(1.0, 0.72, 0.22);
+  vec3 c = vec3(1.0, 0.8, 0.34);
   float stamp = step(abs(p.x), 0.55) * step(abs(p.z), 0.18) * step(0.2, p.y);
   float edge = stamp * (1.0 - step(abs(p.x), 0.5) * step(abs(p.z), 0.14));
   return c * (1.0 - 0.25 * edge) * (0.97 + 0.04 * fNoise(p * 30.0));
 }
-vec3 itemInner(vec3 p, float depth, float part) { return vec3(1.0, 0.74, 0.25); }
+vec3 itemInner(vec3 p, float depth, float part) { return vec3(1.0, 0.82, 0.38); }
 #define ITEM_ROUGH
 float itemRough(float part, float skin) { return mix(0.34, 0.26, skin); }
 #define ITEM_METAL
-float itemMetal(float part) { return 0.85; }
+float itemMetal(float part) { return 0.8; }
 `,
   },
   {

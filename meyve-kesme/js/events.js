@@ -1,6 +1,6 @@
 // Knife and transition sounds of a round, derived from the cut schedule.
-// { t, type, gain, rate, variant, profile } sorted by time. Cube landings are a
-// separate pre-mixed track (landing.js).
+// { t, type, gain, rate, variant, profile } sorted by time. Falling cubes are
+// silent on purpose.
 import { mulberry32, hashSeed } from './rng.js';
 import { itemById } from './catalog/index.js';
 import { CUT_CONTACTS, SLICE_CONTACTS, CUT_VARIANTS, SLICE_VARIANTS } from './sfx.js';
@@ -42,13 +42,12 @@ export function roundEvents(round) {
       const per = slicing ? SLICE_VARIANTS : CUT_VARIANTS;
       const variant = block * per + Math.floor(rand() * per);
       if (slicing) {
+        // The blade never meets the board on a horizontal slice: slide only.
         out.push({ t: t - lead, type: 'slice', gain: 0.8 * swishGain, rate, variant, profile });
-        out.push({ t, type: 'thock', gain: 0.45 * knockGain, rate: 1.05 + rand() * 0.1, variant, profile });
       } else {
         out.push({ t: t - lead, type: 'cut', gain: 0.6 * swishGain, rate, variant, profile });
-        out.push({ t, type: 'thock', gain: 0.8 * knockGain, rate: 0.95 + rand() * 0.1, variant, profile });
+        out.push({ t, type: 'thock', gain: 0.8 * knockGain, rate: 0.95 + rand() * 0.1, variant: Math.floor(rand() * 6), profile });
       }
-      if (phase.axis === 2) out.push({ t: t + 0.03, type: 'crumble', gain: 0.3 * loud, rate: 1, variant, profile });
     }
   }
   return out.sort((a, b) => a.t - b.t);

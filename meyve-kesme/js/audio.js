@@ -1,6 +1,5 @@
-// WebAudio playback: knife events (scheduled slightly ahead of the playhead),
-// one pre-mixed landing track per round, and the background music bed. The
-// same mix renders offline for export.
+// WebAudio playback: knife events (scheduled slightly ahead of the playhead)
+// and the background music bed. The same mix renders offline for export.
 import { roomImpulse } from './sfx.js';
 import { eventsInWindow } from './events.js';
 
@@ -27,7 +26,6 @@ function buildGraph(ctx) {
   const master = ctx.createGain();
   master.gain.value = 0.95;
   const sfx = ctx.createGain();
-  const landing = ctx.createGain();
   const music = ctx.createGain();
   const verb = ctx.createConvolver();
   const ir = roomImpulse(0.45, ctx.sampleRate);
@@ -35,15 +33,13 @@ function buildGraph(ctx) {
   const wet = ctx.createGain();
   wet.gain.value = 0.12;
   sfx.connect(comp);
-  landing.connect(comp);
   sfx.connect(verb);
-  landing.connect(verb);
   verb.connect(wet);
   wet.connect(comp);
   comp.connect(master);
   music.connect(master);
   master.connect(ctx.destination);
-  return { sfx, landing, music, master };
+  return { sfx, music, master };
 }
 
 function playEvent(ctx, graph, banks, ev, when, gain, track) {
@@ -75,9 +71,8 @@ export class AudioEngine {
     this.ctx = null;
     this.enabled = true;
     this.banks = new Map(); // profile -> { type: AudioBuffer[] }
-    this.landings = new Map(); // round index -> { buffer, start }
     this.music = null; // { buffer, loop }
-    this.volumes = { sfx: 1, landing: 1, music: 0.35 };
+    this.volumes = { sfx: 1, music: 0.35 };
     this.sources = new Set();
     this.reset(0);
   }
@@ -107,15 +102,6 @@ export class AudioEngine {
     this.banks.set(profile, bank);
   }
 
-  setLanding(index, track) {
-    if (!track) return;
-    this.landings.set(index, { buffer: toBuffer(track), start: track.start });
-  }
-
-  dropLandings(keep) {
-    for (const k of [...this.landings.keys()]) if (!keep(k)) this.landings.delete(k);
-  }
-
   setMusic(buffer, loop = false) {
     this.music = buffer ? { buffer, loop } : null;
     this.musicStarted = false;
@@ -128,7 +114,6 @@ export class AudioEngine {
 
   applyVolumes() {
     if (!this.graph) return;
-    this.graph.landing.gain.value = this.volumes.landing;
     this.graph.music.gain.value = this.volumes.music;
   }
 
@@ -142,7 +127,6 @@ export class AudioEngine {
     }
     this.sources.clear();
     this.scheduledUntil = t;
-    this.landingStarted = new Set();
     this.musicStarted = false;
   }
 
@@ -161,14 +145,6 @@ export class AudioEngine {
         if (this.music.loop) src.stop(now + (duration - t));
       }
     }
-    for (const [index, l] of this.landings) {
-      if (this.landingStarted.has(index)) continue;
-      const end = l.start + l.buffer.duration;
-      if (t + 0.25 < l.start || t >= end) continue;
-      this.landingStarted.add(index);
-      if (t <= l.start) startBed(this.ctx, this.graph.landing, l.buffer, now + (l.start - t), 0, false, this.track);
-      else startBed(this.ctx, this.graph.landing, l.buffer, now, t - l.start, false, this.track);
-    }
     const ahead = t + 0.2;
     if (ahead <= this.scheduledUntil) return;
     const from = Math.max(this.scheduledUntil, t);
@@ -177,14 +153,12 @@ export class AudioEngine {
   }
 }
 
-// Whole soundtrack for export: events + landing tracks + music.
-export async function renderOfflineAudio({ events, landings, banks, music, volumes, duration, sampleRate = 48000 }) {
+// Whole soundtrack for export: knife events + music.
+export async function renderOfflineAudio({ events, banks, music, volumes, duration, sampleRate = 48000 }) {
   const ctx = new OfflineAudioContext(2, Math.ceil(duration * sampleRate), sampleRate);
   const graph = buildGraph(ctx);
-  graph.landing.gain.value = volumes.landing;
   graph.music.gain.value = volumes.music;
   for (const ev of eventsInWindow(events, 0, duration)) playEvent(ctx, graph, banks, ev, ev.t, volumes.sfx);
-  for (const l of landings) startBed(ctx, graph.landing, l.buffer, l.start, 0, false);
   if (music) {
     const src = startBed(ctx, graph.music, music.buffer, 0, 0, music.loop);
     if (music.loop) src.stop(duration);

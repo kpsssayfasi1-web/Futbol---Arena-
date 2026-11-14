@@ -311,8 +311,18 @@ function runExport(label) {
       $('exportBar').style.width = `${(p * 100).toFixed(1)}%`;
       $('exportStatus').textContent = `Kareler işleniyor: %${Math.round(p * 100)}`;
     },
+    onStatus: (text) => {
+      $('exportStatus').textContent = text;
+    },
     isCancelled: () => cancelled,
   });
+}
+
+const AUDIO_NAMES = { aac: 'AAC ses', opus: 'Opus ses (bazı telefon oynatıcıları çalmayabilir)' };
+function savedNote(res) {
+  if (res.audio) return `Video kaydedildi (${res.codec.toUpperCase()} + ${AUDIO_NAMES[res.audio] || res.audio}).`;
+  if (!settings.sound) return 'Video kaydedildi, ses kapalı olduğu için sessiz. Sesli video için Ses kutusunu işaretle.';
+  return 'Video kaydedildi ama bu tarayıcı ses kodlayamadı, video sessiz. Chrome veya Edge ile dene ya da Canlı kayıt düğmesini kullan.';
 }
 
 function exportBlocked() {
@@ -330,7 +340,7 @@ $('exportBtn').addEventListener('click', async () => {
     const res = await runExport('MP4 hazırlanıyor');
     if (!res) $('exportNote').textContent = 'MP4 oluşturma iptal edildi.';
     else if (res.saved === 'declined') $('exportNote').textContent = 'Video kaydedilmedi. Tekrar denemek için MP4 oluştur düğmesine bas.';
-    else $('exportNote').textContent = `Video kaydedildi (${res.codec}${res.audio ? ` + ${res.audio}` : ', sessiz'}).`;
+    else $('exportNote').textContent = savedNote(res);
   } catch (err) {
     $('exportNote').textContent = `MP4 oluşturulamadı: ${err.message}. Canlı kayıt düğmesini deneyebilirsin.`;
   } finally {

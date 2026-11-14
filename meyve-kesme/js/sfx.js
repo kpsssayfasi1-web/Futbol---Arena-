@@ -1,6 +1,6 @@
 // Procedural ASMR sound bank built from physical models: impacts excite the
 // resonant modes of the wooden board (modal synthesis), cuts are granular
-// crackle shaped per material. Seeded, so live playback and export match.
+// crackle shaped per material, horizontal slices are a pure slide. Seeded, so live playback and export match.
 import { mulberry32 } from './rng.js';
 
 export const SAMPLE_RATE = 48000;
@@ -68,68 +68,39 @@ function modes(n, list) {
   return out;
 }
 
-// Raised-cosine force pulse; longer contact = softer, darker impact.
-function contact(n, ms) {
-  const m = Math.max(2, Math.round((ms / 1000) * SR));
-  const out = new Float32Array(n);
-  for (let i = 0; i < m && i < n; i++) out[i] = 0.5 - 0.5 * Math.cos((TAU * i) / m);
-  return out;
-}
-
-// Board response: plate-like modes, random per strike position.
-const BOARD_F = [168, 251, 356, 447, 583, 702, 846, 1030, 1284, 1570, 1915, 2390, 2960, 3650];
-function boardModes(rand, brightness, strength = 1) {
-  return BOARD_F.map((f0, i) => {
-    const f = f0 * (0.94 + rand() * 0.12);
-    const tilt = Math.pow(1 + i, -1.15 + brightness * 0.9);
-    return { f, a: strength * tilt * (0.35 + rand() * 0.65), tau: Math.min(0.09, Math.max(0.006, 0.055 * Math.pow(220 / f, 0.7))), ph: rand() * TAU };
-  });
-}
-
 // Smooth lowpass approximation of a contact of `ms` milliseconds.
 function soften(buf, ms) {
   const fc = Math.min(12000, 700 / Math.max(0.05, ms));
   return filter(buf, 'lowpass', fc, 0.6);
 }
 
-// One falling cube. surface: 'board' | 'pile'; size in scene units; hard 0..1.
-export function impactGrain(rand, { surface, size, hard, metal }) {
-  const ms = 0.3 + (1 - hard) * 3.2 + size * 2;
-  const n = len(metal ? 0.32 : 0.12);
-  const out = new Float32Array(n);
-  if (surface === 'board') add(out, soften(modes(n, boardModes(rand, hard)), ms), 0.9);
-  const thud = env(filter(noise(n, rand), 'bandpass', 380 + hard * 1400 + rand() * 300, 1.2), (t) => Math.exp(-t / (0.004 + (1 - hard) * 0.008)));
-  add(out, thud, surface === 'board' ? 0.45 : 0.9);
-  if (hard > 0.6 || metal) {
-    const f = (metal ? 2400 : 3800) * (0.8 + rand() * 0.5) * Math.pow(0.1 / Math.max(0.02, size), 0.3);
-    const ring = metal
-      ? [1, 2.76, 5.4, 8.93].map((k, i) => ({ f: f * k, a: 0.5 / (1 + i), tau: 0.14 / (1 + i * 0.7), ph: rand() * TAU }))
-      : [1, 1.58, 2.31].map((k, i) => ({ f: f * k, a: 0.4 / (1 + i), tau: 0.012, ph: rand() * TAU }));
-    add(out, modes(n, ring), metal ? 0.7 : 0.35);
+// The cutting board: a hardwood slab resting on a stone counter. Its bending
+// modes are dense and strongly damped (loss factor ~0.035), so low modes ring
+// for tens of milliseconds and high ones die in a few. Many closely spaced
+// modes struck together give a dull woody "tok" instead of a pitched plink.
+export const BOARD_LOSS = 0.035;
+function boardBody(rand, n, { count = 40, lo = 160, hi = 3800, tune = 1, tilt = 0.35 } = {}) {
+  const list = [];
+  for (let i = 0; i < count; i++) {
+    const f = tune * lo * Math.pow(hi / lo, (i + rand()) / count);
+    list.push({ f, a: Math.pow(f / lo, -tilt) * (0.35 + rand() * 0.65) * (rand() < 0.5 ? -1 : 1), tau: 1 / (Math.PI * f * BOARD_LOSS) });
   }
-  if (surface === 'pile') filter(out, 'lowpass', 2600 + hard * 5000, 0.7);
-  const c = contact(n, ms);
-  for (let i = 0; i < c.length && c[i] > 0; i++) out[i] += c[i] * 0.25 * (1 - hard);
-  filter(out, 'highpass', 60, 0.7);
-  return normalize(out, 0.9);
+  return modes(n, list);
 }
 
-// Knife hitting the board through the item: a sharp edge click, then the
-// board's knock (a cluster of modes around 1.3-2 kHz with a 3.2 kHz pair, as
-// measured on the reference video) over a short low body thump.
-const KNOCK = [
-  [1335, 1, 0.04], [1415, 0.75, 0.034], [1500, 0.9, 0.038], [1590, 0.7, 0.03], [1655, 0.6, 0.028],
-  [1890, 0.55, 0.026], [1950, 0.5, 0.024], [2620, 0.45, 0.02], [3200, 0.8, 0.017], [3370, 0.65, 0.015], [4100, 0.35, 0.011],
-  [960, 0.35, 0.03], [620, 0.22, 0.028],
-];
+// Knife hitting the board through the item: the board's knock (contact of
+// about a third of a millisecond through the food), the counter underneath
+// answering with a short low thump, the steel edge's tiny tick and a faint
+// ring of the blade itself. A touch of saturation glues them together.
 function thock(rand) {
-  const n = len(0.2);
-  const tune = 0.97 + rand() * 0.06;
-  const out = modes(n, KNOCK.map(([f, a, tau]) => ({ f: f * tune * (0.99 + rand() * 0.02), a: a * (0.7 + rand() * 0.3), tau, ph: rand() * TAU })));
-  soften(out, 0.12);
-  add(out, modes(n, [{ f: 165 * tune, a: 1.1, tau: 0.045 }, { f: 245 * tune, a: 0.7, tau: 0.032 }, { f: 84, a: 0.5, tau: 0.05 }]), 0.35);
-  add(out, env(filter(noise(n, rand), 'highpass', 6000, 0.7), (t) => Math.exp(-t / 0.0014)), 0.9);
-  add(out, normalize(env(filter(noise(n, rand), 'bandpass', 3400 * tune, 0.7), (t) => Math.exp(-t / 0.0022))), 0.55);
+  const n = len(0.18);
+  const tune = 0.93 + rand() * 0.14;
+  const out = normalize(soften(boardBody(rand, n, { tune }), 0.35));
+  add(out, modes(n, [{ f: 112 * tune, a: 1, tau: 0.02 }, { f: 64, a: 0.55, tau: 0.028 }]), 0.4);
+  add(out, env(filter(noise(len(0.004), rand), 'highpass', 4500, 0.7), (t) => Math.exp(-t / 0.0007)), 0.3);
+  add(out, modes(n, [3150, 5230, 7900].map((f, i) => ({ f: f * (0.97 + rand() * 0.06), a: 0.5 / (1 + i), tau: 0.05 / (1 + i * 0.5) }))), 0.035);
+  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.4);
+  filter(out, 'highpass', 45, 0.7);
   return normalize(out, 0.95);
 }
 
@@ -159,10 +130,10 @@ const CUT_PROFILES = {
 
 // The blade's rush of air: bright band-passed noise rising to the contact at
 // `at` seconds, then cut off. Brighter and louder as the knife speeds up.
-function swish(n, rand, at) {
+function swish(n, rand, at, release = 0.005) {
   const out = filter(noise(n, rand), 'bandpass', (t) => 3600 + 6800 * Math.min(1, t / at) ** 1.5, 0.85);
   filter(out, 'highpass', 2400, 0.7);
-  return env(out, (t) => (t < at ? (t / at) ** 2.2 : Math.exp(-(t - at) / 0.005)));
+  return env(out, (t) => (t < at ? (t / at) ** 2.2 : Math.exp(-(t - at) / release)));
 }
 
 // Material crunch while the edge passes through the item.
@@ -212,25 +183,28 @@ function cutSound(rand, profile, contact = CUT_CONTACTS[0]) {
   return normalize(out, 0.9);
 }
 
-// Horizontal slice: a longer swish, the edge drawing through the item, and a
-// light tick as it leaves (no board under the blade).
+// Horizontal slice: the blade glides through the item parallel to the board,
+// so there is no impact at all, only a continuous slide: the swish carrying on
+// under a smooth friction hiss and a little of the material's texture.
 function slice(rand, profile, contact = SLICE_CONTACTS[0]) {
   const p = CUT_PROFILES[profile] || CUT_PROFILES.crisp;
   const n = len(contact + p.dur * 0.5);
   const enter = len(contact * 0.55);
-  const out = swish(n, rand, contact);
+  const out = swish(n, rand, contact, 0.05);
   normalize(out, 0.55);
-  const c = crunch(rand, p, n - enter);
   const span = (n - enter) / SR;
-  env(c, (t) => Math.min(1, t / 0.015) * Math.max(0, 1 - t / span) ** 1.2);
-  add(out, c, 0.6, enter);
-  add(out, modes(len(0.04), [{ f: 2900 + rand() * 600, a: 1, tau: 0.006 }, { f: 1500 + rand() * 200, a: 0.6, tau: 0.012 }]), 0.35, len(contact));
+  const glide = (t) => Math.min(1, t / 0.02) * Math.max(0, 1 - t / span) ** 1.3;
+  const friction = normalize(filter(noise(n - enter, rand), 'bandpass', (t) => p.band * (0.75 + 0.35 * (t / span)), 0.9));
+  add(out, env(friction, glide), 0.45, enter);
+  add(out, env(crunch(rand, p, n - enter), glide), 0.3, enter);
   return normalize(out, 0.85);
 }
 
+// The item landing on the board at the start of a round: the same board,
+// struck softly (a long, cushioned contact) with a deeper counter thump.
 function drop(rand) {
-  const n = len(0.5);
-  const out = soften(modes(n, boardModes(rand, 0.4, 1.5)), 2.5);
+  const n = len(0.4);
+  const out = normalize(soften(boardBody(rand, n, { lo: 120, hi: 2400, tilt: 0.6 }), 2.5));
   add(out, modes(n, [{ f: 62, a: 1, tau: 0.08 }, { f: 96, a: 0.4, tau: 0.05 }]), 1.2);
   return normalize(out, 0.95);
 }
@@ -239,14 +213,6 @@ function whoosh(rand) {
   const dur = 0.4;
   const out = filter(noise(len(dur), rand), 'bandpass', (t) => 700 + 3200 * Math.sin((Math.PI * t) / dur), 0.9);
   return normalize(env(out, (t) => Math.sin((Math.PI * t) / dur) ** 2), 0.5);
-}
-
-function crumble(rand, profile) {
-  const p = CUT_PROFILES[profile] || CUT_PROFILES.crisp;
-  const dur = 0.35;
-  const n = len(dur);
-  const out = filter(grains(n, Math.max(300, p.rate), rand, [0.5, 2.5]), 'bandpass', p.band * 0.7, 0.8);
-  return normalize(env(out, (t) => Math.min(1, t / 0.01) * Math.max(0, 1 - t / dur) ** 2), 0.8);
 }
 
 // Event sounds for one material profile.
@@ -258,12 +224,11 @@ export function eventBank(profile = 'crisp') {
   // cut / slice lists hold one block of variants per contact length.
   const byContact = (contacts, k, fn) => contacts.flatMap((c) => Array.from({ length: k }, () => fn(rand, profile, c)));
   const bank = {
-    thock: many(4, thock),
+    thock: many(6, thock),
     cut: byContact(CUT_CONTACTS, CUT_VARIANTS, cutSound),
     slice: byContact(SLICE_CONTACTS, SLICE_VARIANTS, slice),
     drop: many(2, drop),
     whoosh: many(2, whoosh),
-    crumble: many(3, crumble),
   };
   banks.set(profile, bank);
   return bank;

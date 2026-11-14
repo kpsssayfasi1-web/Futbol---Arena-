@@ -150,8 +150,8 @@ vec3 itemInner(vec3 p, float depth, float part) {
   float prof = sqrt(max(0.0, 1.0 - sq(p.x / 1.2)));
   float q = length(p.yz) / max(0.05, 0.86 * prof);
   float a = atan(p.z, p.y);
-  vec3 green = vec3(0.42, 0.73, 0.1);
-  vec3 lightg = vec3(0.65, 0.86, 0.3);
+  vec3 green = vec3(0.36, 0.58, 0.12);
+  vec3 lightg = vec3(0.62, 0.8, 0.34);
   vec3 flesh = mix(green, lightg, clamp(smoothstep(0.55, 0.9, fNoise(vec3(a * 9.0, q * 3.0, p.x * 2.0))) * (1.0 - q) * 1.3, 0.0, 1.0));
   flesh = mix(flesh, green * 0.8, smoothstep(0.7, 1.0, q));
   vec3 c = mix(vec3(0.95, 0.92, 0.72), flesh, smoothstep(0.18, 0.23, q));
@@ -254,7 +254,7 @@ vec3 itemSkin(vec3 p, float part) {
 vec3 itemInner(vec3 p, float depth, float part) {
   float s = avoSeed(p);
   if (s < 0.0) return mix(vec3(0.75, 0.58, 0.38), vec3(0.42, 0.24, 0.12), smoothstep(-0.03, 0.0, s));
-  vec3 c = mix(vec3(0.95, 0.92, 0.5), vec3(0.6, 0.78, 0.2), smoothstep(0.05, 0.4, s));
+  vec3 c = mix(vec3(0.96, 0.93, 0.6), vec3(0.74, 0.8, 0.36), smoothstep(0.05, 0.4, s));
   c = mix(vec3(0.15, 0.38, 0.06), c, smoothstep(0.0, 0.06, depth));
   return c * (0.96 + 0.05 * fNoise(p * 20.0));
 }

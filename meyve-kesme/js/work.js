@@ -4,7 +4,6 @@ import { buildRoundCubes } from './cubes-data.js';
 import { surfaceNets } from './mesher.js';
 import { itemById } from './catalog/index.js';
 import { shapeOf } from './object-info.js';
-import { buildLandingTrack } from './landing.js';
 import { renderMusic } from './music.js';
 import { eventBank } from './sfx.js';
 
@@ -15,10 +14,7 @@ export function runJob(job) {
     const tl = buildTimeline(job.params);
     const round = tl.rounds[job.index];
     const data = buildRoundCubes(round, { budget: job.budget, seed: 1 });
-    // The landing sound is mixed here too, while the cube data is at hand.
-    data.landing = buildLandingTrack(data, round, itemById(round.itemId).sound);
     const transfer = [data.home.buffer, data.size.buffer, data.rest.buffer, data.motion.buffer, data.rot.buffer];
-    if (data.landing) transfer.push(data.landing.left.buffer, data.landing.right.buffer);
     return { result: data, transfer };
   }
   if (job.kind === 'mesh') {

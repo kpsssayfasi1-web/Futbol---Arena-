@@ -85,7 +85,6 @@ export class App {
     this.piles.clear();
     this.gen++; // results still in flight for the old budget are ignored
     this.hub.reset('cubes');
-    this.audio.dropLandings(() => false);
   }
 
   // ---------- data ----------
@@ -102,7 +101,6 @@ export class App {
     this.piles.clear();
     this.events.clear();
     this.hub.reset('cubes');
-    this.audio.dropLandings(() => false);
     this.time = Math.min(this.time, this.duration);
     this.lastRound = -1;
     this.resetClock();
@@ -180,7 +178,6 @@ export class App {
     const gen = this.gen;
     return this.hub.request(this.cubeKey(index), this.cubeJob(index)).then((data) => {
       if (gen !== this.gen) return;
-      this.audio.setLanding(index, data.landing);
       if (Math.abs(index - (this.roundIndex ?? 0)) <= 1) this.addPile(index, data);
     });
   }
@@ -222,7 +219,6 @@ export class App {
     await Promise.all([this.requestMesh(item), this.requestBank(item.sound?.cut || 'crisp')]);
     if (!this.piles.has(index)) {
       const data = await this.hub.request(this.cubeKey(index), this.cubeJob(index));
-      this.audio.setLanding(index, data.landing);
       this.addPile(index, data);
     }
   }
@@ -237,7 +233,6 @@ export class App {
       }
     }
     for (const k of [...this.events.keys()]) if (k < ri - 1) this.events.delete(k);
-    this.audio.dropLandings((k) => k >= ri - 1 && k <= ri + 1);
     const keep = new Set([ri - 1, ri, ri + 1].map((i) => this.timeline.rounds[i]?.itemId).filter(Boolean));
     this.model.retain(keep);
   }
@@ -485,19 +480,15 @@ export class App {
 
   async soundtrack(duration) {
     const events = [];
-    const landings = [];
     for (const r of this.timeline.rounds) {
       await this.requestBank(itemById(r.itemId).sound?.cut || 'crisp');
       events.push(...roundEvents(r));
-      const data = this.piles.get(r.index)?.data || (await this.hub.request(this.cubeKey(r.index), this.cubeJob(r.index)));
-      if (data.landing) landings.push({ buffer: toBuffer(data.landing), start: data.landing.start });
-      if (!this.piles.has(r.index)) this.hub.forget(this.cubeKey(r.index));
     }
     events.sort((a, b) => a.t - b.t);
-    return renderOfflineAudio({ events, landings, banks: this.audio.banks, music: this.settings.music === 'off' ? null : this.audio.music, volumes: this.audio.volumes, duration });
+    return renderOfflineAudio({ events, banks: this.audio.banks, music: this.settings.music === 'off' ? null : this.audio.music, volumes: this.audio.volumes, duration });
   }
 
-  async exportVideo({ fps = 30, width = 1080, height = 1920, onProgress, isCancelled, duration = this.duration, save = true } = {}) {
+  async exportVideo({ fps = 30, width = 1080, height = 1920, onProgress, onStatus, isCancelled, duration = this.duration, save = true } = {}) {
     this.pause();
     this.exporting = true;
     this.setExportBoost(true);
@@ -506,7 +497,7 @@ export class App {
       const audioBuffer = this.settings.sound ? await this.soundtrack(duration) : null;
       this.setRenderSize(width, height);
       const result = await exportMp4({
-        width, height, fps, duration, audioBuffer, onProgress, isCancelled,
+        width, height, fps, duration, audioBuffer, onProgress, onStatus, isCancelled,
         prepare: async (t) => {
           const ri = roundIndexAt(this.timeline, t);
           const round = this.timeline.rounds[ri];

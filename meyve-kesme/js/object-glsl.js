@@ -37,6 +37,30 @@ float spots(vec3 p, float scale, float radius, float density) {
 float spotId(vec3 p, float scale) { return fHash(floor(p * scale) + 11.1); }
 vec3 leafGreen(vec3 p) { return mix(vec3(0.16, 0.42, 0.07), vec3(0.32, 0.62, 0.14), fNoise(p * 14.0)); }
 vec3 hsv(float h, float s, float v) { vec3 k = clamp(abs(mod(h * 6.0 + vec3(0, 4, 2), 6.0) - 3.0) - 1.0, 0.0, 1.0); return v * mix(vec3(1.0), k, s); }
+// Catalog colours are written as display (sRGB-like) values, but lighting works
+// in linear light: without this step every colour renders washed out and pale.
+// Part gamma decode, part saturation boost, so pastels stay pastel.
+#ifndef VIVID_GAMMA
+#define VIVID_GAMMA 1.6
+#endif
+#ifndef VIVID_SAT
+#define VIVID_SAT 1.1
+#endif
+vec3 vivid(vec3 c) {
+  c = pow(max(c, vec3(0.0)), vec3(VIVID_GAMMA));
+  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  return max(mix(vec3(l), c, VIVID_SAT), vec3(0.0));
+}
+`;
+
+// Item GLSL defines itemSkin / itemInner; they are renamed while it compiles
+// and wrapped so every item gets the same colour treatment.
+const VIVID_BEGIN = '#define itemSkin itemSkinSrc\n#define itemInner itemInnerSrc';
+const VIVID_END = /* glsl */ `
+#undef itemSkin
+#undef itemInner
+vec3 itemSkin(vec3 p, float part) { return vivid(itemSkinSrc(p, part)); }
+vec3 itemInner(vec3 p, float depth, float part) { return vivid(itemInnerSrc(p, depth, part)); }
 `;
 
 const DEFAULTS_GLSL = /* glsl */ `
@@ -135,7 +159,9 @@ export function itemGlsl(item) {
     HELPERS_GLSL,
     SDF_GLSL_LIB,
     compileGlsl(item.shape, 'objMap'),
+    VIVID_BEGIN,
     item.glsl,
+    VIVID_END,
     DEFAULTS_GLSL,
     OBJECT_GLSL,
   ].join('\n');
