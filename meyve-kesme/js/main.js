@@ -318,11 +318,9 @@ function runExport(label) {
   });
 }
 
-const AUDIO_NAMES = { aac: 'AAC ses', opus: 'Opus ses (bazı telefon oynatıcıları çalmayabilir)' };
 function savedNote(res) {
-  if (res.audio) return `Video kaydedildi (${res.codec.toUpperCase()} + ${AUDIO_NAMES[res.audio] || res.audio}).`;
-  if (!settings.sound) return 'Video kaydedildi, ses kapalı olduğu için sessiz. Sesli video için Ses kutusunu işaretle.';
-  return 'Video kaydedildi ama bu tarayıcı ses kodlayamadı, video sessiz. Chrome veya Edge ile dene ya da Canlı kayıt düğmesini kullan.';
+  if (res.audio) return `Video kaydedildi (${res.codec.toUpperCase()} görüntü + AAC ses).`;
+  return 'Video kaydedildi, ses kapalı olduğu için sessiz. Sesli video için Ses kutusunu işaretle.';
 }
 
 function exportBlocked() {

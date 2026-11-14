@@ -130,10 +130,33 @@ function centroid(buf, ms = 60) {
   return num / den;
 }
 
-test('board knock: a short, woody tok centred in the low mids', () => {
+// Share of a sound's power between lo and hi Hz (first 170 ms, direct DFT).
+function powerShare(buf, lo, hi) {
+  const n = Math.min(buf.length, 8192);
+  let inside = 0;
+  let total = 0;
+  for (let f = 20; f < 12000; f += 10) {
+    let re = 0;
+    let im = 0;
+    const w = (2 * Math.PI * f) / SAMPLE_RATE;
+    for (let i = 0; i < n; i++) {
+      re += buf[i] * Math.cos(w * i);
+      im += buf[i] * Math.sin(w * i);
+    }
+    const p = re * re + im * im;
+    total += p;
+    if (f >= lo && f < hi) inside += p;
+  }
+  return inside / total;
+}
+
+test('board knock: a thick, short tok carried by the low mids', () => {
   for (const buf of eventBank('crisp').thock) {
     const c = centroid(buf);
     assert.ok(c > 500 && c < 2200, `centroid ${c.toFixed(0)} Hz`);
+    const tok = powerShare(buf, 150, 1200);
+    assert.ok(tok > 0.55, `150-1200 Hz share ${tok.toFixed(2)}`);
+    assert.ok(powerShare(buf, 20, 150) < 0.4, 'the sub thump does not dominate');
     const e = frames(buf, 10);
     const total = e.reduce((s, v) => s + v, 0);
     const late = e.slice(12).reduce((s, v) => s + v, 0);

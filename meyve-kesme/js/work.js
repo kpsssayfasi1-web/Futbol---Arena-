@@ -6,6 +6,7 @@ import { itemById } from './catalog/index.js';
 import { shapeOf } from './object-info.js';
 import { renderMusic } from './music.js';
 import { eventBank } from './sfx.js';
+import { encodeAac } from './aac-encoder.js';
 
 const MESH_RES = 128;
 
@@ -36,6 +37,18 @@ export function runJob(job) {
       transfer.push(...bank[name].map((a) => a.buffer));
     }
     return { result: bank, transfer };
+  }
+  if (job.kind === 'aac') {
+    // Frames go back as one byte array plus their sizes (two transfers, not thousands).
+    const { frames, config, sampleRate, frameSize } = encodeAac(job);
+    const sizes = Uint32Array.from(frames, (f) => f.length);
+    const bytes = new Uint8Array(sizes.reduce((s, n) => s + n, 0));
+    let at = 0;
+    for (const f of frames) {
+      bytes.set(f, at);
+      at += f.length;
+    }
+    return { result: { bytes, sizes, config, sampleRate, frameSize }, transfer: [bytes.buffer, sizes.buffer] };
   }
   throw new Error(`unknown job ${job.kind}`);
 }

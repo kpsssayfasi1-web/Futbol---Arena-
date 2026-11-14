@@ -488,16 +488,30 @@ export class App {
     return renderOfflineAudio({ events, banks: this.audio.banks, music: this.settings.music === 'off' ? null : this.audio.music, volumes: this.audio.volumes, duration });
   }
 
+  // The mixed soundtrack, AAC-encoded off the main thread.
+  async encodedSoundtrack(duration, onStatus) {
+    onStatus?.('Ses ve müzik hazırlanıyor…');
+    const mix = await this.soundtrack(duration);
+    onStatus?.('Ses AAC olarak kodlanıyor…');
+    const key = `aac:${Date.now()}`;
+    const job = { kind: 'aac', left: mix.getChannelData(0).slice(), right: mix.getChannelData(mix.numberOfChannels > 1 ? 1 : 0).slice(), sampleRate: mix.sampleRate };
+    try {
+      return await this.hub.request(key, job);
+    } finally {
+      this.hub.forget(key);
+    }
+  }
+
   async exportVideo({ fps = 30, width = 1080, height = 1920, onProgress, onStatus, isCancelled, duration = this.duration, save = true } = {}) {
     this.pause();
     this.exporting = true;
     this.setExportBoost(true);
     try {
       await this.refreshMusic();
-      const audioBuffer = this.settings.sound ? await this.soundtrack(duration) : null;
+      const aac = this.settings.sound ? await this.encodedSoundtrack(duration, onStatus) : null;
       this.setRenderSize(width, height);
       const result = await exportMp4({
-        width, height, fps, duration, audioBuffer, onProgress, onStatus, isCancelled,
+        width, height, fps, duration, aac, onProgress, onStatus, isCancelled,
         prepare: async (t) => {
           const ri = roundIndexAt(this.timeline, t);
           const round = this.timeline.rounds[ri];

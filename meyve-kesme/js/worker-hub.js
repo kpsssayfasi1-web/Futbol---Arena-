@@ -29,7 +29,7 @@ export class WorkerHub {
   }
 
   workerFor(job) {
-    return this.workers[job.kind === 'music' || job.kind === 'bank' ? 1 : 0];
+    return this.workers[['music', 'bank', 'aac'].includes(job.kind) ? 1 : 0];
   }
 
   // Drop cached results of a kind (e.g. cubes after a settings change).

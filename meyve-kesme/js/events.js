@@ -46,7 +46,7 @@ export function roundEvents(round) {
         out.push({ t: t - lead, type: 'slice', gain: 0.8 * swishGain, rate, variant, profile });
       } else {
         out.push({ t: t - lead, type: 'cut', gain: 0.6 * swishGain, rate, variant, profile });
-        out.push({ t, type: 'thock', gain: 0.8 * knockGain, rate: 0.95 + rand() * 0.1, variant: Math.floor(rand() * 6), profile });
+        out.push({ t, type: 'thock', gain: 1.0 * knockGain, rate: 0.95 + rand() * 0.1, variant: Math.floor(rand() * 6), profile });
       }
     }
   }

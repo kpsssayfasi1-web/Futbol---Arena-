@@ -74,33 +74,39 @@ function soften(buf, ms) {
   return filter(buf, 'lowpass', fc, 0.6);
 }
 
-// The cutting board: a hardwood slab resting on a stone counter. Its bending
-// modes are dense and strongly damped (loss factor ~0.035), so low modes ring
-// for tens of milliseconds and high ones die in a few. Many closely spaced
-// modes struck together give a dull woody "tok" instead of a pitched plink.
-export const BOARD_LOSS = 0.035;
-function boardBody(rand, n, { count = 40, lo = 160, hi = 3800, tune = 1, tilt = 0.35 } = {}) {
+// The cutting board: a thick hardwood slab resting on a stone counter. Its
+// bending modes are dense and damped (loss factor ~0.03), so low modes ring for
+// tens of milliseconds and high ones die in a few. Many closely spaced modes
+// struck together give a woody knock instead of a pitched plink.
+export const BOARD_LOSS = 0.03;
+function boardBody(rand, n, { count = 40, lo = 160, hi = 3800, tune = 1, tilt = 0.35, loss = BOARD_LOSS } = {}) {
   const list = [];
   for (let i = 0; i < count; i++) {
     const f = tune * lo * Math.pow(hi / lo, (i + rand()) / count);
-    list.push({ f, a: Math.pow(f / lo, -tilt) * (0.35 + rand() * 0.65) * (rand() < 0.5 ? -1 : 1), tau: 1 / (Math.PI * f * BOARD_LOSS) });
+    list.push({ f, a: Math.pow(f / lo, -tilt) * (0.35 + rand() * 0.65) * (rand() < 0.5 ? -1 : 1), tau: 1 / (Math.PI * f * loss) });
   }
   return modes(n, list);
 }
 
-// Knife hitting the board through the item: the board's knock (contact of
-// about a third of a millisecond through the food), the counter underneath
-// answering with a short low thump, the steel edge's tiny tick and a faint
-// ring of the blade itself. A touch of saturation glues them together.
+// The knife's edge striking the board through the item, built as a thick "tok":
+// - the slab's own low-mid knock (strong modes around 330 and 520 Hz, the pitch
+//   people hear as "tok", reproduced even by phone speakers),
+// - the dense woody body of the board above it,
+// - the counter underneath answering with a short, deep thump,
+// - the hard steel-on-wood contact: a very short "tak" at the onset,
+// - a faint ring of the blade. Saturation adds weight and glues it together.
 function thock(rand) {
-  const n = len(0.18);
-  const tune = 0.93 + rand() * 0.14;
-  const out = normalize(soften(boardBody(rand, n, { tune }), 0.35));
-  add(out, modes(n, [{ f: 112 * tune, a: 1, tau: 0.02 }, { f: 64, a: 0.55, tau: 0.028 }]), 0.4);
-  add(out, env(filter(noise(len(0.004), rand), 'highpass', 4500, 0.7), (t) => Math.exp(-t / 0.0007)), 0.3);
-  add(out, modes(n, [3150, 5230, 7900].map((f, i) => ({ f: f * (0.97 + rand() * 0.06), a: 0.5 / (1 + i), tau: 0.05 / (1 + i * 0.5) }))), 0.035);
-  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.4);
-  filter(out, 'highpass', 45, 0.7);
+  const n = len(0.22);
+  const tune = 0.92 + rand() * 0.16;
+  // The body is kept above 170 Hz; the low end comes only from the counter thump.
+  const out = normalize(filter(soften(boardBody(rand, n, { lo: 110, hi: 3000, tilt: 0.45, tune }), 0.4), 'highpass', 170, 0.7));
+  add(out, modes(n, [{ f: 215 * tune, a: 0.55, tau: 0.03 }, { f: 330 * tune, a: 1, tau: 0.03 }, { f: 525 * tune, a: 0.7, tau: 0.022 }, { f: 790 * tune, a: 0.6, tau: 0.016 }, { f: 1180 * tune, a: 0.4, tau: 0.011 }]), 0.8);
+  add(out, modes(n, [{ f: 118 * tune, a: 1, tau: 0.025 }, { f: 72, a: 0.5, tau: 0.03 }]), 0.2);
+  add(out, normalize(env(filter(noise(len(0.012), rand), 'bandpass', 2600 * tune, 0.7), (t) => Math.exp(-t / 0.0015))), 0.9);
+  add(out, modes(n, [3150, 5230, 7900].map((f, i) => ({ f: f * (0.97 + rand() * 0.06), a: 0.5 / (1 + i), tau: 0.05 / (1 + i * 0.5) }))), 0.03);
+  normalize(out, 1);
+  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.8);
+  filter(out, 'highpass', 40, 0.7);
   return normalize(out, 0.95);
 }
 
