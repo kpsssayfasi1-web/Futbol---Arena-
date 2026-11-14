@@ -4,7 +4,7 @@ import { buildTimeline, roundState } from '../js/timeline.js';
 import { knifePose, slerp, quatMul, quatAxisAngle, AXIS_QUAT } from '../js/knife-pose.js';
 import { roundEvents, eventsInWindow, pickContact } from '../js/events.js';
 import { runJob } from '../js/work.js';
-import { eventBank, PROFILES, filter, normalize, SAMPLE_RATE } from '../js/sfx.js';
+import { eventBank, PROFILES, filter, normalize, capPeak, SAMPLE_RATE } from '../js/sfx.js';
 import { renderMusic, compose, MUSIC_STYLES } from '../js/music.js';
 
 const tl = buildTimeline({ rounds: [10] });
@@ -267,4 +267,21 @@ test('flat items: the knife goes straight from the last vertical chop to the fro
     prev = p;
   }
   assert.ok(!roundEvents(flat).some((e) => e.type === 'slice'));
+});
+
+test('capPeak lowers a mix that reaches full scale to the -1 dBFS ceiling', () => {
+  const left = Float32Array.from([0.2, -1.05, 0.5]);
+  const right = Float32Array.from([0.1, 0.3, 0.9]);
+  const gain = capPeak([left, right], -1);
+  const ceiling = 10 ** (-1 / 20);
+  assert.ok(Math.abs(Math.max(...left.map(Math.abs), ...right.map(Math.abs)) - ceiling) < 1e-6);
+  assert.ok(Math.abs(gain - ceiling / 1.05) < 1e-6);
+  // both channels get the same gain, so the stereo image is kept
+  assert.ok(Math.abs(right[2] / left[2] - 0.9 / 0.5) < 1e-5);
+});
+
+test('capPeak leaves a mix below the ceiling untouched', () => {
+  const ch = Float32Array.from([0.1, -0.5, 0.8]);
+  assert.equal(capPeak([ch], -1), 1);
+  assert.deepEqual(Array.from(ch), Array.from(Float32Array.from([0.1, -0.5, 0.8])));
 });

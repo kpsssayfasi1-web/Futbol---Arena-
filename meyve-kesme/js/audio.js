@@ -1,6 +1,6 @@
 // WebAudio playback: knife events (scheduled slightly ahead of the playhead)
 // and the background music bed. The same mix renders offline for export.
-import { roomImpulse } from './sfx.js';
+import { roomImpulse, capPeak } from './sfx.js';
 import { eventsInWindow } from './events.js';
 
 export function toBuffer({ left, right, sampleRate }) {
@@ -165,5 +165,7 @@ export async function renderOfflineAudio({ events, banks, music, volumes, durati
     graph.music.gain.setValueAtTime(volumes.music, Math.max(0, duration - 1.6));
     graph.music.gain.linearRampToValueAtTime(0, duration);
   }
-  return ctx.startRendering();
+  const mix = await ctx.startRendering();
+  capPeak(Array.from({ length: mix.numberOfChannels }, (_, c) => mix.getChannelData(c)), -1);
+  return mix;
 }

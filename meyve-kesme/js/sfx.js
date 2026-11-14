@@ -41,6 +41,19 @@ export function normalize(buf, peak = 0.9) {
   return buf;
 }
 
+// Scales every channel by one gain so the mix peaks no higher than `ceilingDb`
+// (dBFS). AAC decoders overshoot a little, so a mix that touches full scale
+// comes back slightly clipped; -1 dBFS leaves room for that. Returns the gain.
+export function capPeak(channels, ceilingDb = -1) {
+  const ceiling = 10 ** (ceilingDb / 20);
+  let m = 0;
+  for (const ch of channels) for (const v of ch) m = Math.max(m, Math.abs(v));
+  if (m <= ceiling) return 1;
+  const g = ceiling / m;
+  for (const ch of channels) for (let i = 0; i < ch.length; i++) ch[i] *= g;
+  return g;
+}
+
 const len = (s) => Math.max(1, Math.round(s * SR));
 const noise = (n, rand) => Float32Array.from({ length: n }, () => rand() * 2 - 1);
 const add = (dst, src, gain = 1, offset = 0) => {
