@@ -163,20 +163,19 @@ export class Hud {
     const g = c.getContext('2d');
     const r = g.createRadialGradient(135, 230, 60, 135, 240, 330);
     r.addColorStop(0, 'rgba(0,0,0,0)');
-    r.addColorStop(1, 'rgba(0,0,0,0.38)');
+    r.addColorStop(1, 'rgba(0,0,0,0.62)');
     g.fillStyle = r;
     g.fillRect(0, 0, 270, 480);
     const top = g.createLinearGradient(0, 0, 0, 120);
-    top.addColorStop(0, 'rgba(0,0,0,0.3)');
+    top.addColorStop(0, 'rgba(0,0,0,0.55)');
     top.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = top;
     g.fillRect(0, 0, 270, 120);
-    // warm dark band under the cube counter, as in the reference Shorts
-    const bot = g.createLinearGradient(0, 300, 0, 480);
-    bot.addColorStop(0, 'rgba(24,12,6,0)');
-    bot.addColorStop(1, 'rgba(24,12,6,0.82)');
+    const bot = g.createLinearGradient(0, 360, 0, 480);
+    bot.addColorStop(0, 'rgba(0,0,0,0)');
+    bot.addColorStop(1, 'rgba(0,0,0,0.6)');
     g.fillStyle = bot;
-    g.fillRect(0, 300, 270, 180);
+    g.fillRect(0, 360, 270, 120);
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace;
     const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false }));

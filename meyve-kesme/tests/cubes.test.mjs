@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTimeline } from '../js/timeline.js';
-import { buildRoundCubes, displayGrid, releasedCount, displayedCubeTotal, flightDuration, cellsOf, GRAVITY, BOARD } from '../js/cubes-data.js';
+import { buildRoundCubes, displayGrid, releasedCount, displayedCubeTotal, flightDuration, GRAVITY, BOARD } from '../js/cubes-data.js';
 import { itemById } from '../js/catalog/index.js';
 import { objectInfo } from '../js/object-info.js';
 import { formatCount } from '../js/format.js';
@@ -13,15 +13,14 @@ test('small rounds are rendered cube for cube', () => {
   assert.equal(d.exact, true);
   assert.equal(d.coarse, true);
   assert.equal(d.trueCount, d.count);
-  const [a, b, c] = cellsOf(tl.rounds[0].split, tl.rounds[0].layers);
-  assert.ok(d.count > 30 && d.count <= a * b * c, `count ${d.count}`);
+  assert.ok(d.count > 30 && d.count <= 5 * 4 * 4 + 20, `count ${d.count}`);
 });
 
 test('large rounds cap the display grid but estimate the real count', () => {
   const d = buildRoundCubes(tl.rounds[1], { budget: 20000 });
   assert.equal(d.exact, false);
   assert.ok(d.count < 30000);
-  assert.ok(d.trueCount > 2e7 && d.trueCount < 9e7, `true ${d.trueCount}`);
+  assert.ok(d.trueCount > 5e6 && d.trueCount < 4e7, `true ${d.trueCount}`);
 });
 
 test('displayGrid keeps the real grid when it fits', () => {
@@ -56,24 +55,17 @@ test('cubes come to rest on the board, inside its edges', () => {
   }
 });
 
-test('the heap stays where the item stood, lower than the item was', () => {
-  for (const item of ['apple', 'soap', 'pumpkin']) {
-    const r = buildTimeline({ rounds: [1000], item }).rounds[0];
-    const d = buildRoundCubes(r, { budget: 20000 });
-    const { min, max } = r.bbox;
-    const ex = 0.3 * (max[0] - min[0]);
-    const ez = 0.3 * (max[2] - min[2]);
-    let maxY = -Infinity;
-    let inside = 0;
-    for (let i = 0; i < d.count; i++) {
-      const x = d.rest[i * 3];
-      const z = d.rest[i * 3 + 2];
-      maxY = Math.max(maxY, d.rest[i * 3 + 1]);
-      if (x > min[0] - ex && x < max[0] + ex && z > min[2] - ez && z < max[2] + ez) inside++;
-    }
-    assert.ok(inside / d.count > 0.97, `${item}: ${((100 * inside) / d.count).toFixed(1)}% on the footprint`);
-    assert.ok(maxY < max[1] + 0.1 * (max[1] - r.boardY), `${item}: heap top ${maxY}`);
+test('the pile is lower and wider than the fruit was', () => {
+  const r = tl.rounds[1];
+  const d = buildRoundCubes(r, { budget: 20000 });
+  let maxY = -Infinity;
+  let maxR = 0;
+  for (let i = 0; i < d.count; i++) {
+    maxY = Math.max(maxY, d.rest[i * 3 + 1]);
+    maxR = Math.max(maxR, Math.hypot(d.rest[i * 3], d.rest[i * 3 + 2]));
   }
+  assert.ok(maxY < r.bbox.max[1], `pile top ${maxY}`);
+  assert.ok(maxR > 1.0, `pile radius ${maxR}`);
 });
 
 test('build is deterministic for the same seed', () => {
@@ -97,12 +89,12 @@ test('formatCount shows exact and approximate numbers', () => {
   assert.equal(formatCount(0, true), '0');
 });
 
-test('flat items: pieces stay near-cubic and the count follows the drawn grid', () => {
+test('flat items: needle-like pieces are drawn as near-cubes, the count stays real', () => {
   const info = objectInfo(itemById('pizza'));
-  const r = buildTimeline({ rounds: [10, 1000], item: 'pizza' }).rounds;
-  assert.equal(r[0].layers, 1, 'few cuts: one layer of columns');
-  assert.ok(r[1].layers > 4, `layers ${r[1].layers}`);
-  const big = displayGrid(r[1].split, 420000, info, r[1].layers);
+  const small = displayGrid([5, 0, 5], 420000, info);
+  assert.ok(small.exact && small.dims[1] === 1, 'few cuts: real columns');
+  const big = displayGrid([500, 0, 500], 420000, info);
+  assert.ok(!big.exact && big.dims[1] > 4, `dims ${big.dims}`);
   const cell = [0, 1, 2].map((k) => (info.bbox.max[k] - info.bbox.min[k]) / big.dims[k]);
   assert.ok(cell[1] / Math.min(cell[0], cell[2]) < 2, 'roughly cubic');
 });

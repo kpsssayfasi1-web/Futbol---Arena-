@@ -123,27 +123,6 @@ function thock(rand) {
   return normalize(out, 0.95);
 }
 
-// The chef's knife ringing after it hits the board, as in the reference
-// Shorts: two clear partials of the blade near 1.25 and 1.6 kHz with a faint
-// upper one, ringing ~0.15 s and then damped by the hand (short fade). One
-// knife, so the pitch barely moves between hits; in fast passages the rings
-// overlap into the steady metallic shimmer of those videos.
-export const RING_PARTIALS = [
-  { f: 1245, a: 1, tau: 0.07 },
-  { f: 1598, a: 0.62, tau: 0.06 },
-  { f: 2260, a: 0.16, tau: 0.035 },
-  { f: 7180, a: 0.05, tau: 0.03 },
-];
-export const RING_LENGTH = 0.2;
-function ring(rand) {
-  const n = len(RING_LENGTH);
-  const detune = 0.996 + rand() * 0.008;
-  const out = modes(n, RING_PARTIALS.map((p) => ({ ...p, f: p.f * detune, ph: rand() * TAU })));
-  const fade = len(0.04);
-  env(out, (t) => Math.min(1, t / 0.002) * (t * SR > n - fade ? (n - t * SR) / fade : 1));
-  return normalize(out, 0.9);
-}
-
 // Granular crackle: many tiny noise bursts with spiky amplitudes.
 function grains(n, rate, rand, grainMs = [0.3, 1.6]) {
   const out = new Float32Array(n);
@@ -168,14 +147,12 @@ const CUT_PROFILES = {
   rock: { rate: 900, band: 1500, q: 0.7, wet: 0.0, dur: 0.24 },
 };
 
-// The blade going through the item before it meets the board: a broadband
-// rush (flat from ~2 to 14 kHz) rising to the contact at `at` seconds, then
-// cut off.
+// The blade's rush of air: bright band-passed noise rising to the contact at
+// `at` seconds, then cut off. Brighter and louder as the knife speeds up.
 function swish(n, rand, at, release = 0.005) {
-  const out = filter(noise(n, rand), 'bandpass', (t) => 2600 + 3400 * Math.min(1, t / at) ** 1.5, 0.45);
-  filter(out, 'highpass', 900, 0.7);
-  filter(out, 'lowpass', 14000, 0.7);
-  return env(out, (t) => (t < at ? (t / at) ** 1.6 : Math.exp(-(t - at) / release)));
+  const out = filter(noise(n, rand), 'bandpass', (t) => 3600 + 6800 * Math.min(1, t / at) ** 1.5, 0.85);
+  filter(out, 'highpass', 2400, 0.7);
+  return env(out, (t) => (t < at ? (t / at) ** 2.2 : Math.exp(-(t - at) / release)));
 }
 
 // Material crunch while the edge passes through the item.
@@ -267,7 +244,6 @@ export function eventBank(profile = 'crisp') {
   const byContact = (contacts, k, fn) => contacts.flatMap((c) => Array.from({ length: k }, () => fn(rand, profile, c)));
   const bank = {
     thock: many(6, thock),
-    ring: many(4, ring),
     cut: byContact(CUT_CONTACTS, CUT_VARIANTS, cutSound),
     slice: byContact(SLICE_CONTACTS, SLICE_VARIANTS, slice),
     drop: many(2, drop),

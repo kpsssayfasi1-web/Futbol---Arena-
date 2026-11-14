@@ -1,10 +1,8 @@
 # 1000 Kesim Stüdyosu
 
 "Apple vs 1000 cuts" tarzı tatmin edici (satisfying / ASMR) Shorts videolarını tarayıcıda üreten Three.js stüdyosu.
-Her tur, tahtada hazır bekleyen yeni bir nesneyle ve üstüne konmuş bıçakla açılır. Bıçak kesimlerin yarısını dikey
-atar, tek bir yavaş yatay geçiş yapar, kalanını önden arkaya keser; her önden arkaya kesimde öndeki dilim küplere
-ayrılıp olduğu yere dökülür. Tur, yığına kısa bir bakışla biter ve sert geçişle bir sonrakine atlanır. Turlar 10
-kesimden 1000'e (Efsane modunda 5000'e) çıkar.
+Bir nesne tahtaya düşer, bıçak önce dikey, sonra yatay, en son önden arkaya dilimler; her son dilimde öndeki parça
+küplere ayrılıp yığına dökülür. Turlar 10 kesimden 1000'e (Efsane modunda 5000'e) çıkar ve arada bekleme yoktur.
 
 ## Çalıştırma
 
@@ -28,12 +26,15 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   şeftali ve avokado çekirdeği, peynir delikleri) kesildikçe görünür. Az kesimli turlarda parçalar ışın izlemeyle
   gerçek kabuk şekliyle çizilir.
 - **Doğru sayaç**: Ekranda çizilen küp sayısı kaliteye göre sınırlanır, sayaç gerçek ızgaradaki sayıyı gösterir.
-- **Kesme sesi** (referans Shorts'lardaki gibi): her dikey ve önden arkaya kesimde bıçağın nesneden geçişi (geniş
-  bantlı, 1–14 kHz), tahtaya kalın bir "tok" ve hemen ardından bıçağın metalik çınlaması: 1,25 ve 1,6 kHz'de iki
-  net kısmi ton, ~0,2 sn'de söner. Tek bıçak olduğu için ton her vuruşta aynıdır; hızlı turlarda çınlamalar
-  üst üste binip o videolardaki sürekli metalik parıltıyı verir. Yatay geçiş ve tur geçişleri sessizdir; küpler
-  dökülürken ses çıkmaz. Her nesnenin kendi kesim dokusu var (çıtır, sulu, yumuşak, çatırtılı, metal, kum,
-  lastik, taş). İlk turların ses dengesi referans videoyla bant bant karşılaştırılarak ayarlandı.
+- **ASMR sesi**: Dikey ve önden arkaya kesimlerde bıçağın yükselen parlak "fıss"ı (8–12 kHz), temas anında
+  malzemenin çıtırtısı ve bıçağın tahtaya vurduğu kalın bir "tok" duyulur. Tok fiziksel bir modelle üretilir:
+  kalın tahtanın 215 / 330 / 525 Hz civarındaki güçlü modları (telefon hoparlöründe de duyulur), tahtanın
+  170 Hz üstündeki sık ahşap modları, altta tezgâhın kısa gümlemesi, çeliğin ahşaba sert temasıyla gelen kısa
+  "tak" ve bıçağın çok hafif çınlaması. Enerjinin çoğu 150–1200 Hz arasındadır. Yatay kesimde bıçak
+  tahtaya değmez: yalnızca kayma sesi (fıss + yumuşak sürtünme) vardır, vuruş ya da tık yoktur. Küpler
+  dağılırken ve yere düşerken ses çıkmaz. Hızlı kesimlerde ses hızlandırılmaz, kısa fıss varyantları
+  kullanılır; yoğun pasajlarda fıss öne çıkar, tok geri çekilir. Her nesnenin kendi kesim sesi var (çıtır,
+  sulu, yumuşak, çatırtılı, metal, kum, lastik, taş).
 - **Arka fon müziği**: Referans videodaki küçük caz grubu tarzında üç stil, hepsi kontrbas, elektrikli piyano,
   vibrafon / pizzicato ve hafif davulla, temiz mastering ve küçük oda yankısıyla:
   - **Gizemli Caz** (varsayılan): minör, ~148 BPM swing, yürüyen kontrbas, vibrafon melodi, fırçalı davul.
@@ -41,19 +42,16 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   - **Gece Cazı**: ~123 BPM, daha geniş swing, uzun vibrafon notaları, yumuşak ride.
   Telifsiz; "Yeni varyasyon" yeni ton, tempo ve melodi üretir; "Seri üret" üç stili sırayla kullanır.
   İstersen kendi müzik dosyanı yükleyebilir ya da müziği kapatıp yalnızca kesim sesini kullanabilirsin.
-- **Kamera**: "Değişen açılar" (varsayılan) her tura kendi açısını verir; yeni açı, yeni nesneyle birlikte sert
-  geçişle gelir, kesim boyunca yavaşça yaklaşır, finalde geri çekilir. Düz nesnelere daha yukarıdan bakar.
-  "Sabit" bütün videoyu tek açıdan çeker.
-- **Kesim düzeni ve tempo**: Kesimlerin yarısı sağdan sola dikey, ardından ortadan tek bir yatay geçiş (sayaçta 1
-  kesim), kalanı önden arkaya. Bıçak her aşamada eşit aralıkla keser. İlk tur saniyede ~2 kesimle ~6 sn, sonraki
-  turlar 10–13 sn sürer; klasik video ~69 sn. Tek yatay geçiş bütün katmanları temsil eder: parçalar küp olur
-  (`cubeLayers`), sayaç çizilen küp ızgarasından gelir. Pizza, kurabiye, donut gibi ince nesnelerde (yükseklik /
-  taban < 0,4) yatay geçiş yapılmaz.
-- **Yığın**: Küpler kesildikleri yerde neredeyse dik düşer; yığın nesnenin taban izini korur, tahtaya yayılmaz ve
-  nesnenin boyunu geçmez.
-- **Sahne ve gölgeler**: Koyu ceviz tahta (kadrajdan taşan uzun bir plaka), açık gri beton tezgâh, sıcak ve
-  odak dışı kırmızı-kahve duvar, alt kısımda sayacın okunması için koyu bir degrade. Gölgeler yumuşak kenarlı ve
-  belirgin (PCF, yarıçap 3,5); nesnenin altında, ayakta kalan kısmını izleyen bir temas gölgesi var.
+- **Kamera**: "Değişen açılar" (varsayılan) her tura kendi açısını verir, nesne düşerken yumuşakça yeni açıya
+  geçer, kesim boyunca yavaşça yaklaşır, finalde geri çekilir. Düz nesnelere daha yukarıdan bakar. "Sabit" tek
+  açıda kalır.
+- **Kesim düzeni**: Bıçak önce sağdan sola dikey, sonra yukarıdan aşağı yatay, en son önden arkaya keser.
+  Pizza, kurabiye, donut gibi ince nesnelerde (yükseklik / taban < 0,4) yatay kesim yapılmaz; kesimler dikey ve
+  önden arkaya paylaşılır. Parçalar iğneye dönüşecek kadar inceldiğinde ekranda küp oranında çizilir.
+- **Kesme hızı**: Bıçak her aşamada eşit aralıkla keser. Aralık turun kesim sayısından gelir (`cutBeat`): ilk
+  turda saniyede ~2 kesim, 1000 kesimlik turda saniyede ~86 kesim. Klasik video ~62 sn.
+- **Gölgeler**: Yumuşak kenarlı ve belirgin gölgeler (PCF, yarıçap 3,5); nesne tahtaya indiğinde altında,
+  ayakta kalan kısmını izleyen bir temas gölgesi belirir.
 - **Gerçekçi iç ve dış görünüş**: Kesit yüzleri nesneye göre ıslak parlaklık, hafif ışık geçirgenliği ve
   ince hücre dokusu alır (`lookOf`, `fleshShade`). Narenciyede uzun meyve suyu keseleri ve beyaz zarlar,
   kivide ışınsal çizgiler, tohum halkası ve gözyaşı biçimli tohumlar, çilekte açık renkli göbekten yayılan

@@ -76,7 +76,7 @@ export class ObjectModel {
       const k = Math.max(0, tau) / fall;
       drop = (1 - k * k) * 3.6;
       sy = 1 + 0.07 * k;
-    } else if (fall > 0) {
+    } else {
       const k = tau - fall;
       sy = 1 - 0.17 * Math.exp(-k * 10) * Math.cos(k * 26);
     }

@@ -1,15 +1,12 @@
-// Knife sounds of a round, derived from the cut schedule, modelled on the
-// reference Shorts: every top-down and front-to-back cut is the blade going
-// through the item, a knock on the board and the blade ringing; the single
-// horizontal pass and the cut to the next round are silent, and so are the
-// falling cubes. { t, type, gain, rate, variant, profile } sorted by time.
+// Knife and transition sounds of a round, derived from the cut schedule.
+// { t, type, gain, rate, variant, profile } sorted by time. Falling cubes are
+// silent on purpose.
 import { mulberry32, hashSeed } from './rng.js';
 import { itemById } from './catalog/index.js';
-import { CUT_CONTACTS, CUT_VARIANTS } from './sfx.js';
+import { CUT_CONTACTS, SLICE_CONTACTS, CUT_VARIANTS, SLICE_VARIANTS } from './sfx.js';
 
 const MIN_GAP = 0.034; // at most ~30 knife sounds per second
 const DENSE = 0.14; // cut interval below which strokes blend together
-const RING_GAIN = 0.42;
 
 // The swish length closest to the time available before the cut, nudged by a
 // small playback-rate change so its contact moment lands exactly on the cut.
@@ -24,13 +21,9 @@ export function roundEvents(round) {
   const rand = mulberry32(hashSeed('sound', round.index, round.cuts, round.itemId));
   const profile = itemById(round.itemId).sound?.cut || 'crisp';
   const out = [];
-  if (round.land > round.start) {
-    // only when an item drops in (TIMING.drop > 0)
-    if (round.index > 0) out.push({ t: round.start + 0.02, type: 'whoosh', gain: 0.25, rate: 1, variant: round.index, profile });
-    out.push({ t: round.land, type: 'drop', gain: 0.85, rate: 1, variant: round.index, profile });
-  }
+  if (round.index > 0) out.push({ t: round.start + 0.02, type: 'whoosh', gain: 0.25, rate: 1, variant: round.index, profile });
+  out.push({ t: round.land, type: 'drop', gain: 0.85, rate: 1, variant: round.index, profile });
   for (const phase of round.phases) {
-    if (phase.axis === 1) continue; // the horizontal pass glides through silently
     let lastEmitted = -1;
     for (let i = 0; i < phase.n; i++) {
       const t = phase.times[i];
@@ -43,14 +36,18 @@ export function roundEvents(round) {
       // (overlapping knocks would otherwise turn into a mid-range drone).
       const dense = 1 - Math.min(1, interval / DENSE);
       const swishGain = loud * (1 + 0.7 * dense);
-      const knockGain = loud * (1 - 0.7 * dense);
-      const { block, rate, lead } = pickContact(CUT_CONTACTS, 0.45 * Math.max(interval, MIN_GAP));
-      const variant = block * CUT_VARIANTS + Math.floor(rand() * CUT_VARIANTS);
-      out.push({ t: t - lead, type: 'cut', gain: 1.3 * swishGain, rate, variant, profile });
-      out.push({ t, type: 'thock', gain: 0.55 * knockGain, rate: 0.95 + rand() * 0.1, variant: Math.floor(rand() * 6), profile });
-      // the blade rings a moment after the knock; the ring carries the dense
-      // passages, so it recedes less than the knock does
-      out.push({ t: t + 0.004, type: 'ring', gain: RING_GAIN * loud * (1 - 0.1 * dense), rate: 1, variant: Math.floor(rand() * 4), profile });
+      const knockGain = loud * (1 - 0.55 * dense);
+      const slicing = phase.axis === 1;
+      const { block, rate, lead } = pickContact(slicing ? SLICE_CONTACTS : CUT_CONTACTS, 0.45 * Math.max(interval, MIN_GAP));
+      const per = slicing ? SLICE_VARIANTS : CUT_VARIANTS;
+      const variant = block * per + Math.floor(rand() * per);
+      if (slicing) {
+        // The blade never meets the board on a horizontal slice: slide only.
+        out.push({ t: t - lead, type: 'slice', gain: 0.8 * swishGain, rate, variant, profile });
+      } else {
+        out.push({ t: t - lead, type: 'cut', gain: 0.6 * swishGain, rate, variant, profile });
+        out.push({ t, type: 'thock', gain: 1.0 * knockGain, rate: 0.95 + rand() * 0.1, variant: Math.floor(rand() * 6), profile });
+      }
     }
   }
   return out.sort((a, b) => a.t - b.t);
