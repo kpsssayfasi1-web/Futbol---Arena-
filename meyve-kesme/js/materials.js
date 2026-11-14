@@ -1,7 +1,7 @@
 // Per-item shader programs. Every item gets its own GLSL (shape + colours),
 // cached and compiled ahead of time so switching items never stalls a frame.
 import * as THREE from 'three';
-import { itemGlsl } from './object-glsl.js';
+import { itemGlsl, lookOf } from './object-glsl.js';
 import { patchMaterial } from './shader-patch.js';
 
 export function createCutUniforms() {
@@ -36,7 +36,10 @@ export function clipDepthMaterial(cut) {
 }
 
 function bodyMaterial(item, cut) {
+  const look = lookOf(item);
   const m = new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.35, clearcoatRoughness: 0.25, side: THREE.DoubleSide, envMapIntensity: item.envBoost ?? 1 });
+  // Velvet / fuzz (peach, kiwi, felt): a soft rim of light grazing the skin.
+  if (look.sheen > 0) Object.assign(m, { sheen: look.sheen, sheenRoughness: 0.55, sheenColor: new THREE.Color(look.sheenColor) });
   return patchMaterial(m, {
     key: `body-${item.id}`,
     uniforms: cut,
@@ -70,12 +73,15 @@ function capMaterial(item, cut) {
     vertex: CAP_VERTEX,
     fragment: {
       color_fragment: `$ORIGINAL
-        float cPart, cSkin, cDepth;
+        float cPart, cSkin, cDepth, fH;
         vec3 cCol = objColor(vObjPos, cPart, cSkin, cDepth);
         if (cDepth < 0.0) discard;
+        cCol = fleshShade(cCol, vObjPos, cSkin, fH);
         diffuseColor.rgb = cCol * (1.0 - 0.4 * cutLines(vObjPos, false));`,
-      ...PROPS('cPart', 'cSkin'),
-      emissivemap_fragment: '$ORIGINAL\ntotalEmissiveRadiance += itemEmissive(vObjPos, cDepth, cPart);',
+      roughnessmap_fragment: '$ORIGINAL\nroughnessFactor = fleshRough(itemRough(cPart, cSkin), cSkin);',
+      metalnessmap_fragment: '$ORIGINAL\nmetalnessFactor = itemMetal(cPart);',
+      normal_fragment_begin: '$ORIGINAL\nif (fH > 0.0) normal = bumpNormal(-vViewPosition, normal, fH, fleshBumpScale());',
+      emissivemap_fragment: '$ORIGINAL\ntotalEmissiveRadiance += itemEmissive(vObjPos, cDepth, cPart) + fleshGlow(diffuseColor.rgb, cSkin);',
     },
   });
 }

@@ -25,14 +25,21 @@ vec3 itemInner(vec3 p, float depth, float part) {
   float a = atan(p.z, p.x);
   float sector = fract(a / (2.0 * OBJ_PI) * 4.0);
   float wall = 1.0 - smoothstep(0.03, 0.08, min(sector, 1.0 - sector) * rr * 2.0);
-  vec3 flesh = vec3(0.85, 0.08, 0.05);
-  vec3 jelly = vec3(0.9, 0.6, 0.2);
-  float locule = smoothstep(0.2, 0.28, rr) * (1.0 - smoothstep(0.62, 0.7, rr)) * (1.0 - wall) * (1.0 - smoothstep(0.35, 0.5, abs(p.y)));
+  // red outer wall with faint vascular dots, red septa between the chambers
+  vec3 flesh = mix(vec3(0.9, 0.12, 0.06), vec3(0.8, 0.07, 0.04), fNoise(p * 9.0));
+  flesh = mix(flesh, vec3(0.98, 0.45, 0.3), spots(p, 26.0, 0.18, 0.5) * smoothstep(0.7, 0.85, rr) * 0.5);
+  // chambers: glossy orange-red gel, yellowish around the seeds
+  vec3 jelly = mix(vec3(0.96, 0.36, 0.14), vec3(0.95, 0.62, 0.22), fNoise(p * 14.0) * 0.6);
+  float locule = smoothstep(0.22, 0.3, rr) * (1.0 - smoothstep(0.66, 0.74, rr)) * (1.0 - wall) * (1.0 - smoothstep(0.38, 0.52, abs(p.y)));
   vec3 c = mix(flesh, jelly, locule);
-  float seeds = spots(p, 16.0, 0.16, 0.9) * locule;
-  c = mix(c, vec3(0.95, 0.88, 0.6), seeds);
-  c = mix(c, vec3(0.95, 0.4, 0.35), (1.0 - smoothstep(0.12, 0.2, rr)) * 0.6);
-  return c * (0.95 + 0.06 * fNoise(p * 25.0));
+  // seeds: pale flat ovals with a translucent halo of gel
+  float seeds = spots(p, 15.0, 0.17, 0.85) * locule;
+  float halo = spots(p, 15.0, 0.3, 0.85) * locule;
+  c = mix(c, vec3(0.98, 0.78, 0.35), halo * 0.5);
+  c = mix(c, vec3(0.96, 0.9, 0.62), seeds);
+  // the pale pink columella in the centre
+  c = mix(c, vec3(0.97, 0.5, 0.42), (1.0 - smoothstep(0.14, 0.24, rr)) * 0.7);
+  return c;
 }
 #define ITEM_ROUGH
 float itemRough(float part, float skin) { return part > 0.5 ? 0.6 : mix(0.4, 0.18, skin); }
@@ -89,6 +96,9 @@ vec3 itemInner(vec3 p, float depth, float part) {
   vec3 cortex = vec3(0.98, 0.33, 0.02);
   vec3 core = vec3(1.0, 0.5, 0.08);
   vec3 c = mix(core, cortex, smoothstep(0.42, 0.5, q));
+  // xylem rays: fine lighter spokes running out of the core
+  float rays = smoothstep(0.6, 0.95, fNoise(vec3(atan(p.z, p.y) * 14.0, q * 1.5, p.x * 2.0)));
+  c = mix(c, vec3(1.0, 0.62, 0.2), rays * (1.0 - smoothstep(0.3, 0.46, q)) * 0.5);
   c = mix(c, vec3(0.9, 0.28, 0.02), (1.0 - smoothstep(0.0, 0.04, abs(q - 0.46))) * 0.5);
   return c * (0.95 + 0.06 * fNoise(vec3(p.x * 3.0, q * 10.0, atan(p.z, p.y) * 4.0)));
 }
@@ -148,7 +158,13 @@ vec3 itemSkin(vec3 p, float part) {
 }
 vec3 itemInner(vec3 p, float depth, float part) {
   if (part > 0.5) return vec3(0.6, 0.55, 0.3);
-  return mix(vec3(1.0, 0.45, 0.05), vec3(0.98, 0.55, 0.12), fNoise(p * 12.0));
+  // dense orange flesh, deeper towards the rind, stringy fibres at the cavity
+  float cav = length(p / vec3(0.86, 0.52, 0.86));
+  vec3 c = mix(vec3(1.0, 0.56, 0.12), vec3(0.98, 0.42, 0.04), smoothstep(0.0, 0.12, 0.08 - depth + 0.08));
+  c = mix(c, vec3(0.99, 0.62, 0.2), fNoise(p * 12.0) * 0.4);
+  float fib = smoothstep(0.5, 0.9, fNoise(vec3(atan(p.z, p.x) * 20.0, cav * 6.0, p.y * 9.0)));
+  c = mix(c, vec3(1.0, 0.74, 0.34), fib * (1.0 - smoothstep(1.04, 1.18, cav)) * 0.7);
+  return mix(vec3(0.95, 0.75, 0.3), c, smoothstep(0.0, 0.03, depth));
 }
 #define ITEM_ROUGH
 float itemRough(float part, float skin) { return part > 0.5 ? 0.8 : mix(0.55, 0.45, skin); }

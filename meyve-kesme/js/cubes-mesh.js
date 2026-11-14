@@ -139,6 +139,8 @@ float cM3 = min(cE.x, min(cE.y, cE.z));
 float cM2 = cE.x + cE.y + cE.z - cM1 - cM3;
 float cW = min(0.5, fwidth(cM2) * 1.5 + 0.05);
 if (!cSkinHit) cCol *= 1.0 - 0.26 * smoothstep(1.0 - cW, 1.0, cM2);
+float fH = 0.0;
+if (!cSkinHit) cCol = fleshShade(cCol, vHome, cSkin, fH);
 diffuseColor.rgb = cCol;
 `;
 
@@ -161,10 +163,10 @@ function cubeMaterial(item, uniforms, mode) {
     },
     fragment: {
       color_fragment: COLOR_FRAGMENT,
-      roughnessmap_fragment: '$ORIGINAL\nroughnessFactor = itemRough(cPart, cSkin);',
+      roughnessmap_fragment: '$ORIGINAL\nroughnessFactor = cSkinHit ? itemRough(cPart, cSkin) : fleshRough(itemRough(cPart, cSkin), cSkin);',
       metalnessmap_fragment: '$ORIGINAL\nmetalnessFactor = itemMetal(cPart);',
-      normal_fragment_begin: '$ORIGINAL\nif (cSkinHit) normal = normalize((viewMatrix * vec4(cSkinN, 0.0)).xyz);',
-      emissivemap_fragment: '$ORIGINAL\ntotalEmissiveRadiance += cEmit;',
+      normal_fragment_begin: '$ORIGINAL\nif (cSkinHit) normal = normalize((viewMatrix * vec4(cSkinN, 0.0)).xyz);\nelse if (fH > 0.0) normal = bumpNormal(-vViewPosition, normal, fH, fleshBumpScale());',
+      emissivemap_fragment: '$ORIGINAL\ntotalEmissiveRadiance += cEmit + (cSkinHit ? vec3(0.0) : fleshGlow(diffuseColor.rgb, cSkin));',
     },
   });
 }

@@ -36,6 +36,45 @@ float spots(vec3 p, float scale, float radius, float density) {
 // Same lattice, returns a random value per spot (for colourful sprinkles).
 float spotId(vec3 p, float scale) { return fHash(floor(p * scale) + 11.1); }
 vec3 leafGreen(vec3 p) { return mix(vec3(0.16, 0.42, 0.07), vec3(0.32, 0.62, 0.14), fNoise(p * 14.0)); }
+// Cheap 2x2x2 Worley pattern: returns the distance-to-wall measure (1 inside a
+// cell, 0 on its wall) and a random id per cell.
+float worley(vec3 q, out float id) {
+  vec3 i = floor(q - 0.5);
+  float d1 = 9.0, d2 = 9.0;
+  id = 0.0;
+  for (int z = 0; z < 2; z++) for (int y = 0; y < 2; y++) for (int x = 0; x < 2; x++) {
+    vec3 c = i + vec3(float(x), float(y), float(z));
+    vec3 f = c + 0.15 + 0.7 * fHash3(c) - q;
+    float d = dot(f, f);
+    if (d < d1) { d2 = d1; d1 = d; id = fHash(c + 5.1); } else if (d < d2) d2 = d;
+  }
+  return smoothstep(0.0, 0.22, sqrt(d2) - sqrt(d1));
+}
+float fleshCells(vec3 q) { float id; return worley(q, id); }
+// Baked crumb (sponge, bread, dough): irregular air pockets of two sizes. 1 in a pore.
+float crumbPores(vec3 p, float s) {
+  float big = smoothstep(0.66, 0.74, fNoise(p * s) * 0.65 + fNoise(p * s * 2.3) * 0.35);
+  float small = smoothstep(0.7, 0.78, fNoise(p * s * 3.1 + 7.0));
+  return max(big, small * 0.8);
+}
+// Fine strands running along one direction (vascular bundles, fibres): 1 on a strand.
+float strands(vec2 cross, float density, float width) {
+  vec2 g = cross * density;
+  vec2 f = fract(g) - 0.5 - (vec2(fHash(vec3(floor(g), 1.0)), fHash(vec3(floor(g), 2.0))) - 0.5) * 0.6;
+  return 1.0 - smoothstep(width * 0.5, width, length(f));
+}
+// Citrus flesh: radially elongated juice vesicles inside segments. rr = distance
+// from the axis, a = angle around it, y = position along it, seg = segment count.
+// Returns the flesh colour between a deep and a light tone, with white membranes.
+vec3 citrusFlesh(float rr, float a, float y, float seg, vec3 deep, vec3 light, vec3 pith) {
+  float id;
+  float cell = worley(vec3(rr * 14.0, a * max(rr, 0.08) * 38.0, y * 38.0), id);
+  vec3 c = mix(deep, light, 0.25 + 0.5 * id);
+  c = mix(c * 0.86, c * 1.06, cell);
+  float f = fract(a / (2.0 * OBJ_PI) * seg + 0.08 * sin(y * 3.0));
+  float memb = 1.0 - smoothstep(0.004, 0.011, min(f, 1.0 - f) * (2.0 * OBJ_PI / seg) * rr);
+  return mix(c, pith, memb * 0.9);
+}
 vec3 hsv(float h, float s, float v) { vec3 k = clamp(abs(mod(h * 6.0 + vec3(0, 4, 2), 6.0) - 3.0) - 1.0, 0.0, 1.0); return v * mix(vec3(1.0), k, s); }
 // Catalog colours are written as display (sRGB-like) values, but lighting works
 // in linear light: without this step every colour renders washed out and pale.
@@ -82,6 +121,24 @@ float itemSkinT(float part) { return ITEM_SKIN_DEFAULT; }
 `;
 
 const OBJECT_GLSL = /* glsl */ `
+// ---- cut flesh: cell texture, juice gloss, light scattering (see lookOf) ----
+// Shades a cut face (skin < 0.5) with its cells; h is the cell relief for the
+// bump, faded out where cells get smaller than a few pixels (no shimmer).
+vec3 fleshShade(vec3 col, vec3 p, float skin, out float h) {
+  h = 0.0;
+  if (LOOK_CELL <= 0.0 || skin > 0.5) return col;
+  float px = max(max(fwidth(p.x), fwidth(p.y)), fwidth(p.z)) * LOOK_CELL;
+  float vis = 1.0 - smoothstep(0.12, 0.4, px);
+  if (vis <= 0.0) return col;
+  float c = fleshCells(p * LOOK_CELL);
+  h = c * vis;
+  float k = LOOK_CELL_DEPTH * vis;
+  return col * (1.0 - 0.32 * k * (1.0 - c)) * (1.0 + 0.05 * k * c);
+}
+float fleshRough(float r, float skin) { return mix(r, 0.14, LOOK_JUICE * (1.0 - skin)); }
+vec3 fleshGlow(vec3 col, float skin) { return col * LOOK_SSS * 0.12 * (1.0 - 0.6 * skin); }
+float fleshBumpScale() { return LOOK_CELL > 0.0 ? 0.12 * LOOK_CELL_DEPTH / LOOK_CELL : 0.0; }
+
 float objField(vec3 p) { float part; return objMap(p, part); }
 vec3 objNormal(vec3 p) {
   const float e = 0.002;
@@ -151,11 +208,36 @@ vec3 bumpNormal(vec3 surfPos, vec3 surfNorm, float h, float scale) {
 
 const cache = new Map();
 
+// Surface character of an item's cut faces. Organic items get juicy, slightly
+// translucent flesh with a visible cell structure; foods a porous crumb;
+// hard objects none of it. An item can override any field with `look`.
+export function lookOf(item) {
+  const wet = item.sound?.wet ?? 0;
+  const organic = item.cat === 'fruit' || item.cat === 'veg';
+  const food = item.cat === 'food';
+  const base = {
+    juice: organic ? 0.3 + 0.7 * wet : food ? 0.4 * wet : 0,
+    sss: organic ? 0.7 : food ? 0.3 : 0,
+    cell: organic ? 55 : 0,
+    cellDepth: organic ? 0.45 : 0,
+    sheen: 0,
+    sheenColor: '#ffffff',
+  };
+  return { ...base, ...(item.look || {}) };
+}
+
+const f = (v) => Number(v).toFixed(4);
+
 export function itemGlsl(item) {
   if (cache.has(item.id)) return cache.get(item.id);
   const skinT = (item.skinT ?? 0.03).toFixed(4);
+  const look = lookOf(item);
   const src = [
     `#define ITEM_SKIN_DEFAULT ${skinT}`,
+    `#define LOOK_JUICE ${f(look.juice)}`,
+    `#define LOOK_SSS ${f(look.sss)}`,
+    `#define LOOK_CELL ${f(look.cell)}`,
+    `#define LOOK_CELL_DEPTH ${f(look.cellDepth)}`,
     HELPERS_GLSL,
     SDF_GLSL_LIB,
     compileGlsl(item.shape, 'objMap'),

@@ -26,7 +26,8 @@ vec3 appleSkin(vec3 p) {
 }
 vec3 appleFlesh(vec3 p, float depth) {
   vec3 c = vec3(0.93, 0.87, 0.68) * (0.95 + 0.07 * fNoise(p * 34.0));
-  c = mix(vec3(0.97, 0.8, 0.52), c, smoothstep(0.0, 0.07, depth));
+  c = mix(vec3(0.97, 0.66, 0.52), c, smoothstep(0.0, 0.05, depth));
+  c = mix(c, vec3(0.96, 0.92, 0.7), smoothstep(0.6, 0.95, fNoise(p * 9.0)) * 0.35);
   float rr = length(p.xz);
   float core = length(vec2(rr / 0.25, (p.y - 0.03) / 0.52));
   c = mix(c * vec3(0.95, 0.96, 0.84), c, smoothstep(0.9, 1.04, core));
@@ -110,31 +111,28 @@ float itemRough(float part, float skin) { return mix(0.45, 0.4, skin); }
 vec3 itemSkin(vec3 p, float part) {
   if (part > 1.5) return leafGreen(p);
   if (part > 0.5) return vec3(0.35, 0.36, 0.14);
-  vec3 c = mix(vec3(0.98, 0.36, 0.02), vec3(0.86, 0.24, 0.01), fFbm(p * 3.0));
-  return c * (0.95 + 0.06 * smoothstep(0.3, 0.7, fNoise(p * 22.0)));
+  vec3 c = mix(vec3(0.98, 0.42, 0.03), vec3(0.9, 0.28, 0.01), fFbm(p * 3.0));
+  return c * (0.96 + 0.06 * fleshCells(p * 30.0));
 }
 vec3 itemInner(vec3 p, float depth, float part) {
   if (part > 0.5) return vec3(0.45, 0.6, 0.25);
-  vec3 pith = vec3(0.99, 0.92, 0.76);
+  vec3 pith = vec3(0.99, 0.94, 0.8);
   float rr = length(p.xz);
-  float a = atan(p.z, p.x);
-  float f = fract(a / (2.0 * OBJ_PI) * 11.0 + 0.13 * sin(p.y * 3.0));
-  float memb = 1.0 - smoothstep(0.004, 0.012, min(f, 1.0 - f) * (2.0 * OBJ_PI / 11.0) * rr);
-  vec3 flesh = mix(vec3(1.0, 0.5, 0.06), vec3(0.94, 0.33, 0.02), fNoise(vec3(rr * 30.0, a * 8.0, p.y * 6.0)));
-  vec3 c = mix(vec3(0.98, 0.38, 0.03), pith, smoothstep(0.022, 0.032, depth));
-  float inFlesh = smoothstep(0.075, 0.09, depth);
-  c = mix(c, flesh, inFlesh);
-  c = mix(c, pith, memb * inFlesh);
+  vec3 flesh = citrusFlesh(rr, atan(p.z, p.x), p.y, 11.0, vec3(0.96, 0.4, 0.03), vec3(1.0, 0.64, 0.14), pith);
+  vec3 c = mix(vec3(0.98, 0.4, 0.04), pith, smoothstep(0.02, 0.03, depth));
+  c = mix(c, flesh, smoothstep(0.075, 0.09, depth));
   return mix(c, pith, 1.0 - smoothstep(0.05, 0.09, rr));
 }
 #define ITEM_ROUGH
-float itemRough(float part, float skin) { return mix(0.4, 0.55, skin); }
+float itemRough(float part, float skin) { return mix(0.4, 0.42, skin); }
 #define ITEM_BUMP
-float itemBump(vec3 p, float part) { return part < 0.5 ? fNoise(p * 26.0) * 0.12 : 0.0; }
+// Oil glands: a fine field of shallow dimples, not a crumpled surface.
+float itemBump(vec3 p, float part) { return part < 0.5 ? fleshCells(p * 30.0) * 0.035 : 0.0; }
 `,
   },
   {
     id: 'kiwi', cat: 'fruit', tr: 'KİVİ', en: 'KIWI', dot: '#7cae2a', skinT: 0.02,
+    look: { sheen: 1, sheenColor: '#c9a679' },
     sound: { cut: 'juicy', hard: 0.2, wet: 0.85 },
     bounds: [[-1.5, -1.1, -1.2], [1.5, 1.1, 1.2]],
     shape: { op: 'union', k: 0.5, of: [
@@ -143,29 +141,39 @@ float itemBump(vec3 p, float part) { return part < 0.5 ? fNoise(p * 26.0) * 0.12
     ] },
     glsl: /* glsl */ `
 vec3 itemSkin(vec3 p, float part) {
-  vec3 c = mix(vec3(0.47, 0.34, 0.19), vec3(0.3, 0.2, 0.11), fFbm(p * 5.0));
-  return c * (0.95 + 0.08 * fNoise(p * 26.0));
+  vec3 c = mix(vec3(0.5, 0.37, 0.2), vec3(0.32, 0.22, 0.12), fFbm(p * 5.0));
+  return c * (0.92 + 0.12 * fNoise(p * 45.0));
 }
 vec3 itemInner(vec3 p, float depth, float part) {
   float prof = sqrt(max(0.0, 1.0 - sq(p.x / 1.2)));
   float q = length(p.yz) / max(0.05, 0.86 * prof);
   float a = atan(p.z, p.y);
-  vec3 green = vec3(0.36, 0.58, 0.12);
-  vec3 lightg = vec3(0.62, 0.8, 0.34);
-  vec3 flesh = mix(green, lightg, clamp(smoothstep(0.55, 0.9, fNoise(vec3(a * 9.0, q * 3.0, p.x * 2.0))) * (1.0 - q) * 1.3, 0.0, 1.0));
-  flesh = mix(flesh, green * 0.8, smoothstep(0.7, 1.0, q));
-  vec3 c = mix(vec3(0.95, 0.92, 0.72), flesh, smoothstep(0.18, 0.23, q));
-  float ua = a / (2.0 * OBJ_PI) * 46.0;
-  float h = fHash(vec3(floor(ua), floor(p.x * 14.0), 1.0));
-  float dq = (q - (0.29 + (h - 0.5) * 0.08)) / 0.05;
-  float da = (fract(ua) - 0.5) / 0.28;
-  c = mix(c, vec3(0.06, 0.04, 0.02), (1.0 - smoothstep(0.7, 1.0, dq * dq + da * da)) * step(0.25, h));
+  vec3 green = vec3(0.3, 0.55, 0.07);
+  vec3 lime = vec3(0.55, 0.74, 0.2);
+  // fine light rays running from the core to the skin
+  float rays = smoothstep(0.55, 0.95, fNoise(vec3(a * 40.0, q * 1.5, p.x * 4.0)));
+  vec3 flesh = mix(green, lime, rays * (1.0 - smoothstep(0.45, 0.95, q)) * 0.75);
+  // the paler, translucent ring the seeds sit in
+  float ring = smoothstep(0.2, 0.26, q) * (1.0 - smoothstep(0.38, 0.48, q));
+  flesh = mix(flesh, vec3(0.74, 0.84, 0.4), ring * 0.55);
+  flesh = mix(flesh, green * 0.8, smoothstep(0.84, 1.0, q));
+  float coreR = 0.2 + 0.025 * sin(a * 9.0);
+  vec3 c = mix(vec3(0.97, 0.95, 0.8), flesh, smoothstep(coreR - 0.02, coreR + 0.05, q));
+  // seeds: small dark teardrops in two staggered rows, pointing outwards
+  for (int row = 0; row < 2; row++) {
+    float ua = a / (2.0 * OBJ_PI) * 54.0 + float(row) * 0.5;
+    float h = fHash(vec3(floor(ua), floor(p.x * 15.0), float(row)));
+    float dq = (q - (0.28 + float(row) * 0.07 + (h - 0.5) * 0.04)) / 0.036;
+    float da = (fract(ua) - 0.5) / (0.24 * (1.0 - 0.45 * clamp(dq, -1.0, 1.0)));
+    float dx = (fract(p.x * 15.0) - 0.5) / 0.42;
+    c = mix(c, vec3(0.05, 0.035, 0.02), (1.0 - smoothstep(0.65, 1.0, dq * dq + da * da + dx * dx)) * step(0.3, h));
+  }
   return mix(vec3(0.5, 0.55, 0.15), c, smoothstep(0.0, 0.03, depth));
 }
 #define ITEM_ROUGH
 float itemRough(float part, float skin) { return mix(0.4, 0.85, skin); }
 #define ITEM_BUMP
-float itemBump(vec3 p, float part) { return fNoise(p * 34.0) * 0.06; }
+float itemBump(vec3 p, float part) { return fNoise(p * 34.0) * 0.03 + fNoise(p * 60.0) * 0.015; }
 `,
   },
   {
@@ -181,19 +189,15 @@ float itemBump(vec3 p, float part) { return fNoise(p * 34.0) * 0.06; }
 vec3 itemSkin(vec3 p, float part) {
   vec3 c = mix(vec3(1.0, 0.86, 0.1), vec3(0.95, 0.72, 0.05), fFbm(p * 3.0));
   c = mix(c, vec3(0.75, 0.8, 0.2), smoothstep(0.95, 1.12, abs(p.x)) * 0.6);
-  return c * (0.95 + 0.06 * fNoise(p * 24.0));
+  return c * (0.95 + 0.06 * fleshCells(p * 30.0));
 }
 vec3 itemInner(vec3 p, float depth, float part) {
-  vec3 pith = vec3(0.99, 0.96, 0.82);
+  vec3 pith = vec3(0.99, 0.97, 0.84);
   float rr = length(p.yz);
   float a = atan(p.z, p.y);
-  float f = fract(a / (2.0 * OBJ_PI) * 10.0);
-  float memb = 1.0 - smoothstep(0.004, 0.012, min(f, 1.0 - f) * (2.0 * OBJ_PI / 10.0) * rr);
-  vec3 flesh = mix(vec3(1.0, 0.95, 0.45), vec3(0.98, 0.86, 0.25), fNoise(vec3(rr * 30.0, a * 8.0, p.x * 6.0)));
+  vec3 flesh = citrusFlesh(rr, a, p.x, 10.0, vec3(0.97, 0.84, 0.22), vec3(1.0, 0.95, 0.55), pith);
   vec3 c = mix(vec3(1.0, 0.85, 0.12), pith, smoothstep(0.025, 0.035, depth));
-  float inFlesh = smoothstep(0.085, 0.1, depth);
-  c = mix(c, flesh, inFlesh);
-  c = mix(c, pith, memb * inFlesh);
+  c = mix(c, flesh, smoothstep(0.085, 0.1, depth));
   float seedA = floor(a / (2.0 * OBJ_PI) * 10.0 + 0.5);
   float sh = fHash(vec3(seedA, 3.0, 7.0));
   vec2 sc = vec2(cos((seedA + 0.5) * 2.0 * OBJ_PI / 10.0), sin((seedA + 0.5) * 2.0 * OBJ_PI / 10.0)) * 0.16;
@@ -204,11 +208,12 @@ vec3 itemInner(vec3 p, float depth, float part) {
 #define ITEM_ROUGH
 float itemRough(float part, float skin) { return mix(0.38, 0.5, skin); }
 #define ITEM_BUMP
-float itemBump(vec3 p, float part) { return fNoise(p * 28.0) * 0.12; }
+float itemBump(vec3 p, float part) { return fleshCells(p * 30.0) * 0.035 + fNoise(p * 14.0) * 0.03; }
 `,
   },
   {
     id: 'peach', cat: 'fruit', tr: 'ŞEFTALİ', en: 'PEACH', dot: '#f3a36b', skinT: 0.02,
+    look: { sheen: 0.8, sheenColor: '#ffd9c2' },
     sound: { cut: 'juicy', hard: 0.25, wet: 0.8 },
     shape: { op: 'union', of: [
       { op: 'subtract', k: 0.16, from: { type: 'sphere', r: 0.95, part: 0 },
@@ -230,8 +235,11 @@ vec3 itemInner(vec3 p, float depth, float part) {
     float w = fFbm(p * 14.0);
     return mix(vec3(0.45, 0.22, 0.1), vec3(0.25, 0.1, 0.05), smoothstep(0.35, 0.65, w));
   }
-  vec3 c = mix(vec3(1.0, 0.7, 0.25), vec3(0.98, 0.78, 0.38), fNoise(p * 10.0));
-  c = mix(vec3(0.85, 0.25, 0.12), c, smoothstep(0.0, 0.12, pit));
+  vec3 c = mix(vec3(1.0, 0.68, 0.22), vec3(0.99, 0.78, 0.36), fNoise(p * 10.0));
+  // fibres fanning out from the pit, and the red, ragged flesh hugging it
+  float fib = smoothstep(0.55, 0.9, fNoise(vec3(atan(p.z, p.x) * 16.0, length(p) * 3.0, p.y * 2.0)));
+  c = mix(c, vec3(0.98, 0.56, 0.18), fib * 0.35);
+  c = mix(vec3(0.8, 0.16, 0.1), c, smoothstep(0.0, 0.08 + 0.1 * fNoise(p * 14.0), pit));
   return mix(vec3(0.95, 0.5, 0.2), c, smoothstep(0.0, 0.05, depth));
 }
 #define ITEM_ROUGH
@@ -286,8 +294,11 @@ vec3 itemInner(vec3 p, float depth, float part) {
   if (part > 0.5) return vec3(0.4, 0.65, 0.25);
   float axisD = length(p.yz) / max(0.1, 0.72 - max(p.x, 0.0) * 0.7);
   float a = atan(p.z, p.y);
-  vec3 c = mix(vec3(1.0, 0.82, 0.82), vec3(0.88, 0.1, 0.15), smoothstep(0.25, 0.7, axisD));
-  c = mix(c, vec3(0.9, 0.2, 0.25), smoothstep(0.7, 0.95, fNoise(vec3(a * 6.0, axisD * 2.0, p.x * 3.0))) * (1.0 - smoothstep(0.2, 0.6, axisD)) * 0.6);
+  vec3 c = mix(vec3(1.0, 0.86, 0.84), vec3(0.9, 0.08, 0.12), smoothstep(0.3, 0.75, axisD));
+  // pale strands fanning out from the core towards each seed
+  float fan = smoothstep(0.6, 0.95, fNoise(vec3(a * 11.0, axisD * 1.2, p.x * 5.0)));
+  c = mix(c, vec3(1.0, 0.74, 0.74), fan * smoothstep(0.28, 0.5, axisD) * (1.0 - smoothstep(0.75, 0.95, axisD)) * 0.75);
+  c = mix(c, vec3(0.95, 0.35, 0.38), smoothstep(0.6, 0.9, fNoise(vec3(a * 5.0, axisD * 3.0, p.x * 4.0))) * (1.0 - smoothstep(0.2, 0.5, axisD)) * 0.5);
   return mix(vec3(0.8, 0.04, 0.08), c, smoothstep(0.0, 0.06, depth));
 }
 #define ITEM_ROUGH

@@ -27,9 +27,10 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   gerçek kabuk şekliyle çizilir.
 - **Doğru sayaç**: Ekranda çizilen küp sayısı kaliteye göre sınırlanır, sayaç gerçek ızgaradaki sayıyı gösterir.
 - **ASMR sesi**: Dikey ve önden arkaya kesimlerde bıçağın yükselen parlak "fıss"ı (8–12 kHz), temas anında
-  malzemenin çıtırtısı ve tahtanın "tok"u duyulur. Tok fiziksel bir modelle üretilir: tezgâhta duran sert
-  ahşap tahtanın 160 Hz–3.8 kHz arasındaki sık ve hızla sönen eğilme modları (kayıp katsayısı 0,035), altta
-  tezgâhın kısa, alçak gümlemesi, çeliğin küçük tıkı ve bıçağın çok hafif çınlaması. Yatay kesimde bıçak
+  malzemenin çıtırtısı ve bıçağın tahtaya vurduğu kalın bir "tok" duyulur. Tok fiziksel bir modelle üretilir:
+  kalın tahtanın 215 / 330 / 525 Hz civarındaki güçlü modları (telefon hoparlöründe de duyulur), tahtanın
+  170 Hz üstündeki sık ahşap modları, altta tezgâhın kısa gümlemesi, çeliğin ahşaba sert temasıyla gelen kısa
+  "tak" ve bıçağın çok hafif çınlaması. Enerjinin çoğu 150–1200 Hz arasındadır. Yatay kesimde bıçak
   tahtaya değmez: yalnızca kayma sesi (fıss + yumuşak sürtünme) vardır, vuruş ya da tık yoktur. Küpler
   dağılırken ve yere düşerken ses çıkmaz. Hızlı kesimlerde ses hızlandırılmaz, kısa fıss varyantları
   kullanılır; yoğun pasajlarda fıss öne çıkar, tok geri çekilir. Her nesnenin kendi kesim sesi var (çıtır,
@@ -47,6 +48,12 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
 - **Kesim düzeni**: Bıçak önce sağdan sola dikey, sonra yukarıdan aşağı yatay, en son önden arkaya keser.
   Pizza, kurabiye, donut gibi ince nesnelerde (yükseklik / taban < 0,4) yatay kesim yapılmaz; kesimler dikey ve
   önden arkaya paylaşılır. Parçalar iğneye dönüşecek kadar inceldiğinde ekranda küp oranında çizilir.
+- **Gerçekçi iç ve dış görünüş**: Kesit yüzleri nesneye göre ıslak parlaklık, hafif ışık geçirgenliği ve
+  ince hücre dokusu alır (`lookOf`, `fleshShade`). Narenciyede uzun meyve suyu keseleri ve beyaz zarlar,
+  kivide ışınsal çizgiler, tohum halkası ve gözyaşı biçimli tohumlar, çilekte açık renkli göbekten yayılan
+  lifler, domateste kırmızı duvarlar ve turuncu jöleli odacıklar; kek, ekmek ve hamurda gözenekli iç doku.
+  Kabuklarda yağ bezesi çukurları, şeftali ve kivide kadife parıltı (sheen). Futbol topu gerçek kesik
+  ikosahedron düzeninde: 12 siyah beşgen, 20 beyaz altıgen.
 - **Renkler**: Katalog renkleri ekran (sRGB) değerleriyle yazılır; shader bunları ışıklandırmadan önce doğrusal
   ışığa çevirir (`vivid`, γ 1,6 + hafif doygunluk). Ton eşleme renk tonunu ve doygunluğu koruyan Neutral
   eşlemedir, böylece kesit yüzleri soluk ya da beyaz görünmez.
@@ -57,10 +64,10 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   shader'ı ve verisi önceden hazırlanır, kare hızı düşerse çözünürlük en fazla %75'e kadar iner.
 - **Video çıktısı**: *MP4 oluştur* (her kare tam zamanında, 1080×1920, H.264 + AAC ses), *Seri üret* (açık
   kategoriden 3 farklı nesne, 3 farklı müzikle arka arkaya), *Canlı kayıt*, *Temiz ekran*. Dosya
-  [Mediabunny](https://mediabunny.dev) ile yazılır. Ses her zaman AAC'dir (telefonlar, QuickTime ve YouTube
-  bunu bekler). Tarayıcının kendi AAC kodlayıcısı yoksa (Linux'ta Chrome, iOS WebView'ları, eski Safari)
-  WebAssembly AAC kodlayıcı (`@mediabunny/aac-encoder`) yüklenir. Kodlayıcı, kareler işlenmeden önce kısa bir
-  sessizlikle denenir; hiçbiri çalışmazsa not satırı videonun neden sessiz olduğunu söyler.
+  [Mediabunny](https://mediabunny.dev) ile yazılır. Ses, projenin kendi AAC-LC kodlayıcısıyla (`js/aac-encoder.js`)
+  ses işçisinde kodlanır: tarayıcının ses kodlayıcısına ya da WebAssembly'ye ihtiyaç yoktur, her cihaz telefon
+  galerilerinin, QuickTime'ın ve YouTube'un çaldığı aynı AAC izini yazar. Kodlayıcı ffmpeg'in çözücüsüyle
+  doğrulanır (seviye, örnek düzeyinde zamanlama, sinyal/gürültü oranı).
 - **Shorts metni**: Her video için başlık, açıklama ve etiketler; tek dokunuşla kopyalanır. Açılış sorusu
   ("Bu elma 1000 kesime dayanabilir mi?") ilk saniyede izleyiciyi yakalar.
 
@@ -87,7 +94,8 @@ Tüm animasyon zamanın saf bir fonksiyonudur: aynı ayarlarla her render birebi
 | `js/sfx.js` | Kesim, kayma ve tahta sesi sentezi |
 | `js/music.js`, `js/music-jazz.js`, `js/music-instruments.js` | Müzik bestecileri, enstrüman sentezi, mastering |
 | `js/audio.js`, `js/events.js` | WebAudio çalma ve çevrimdışı ses render'ı |
-| `js/exporter.js` | Kare kare MP4 (Mediabunny), AAC ses ve WASM yedeği |
+| `js/exporter.js` | Kare kare MP4 (Mediabunny) |
+| `js/aac-encoder.js`, `js/aac-tables.js` | JavaScript AAC-LC kodlayıcı (MDCT, maskeleme, Huffman tabloları) |
 | `js/work.js`, `js/worker-hub.js` | Ağır işleri (mesh, küp, ses, müzik) arka planda çalıştırma |
 | `js/app.js`, `js/main.js`, `js/titles.js` | Uygulama, arayüz, Shorts metinleri |
 

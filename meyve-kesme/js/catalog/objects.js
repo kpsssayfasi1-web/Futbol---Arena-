@@ -126,9 +126,11 @@ const BALL_GLSL = /* glsl */ `
 void ballFaces(vec3 d, out float best, out float second, out float isPent) {
   const float P = 1.61803399;
   vec3 V[12] = vec3[12](vec3(0, 1, P), vec3(0, -1, P), vec3(0, 1, -P), vec3(0, -1, -P), vec3(1, P, 0), vec3(-1, P, 0), vec3(1, -P, 0), vec3(-1, -P, 0), vec3(P, 0, 1), vec3(-P, 0, 1), vec3(P, 0, -1), vec3(-P, 0, -1));
-  vec3 H[20] = vec3[20](vec3(1, 1, 1), vec3(1, 1, -1), vec3(1, -1, 1), vec3(1, -1, -1), vec3(-1, 1, 1), vec3(-1, 1, -1), vec3(-1, -1, 1), vec3(-1, -1, -1), vec3(0, 1.0 / P, P), vec3(0, 1.0 / P, -P), vec3(0, -1.0 / P, P), vec3(0, -1.0 / P, -P), vec3(1.0 / P, P, 0), vec3(-1.0 / P, P, 0), vec3(1.0 / P, -P, 0), vec3(-1.0 / P, -P, 0), vec3(P, 0, 1.0 / P), vec3(-P, 0, 1.0 / P), vec3(P, 0, -1.0 / P), vec3(-P, 0, -1.0 / P));
+  // Dodecahedron vertices dual to V: the 20 hexagon centres of a truncated icosahedron.
+  const float Q = 1.0 / P;
+  vec3 H[20] = vec3[20](vec3(1, 1, 1), vec3(1, 1, -1), vec3(1, -1, 1), vec3(1, -1, -1), vec3(-1, 1, 1), vec3(-1, 1, -1), vec3(-1, -1, 1), vec3(-1, -1, -1), vec3(0, P, Q), vec3(0, P, -Q), vec3(0, -P, Q), vec3(0, -P, -Q), vec3(Q, 0, P), vec3(-Q, 0, P), vec3(Q, 0, -P), vec3(-Q, 0, -P), vec3(P, Q, 0), vec3(P, -Q, 0), vec3(-P, Q, 0), vec3(-P, -Q, 0));
   best = -2.0; second = -2.0; isPent = 0.0;
-  for (int i = 0; i < 12; i++) { float v = dot(d, normalize(V[i])) + 0.035; if (v > best) { second = best; best = v; isPent = 1.0; } else if (v > second) second = v; }
+  for (int i = 0; i < 12; i++) { float v = dot(d, normalize(V[i])) - 0.025; if (v > best) { second = best; best = v; isPent = 1.0; } else if (v > second) second = v; }
   for (int i = 0; i < 20; i++) { float v = dot(d, normalize(H[i])); if (v > best) { second = best; best = v; isPent = 0.0; } else if (v > second) second = v; }
 }
 `;
