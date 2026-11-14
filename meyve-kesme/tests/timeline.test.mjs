@@ -1,15 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { splitCuts, phaseDuration, planePositions, cutTimes, buildTimeline, roundState, cutsDone, releaseTimeForZ, roundIndexAt, ROUND_PRESETS, TIMING } from '../js/timeline.js';
+import { splitCuts, phaseDuration, planePositions, cutTimes, buildTimeline, roundState, cutsDone, releaseTimeForZ, roundIndexAt, cubeLayers, ROUND_PRESETS, TIMING } from '../js/timeline.js';
 
-test('splitCuts spreads cuts over the three axes and keeps the total', () => {
-  assert.deepEqual(splitCuts(10), [4, 3, 3]);
-  assert.deepEqual(splitCuts(1000), [334, 333, 333]);
+test('splitCuts: half top-down, one horizontal pass, the rest front to back', () => {
+  assert.deepEqual(splitCuts(10), [5, 1, 4]);
+  assert.deepEqual(splitCuts(50), [25, 1, 24]);
+  assert.deepEqual(splitCuts(1000), [500, 1, 499]);
   for (const n of [3, 7, 50, 251, 5000]) {
     const s = splitCuts(n);
     assert.equal(s[0] + s[1] + s[2], n);
+    assert.equal(s[1], 1);
     assert.ok(s.every((v) => v >= 1));
   }
+});
+
+test('cube layers make the pieces roughly cubic', () => {
+  const bbox = { min: [-1, -0.25, -0.5], max: [1, 0.25, 0.5] }; // a bar of soap
+  assert.equal(cubeLayers([5, 1, 4], bbox), 2);
+  const split = [500, 1, 499];
+  const L = cubeLayers(split, bbox);
+  const cell = [2 / 501, 0.5 / L, 1 / 500];
+  assert.ok(cell[1] / cell[0] > 0.7 && cell[1] / cell[0] < 1.5, `layers ${L}`);
 });
 
 test('splitCuts never returns fewer than three cuts', () => {
@@ -31,13 +42,27 @@ test('planePositions lie strictly inside the box in cutting order', () => {
   assert.deepEqual(z, [0.5, 0, -0.5]);
 });
 
-test('cutTimes accelerate and end exactly at the phase end', () => {
+test('cutTimes keep an even beat and end exactly at the phase end', () => {
   const t = cutTimes(20, 2, 4);
   assert.equal(t[19], 6);
-  const first = t[1] - t[0];
-  const last = t[19] - t[18];
-  assert.ok(first > last, 'later cuts come faster');
-  for (let i = 1; i < t.length; i++) assert.ok(t[i] > t[i - 1]);
+  for (let i = 1; i < t.length; i++) assert.ok(Math.abs(t[i] - t[i - 1] - 0.2) < 1e-9);
+  const fast = cutTimes(20, 2, 4, 0.7);
+  assert.ok(fast[1] - fast[0] > fast[19] - fast[18], 'accel < 1 still speeds up');
+});
+
+test('round lengths follow the reference: ~6 s opening, ~10-13 s after, ~70 s in all', () => {
+  const tl = buildTimeline({ rounds: ROUND_PRESETS.classic });
+  const len = tl.rounds.map((r) => r.end - r.start);
+  assert.ok(len[0] > 5 && len[0] < 7.5, `round 1: ${len[0]}`);
+  for (let i = 1; i < 5; i++) assert.ok(len[i] > 9 && len[i] < 14.5, `round ${i + 1}: ${len[i]}`);
+  // the opening round is cut at about two cuts per second
+  const x = tl.rounds[0].phases[0];
+  assert.ok(x.times[1] - x.times[0] > 0.35 && x.times[1] - x.times[0] < 0.6);
+  // every round starts on a resting item: no drop, the knife waits briefly
+  for (const r of tl.rounds) {
+    assert.equal(r.land, r.start);
+    assert.ok(Math.abs(r.ready - r.start - TIMING.ready) < 1e-9);
+  }
 });
 
 test('buildTimeline chains rounds back to back', () => {
@@ -45,7 +70,7 @@ test('buildTimeline chains rounds back to back', () => {
   assert.equal(tl.rounds.length, 6);
   for (let i = 1; i < tl.rounds.length; i++) assert.equal(tl.rounds[i].start, tl.rounds[i - 1].end);
   assert.equal(tl.duration, tl.rounds[5].end);
-  assert.ok(tl.duration > 40 && tl.duration < 70, `duration ${tl.duration}`);
+  assert.ok(tl.duration > 60 && tl.duration < 76, `duration ${tl.duration}`);
   assert.equal(tl.rounds[5].cuts, 1000);
 });
 
@@ -79,13 +104,14 @@ test('roundState counts cuts and moves the clip plane front to back', () => {
   assert.equal(before.total, 0);
   assert.equal(before.active, null);
   assert.equal(before.clipZ, Infinity);
-  const mid = roundState(r, r.phases[1].times[1]);
-  assert.deepEqual(mid.done, [4, 2, 0]);
+  const mid = roundState(r, (r.phases[1].start + r.phases[1].end) / 2);
+  assert.deepEqual(mid.done, [5, 0, 0]);
   assert.equal(mid.active.axis, 1);
+  assert.equal(roundState(r, r.phases[1].end + 0.01).done[1], 1);
   const end = roundState(r, r.lastCut + 0.01);
   assert.equal(end.total, 10);
   assert.equal(end.finished, true);
-  assert.equal(end.clipZ, r.phases[2].planes[2]);
+  assert.equal(end.clipZ, r.phases[2].planes[3]);
 });
 
 test('active stroke progress is continuous across phase changes', () => {

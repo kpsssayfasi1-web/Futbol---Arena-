@@ -1,5 +1,5 @@
 // Glue: renders any moment of the timeline, drives playback, sound and export.
-import { createStage, placeCamera } from './scene.js';
+import { createStage, placeCamera, placeContactShadow } from './scene.js';
 import { buildCameraPlan } from './camera.js';
 import { ObjectModel } from './object-mesh.js';
 import { createCutUniforms, objectMaterials, precompile } from './materials.js';
@@ -185,7 +185,7 @@ export class App {
   // Predicts which cube program a round will use, so it can compile early.
   predictMode(round) {
     const info = objectInfo(itemById(round.itemId));
-    const grid = displayGrid(round.split, this.budget(), info);
+    const grid = displayGrid(round.split, this.budget(), info, round.layers);
     const cells = grid.dims[0] * grid.dims[1] * grid.dims[2];
     if (cells <= COARSE_CELL_LIMIT) return 'boolean';
     return cells * 0.5 <= DETAILED_LIMIT ? 'detailed' : 'baked';
@@ -280,7 +280,7 @@ export class App {
       s += (interval > 0.15 ? 0.016 : 0.004) * Math.exp(-k * 22) * Math.cos(k * 70);
     }
     const kl = T - round.land;
-    if (kl >= 0) s += 0.03 * Math.exp(-kl * 14) * Math.cos(kl * 60);
+    if (round.land > round.start && kl >= 0) s += 0.03 * Math.exp(-kl * 14) * Math.cos(kl * 60);
     return s;
   }
 
@@ -323,6 +323,8 @@ export class App {
     const zp = round.phases[2];
     const gone = T >= zp.times[zp.n - 1] + 0.13;
     this.model.setVisible(hasItem && !gone, Number.isFinite(state.clipZ) && !gone);
+    // the contact shade follows what still stands of the item
+    placeContactShadow(this.contact, round, hasItem && !gone, state.clipZ);
     for (const [index, pile] of this.piles) {
       let visible = false;
       if (index === ri) {
@@ -330,7 +332,7 @@ export class App {
         pile.set(T, 0);
       } else if (index === ri - 1) {
         const k = T - round.start;
-        visible = k < TIMING.outro + 0.1;
+        visible = TIMING.outro > 0 && k < TIMING.outro + 0.1;
         pile.set(T, k);
       }
       if (!visible && pile.warm > 0) {

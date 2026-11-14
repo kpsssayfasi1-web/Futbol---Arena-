@@ -49,15 +49,37 @@ test('quaternion helpers stay unit length', () => {
   assert.ok(Math.abs(Math.hypot(...r) - 1) < 1e-9);
 });
 
-test('round events include a drop and every slow cut', () => {
+test('round events: every slow cut is pass-through, knock and blade ring; no drop', () => {
   const ev = roundEvents(round);
   for (let i = 1; i < ev.length; i++) assert.ok(ev[i].t >= ev[i - 1].t);
-  assert.equal(ev.filter((e) => e.type === 'drop').length, 1);
-  assert.equal(ev.filter((e) => e.type === 'thock').length, round.split[0] + round.split[2]);
-  assert.equal(ev.filter((e) => e.type === 'slice').length, round.split[1]);
+  const chops = round.split[0] + round.split[2];
+  assert.equal(ev.filter((e) => e.type === 'drop' || e.type === 'whoosh').length, 0, 'the item is already on the board');
+  assert.equal(ev.filter((e) => e.type === 'thock').length, chops);
+  assert.equal(ev.filter((e) => e.type === 'cut').length, chops);
+  assert.equal(ev.filter((e) => e.type === 'ring').length, chops);
   assert.ok(ev.every((e) => e.profile === 'crisp'));
-  const w = eventsInWindow(ev, round.land - 0.01, round.land + 0.01);
-  assert.ok(w.some((e) => e.type === 'drop'));
+  for (const t of round.phases[0].times) {
+    const w = eventsInWindow(ev, t - 0.001, t + 0.02).map((e) => e.type);
+    assert.ok(w.includes('thock') && w.includes('ring'), `cut at ${t}`);
+  }
+});
+
+test('the horizontal pass and the gaps between rounds are silent', () => {
+  const two = buildTimeline({ rounds: [10, 50] }).rounds;
+  for (const r of two) {
+    const ev = roundEvents(r);
+    const y = r.phases[1];
+    assert.equal(eventsInWindow(ev, y.start - 0.01, y.end + 0.005).length, 0, 'horizontal pass');
+    assert.equal(eventsInWindow(ev, r.lastCut + 0.25, r.end).length, 0, 'tail of the round');
+  }
+});
+
+test('blade ring: two clear partials near 1.25 and 1.6 kHz, gone within 0.2 s', () => {
+  for (const buf of eventBank('crisp').ring) {
+    assert.ok(powerShare(buf, 1150, 1700) > 0.85, `ring share ${powerShare(buf, 1150, 1700).toFixed(2)}`);
+    assert.ok(buf.length <= Math.round(0.2 * SAMPLE_RATE) + 1);
+    assert.ok(Math.abs(buf[buf.length - 1]) < 1e-3, 'faded out, no click at the end');
+  }
 });
 
 test('fast rounds are thinned to a playable number of knife sounds', () => {

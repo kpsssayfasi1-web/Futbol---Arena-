@@ -9,16 +9,19 @@ export const ROUND_PRESETS = {
   legend: [10, 100, 500, 1000, 2500, 5000],
 };
 
-// Tight pacing: the next item is already falling while the last slab lands.
+// Reference pacing: every round opens on a fresh item already on the board with
+// the knife resting on it, the knife keeps an even beat, and a round ends with
+// a short look at the pile followed by a hard cut to the next item.
 export const TIMING = {
-  drop: 0.36, // item falls onto the board
-  settle: 0.12, // knife starts its approach while the item squashes
-  phaseGap: 0.04,
-  tail: 0.62, // last cut -> next round starts
-  finalHold: 2.6, // the final pile and total stay on screen
-  outro: 0.4, // previous pile shrinks while the next item drops
+  drop: 0, // the item is on the board from the first frame of its round
+  ready: 0.4, // knife rests on the item before the first cut
+  phaseGap: 0.12,
+  sweep: 0.95, // the single horizontal pass: swing round, then a slow glide
+  tail: 0.65, // last cut -> hard cut to the next round
+  finalHold: 3.0, // the final pile and total stay on screen
+  outro: 0, // previous pile is gone the moment the next round starts
   hook: 1.7, // opening question on screen
-  accel: 0.7, // < 1: the knife speeds up during a phase
+  accel: 1, // even beat within a phase (< 1 would speed up)
 };
 
 export const AXIS_X = 0;
@@ -35,6 +38,8 @@ export function isFlatItem(item, info) {
   return e[1] / Math.min(e[0], e[2]) < FLAT_RATIO;
 }
 
+// Half of the cuts go top-down (right to left), one horizontal pass through the
+// middle, the rest front to back. Flat items skip the horizontal pass.
 export function splitCuts(total, flat = false) {
   if (flat) {
     const n = Math.max(2, Math.round(total));
@@ -42,14 +47,23 @@ export function splitCuts(total, flat = false) {
     return [nx, 0, n - nx];
   }
   const n = Math.max(3, Math.round(total));
-  const nx = Math.ceil(n / 3);
-  const ny = Math.ceil((n - nx) / 2);
-  return [nx, ny, n - nx - ny];
+  const nx = Math.ceil((n - 1) / 2);
+  return [nx, 1, n - 1 - nx];
 }
 
+// Seconds for a phase of n top-down or front-to-back cuts: about half a second
+// per cut on the opening round, a few seconds even for hundreds of cuts.
 export function phaseDuration(n, speed = 1) {
   if (n <= 0) return 0;
-  return Math.min(n * 0.26, 0.95 * Math.pow(n, 0.28)) / speed;
+  return Math.min(n * 0.45, 2.75 * Math.pow(n, 0.12)) / speed;
+}
+
+// Layers of cubes stacked in Y. The single horizontal pass stands for the
+// whole stack: pieces come out as cubes, as in the reference videos.
+export function cubeLayers(split, bbox) {
+  const ext = [0, 1, 2].map((k) => bbox.max[k] - bbox.min[k]);
+  const edge = (ext[0] / (split[0] + 1) + ext[2] / (split[2] + 1)) / 2;
+  return Math.max(split[1] + 1, Math.round(ext[1] / edge));
 }
 
 // Plane positions, in the order the knife makes them: every axis goes from
@@ -79,9 +93,10 @@ export function buildTimeline({ rounds = ROUND_PRESETS.classic, item = 'apple', 
     const split = splitCuts(cuts, flat);
     const start = t;
     const land = start + TIMING.drop;
-    let cursor = land + TIMING.settle;
+    const ready = land + TIMING.ready / speed;
+    let cursor = ready;
     const phases = split.map((n, axis) => {
-      const duration = phaseDuration(n, speed);
+      const duration = axis === 1 ? (n > 0 ? TIMING.sweep / speed : 0) : phaseDuration(n, speed);
       const phase = {
         axis,
         n,
@@ -90,13 +105,14 @@ export function buildTimeline({ rounds = ROUND_PRESETS.classic, item = 'apple', 
         times: cutTimes(n, cursor, duration),
         planes: planePositions(axis, n, info.bbox),
       };
-      if (n > 0) cursor = phase.end + TIMING.phaseGap;
+      if (n > 0) cursor = phase.end + TIMING.phaseGap / speed;
       return phase;
     });
     const lastCut = phases[2].end;
     const isLast = index === rounds.length - 1;
     const end = lastCut + (isLast ? TIMING.finalHold : TIMING.tail);
-    list.push({ index, cuts: split[0] + split[1] + split[2], split, flat, itemId, start, land, phases, lastCut, end, bbox: info.bbox, boardY: info.boardY });
+    const layers = cubeLayers(split, info.bbox);
+    list.push({ index, cuts: split[0] + split[1] + split[2], split, layers, flat, itemId, start, land, ready, phases, lastCut, end, bbox: info.bbox, boardY: info.boardY });
     t = end;
   });
   return { rounds: list, duration: t, speed };
@@ -153,11 +169,11 @@ export function roundState(round, t) {
 }
 
 // A stroke starts when the previous cut lands; the first stroke of a round starts
-// as soon as the fruit touches the board.
+// when the knife leaves its resting spot on the item.
 export function strokeStart(round, axis, index) {
   if (index > 0) return round.phases[axis].times[index - 1];
   const prev = previousPhase(round, axis);
-  return prev ? prev.times[prev.n - 1] : round.land;
+  return prev ? prev.times[prev.n - 1] : round.ready ?? round.land;
 }
 
 // The last phase before `axis` that has any cuts (flat items skip Y).

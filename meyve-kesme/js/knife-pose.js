@@ -121,6 +121,15 @@ export function restPose(round) {
   return { pos: [max[0] + 0.7, max[1] + 2.6, 0.45], quat: REST_QUAT };
 }
 
+// Opening pose: the blade stands in the first top-down cut with its edge just
+// into the top of the item, tip dipped, as if placed there before filming.
+export function readyPose(round) {
+  const g = geometry(round);
+  const x = round.phases[0].n > 0 ? round.phases[0].planes[0] : round.bbox.max[0] - 0.2;
+  const top = round.bbox.max[1] - 0.04;
+  return { pos: [x, top, g.heelZ], quat: quatMul(AXIS_QUAT[0], quatAxisAngle([0, 0, 1], -0.5)) };
+}
+
 function blend(a, b, t) {
   return { pos: a.pos.map((v, i) => lerp(v, b.pos[i], t)), quat: slerp(a.quat, b.quat, t) };
 }
@@ -142,17 +151,25 @@ function chopPose(axis, s, from, hover, contact, first) {
   const latIdx = axis === 0 ? 0 : 2;
   const pos = contact.pos.slice();
   pos[latIdx] = lerp(from.pos[latIdx], contact.pos[latIdx], lateral);
-  pos[1] = lerp(contact.pos[1], hover.pos[1], up);
-  return { pos, quat: contact.quat };
+  // the lift starts wherever the edge is (on the board, or resting on the item)
+  pos[1] = s < 0.55 ? lerp(from.pos[1], hover.pos[1], up) : lerp(contact.pos[1], hover.pos[1], up);
+  // straightens up from a tilted start (the resting pose); no-op otherwise
+  return { pos, quat: from.quat === contact.quat ? contact.quat : slerp(from.quat, contact.quat, lateral) };
 }
+
+const SWING = 0.35; // share of the single horizontal pass spent swinging round
 
 function slicePose(s, from, hover, contact, first) {
   if (first) {
-    if (s < 0.5) {
-      const k = smooth(0, 0.5, s);
+    if (s < SWING) {
+      const k = smooth(0, SWING, s);
       return withArc(blend(from, hover, k), Math.sin(k * Math.PI) * 0.3);
     }
-  } else if (s < 0.5) {
+    const k = (s - SWING) / (1 - SWING);
+    const e = k < 0.5 ? 2 * k * k : 1 - 2 * (1 - k) * (1 - k);
+    return { pos: [lerp(hover.pos[0], contact.pos[0], e), hover.pos[1], hover.pos[2]], quat: hover.quat };
+  }
+  if (s < 0.5) {
     // pull back out along the previous plane, then drop to the next height
     const back = smooth(0, 0.35, s);
     const drop = smooth(0.33, 0.5, s);
@@ -176,19 +193,24 @@ export function knifePose(round, state, t) {
   const g = geometry(round);
   const rest = restPose(round);
   const a = state.active;
+  const ready = readyPose(round);
   if (!a) {
     if (t < round.land) return { ...rest, edge: Infinity, interval: 1 };
+    if (state.total === 0) return { ...ready, edge: Infinity, interval: 1 };
     const zp = round.phases[2];
     const last = contactPose(round, 2, zp.n - 1, g);
     const k = smooth(0, 0.7, t - zp.times[zp.n - 1]);
     return { ...withArc(blend(last, rest, k), Math.sin(k * Math.PI) * 0.4), edge: -Infinity, interval: 1 };
   }
-  const first = a.index === 0;
+  let first = a.index === 0;
   let from;
   const prev = previousPhase(round, a.axis);
   if (!first) from = contactPose(round, a.axis, a.index - 1, g);
-  else if (!prev) from = rest;
-  else from = contactPose(round, prev.axis, prev.n - 1, g);
+  else if (!prev) {
+    // from the resting spot: lift and chop like any following cut
+    from = ready;
+    first = a.axis !== 0;
+  } else from = contactPose(round, prev.axis, prev.n - 1, g);
   const hover = hoverPose(round, a.axis, a.index, g);
   const contact = contactPose(round, a.axis, a.index, g);
   const pose = a.axis === 1 ? slicePose(a.s, from, hover, contact, first) : addRock(chopPose(a.axis, a.s, from, hover, contact, first), a.axis, g);

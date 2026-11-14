@@ -1,10 +1,11 @@
-// Camera framing as a pure function of time. 'fixed' keeps one gently
-// drifting view; 'dynamic' gives every round its own shot (angle, height,
-// distance), eases into it while the item drops, pushes in slowly while the
-// knife works and pulls back for the final reveal.
+// Camera framing as a pure function of time. 'dynamic' (default) gives every
+// round its own shot (angle, height, distance): the shot changes with the hard
+// cut to the next item, pushes in slowly while the knife works and pulls back
+// for the final reveal. 'fixed' holds one shot for the whole video.
 import { mulberry32, hashSeed } from './rng.js';
 
 export const CAMERA_MODES = ['dynamic', 'fixed'];
+export const FIXED_SHOT = { az: 28, el: 33, dist: 12.2 };
 export const CAMERA_TARGET = [0, 0.66, 0.35];
 
 // az / el in degrees, dist in scene units. Shot 0 is the classic framing.
@@ -16,7 +17,6 @@ const SHOTS = [
   { az: 36, el: 36, dist: 13.0 },
   { az: 15, el: 27, dist: 12.1 },
 ];
-const EASE_IN = 1.0; // seconds from round start to settle into the new shot
 const PUSH = 0.07; // relative push-in over a round
 const DRIFT = 4; // degrees of orbit over a round
 const FLAT_LIFT = 9; // look down more on flat items (pizza, cookie)
@@ -56,22 +56,17 @@ function roundView(r, t) {
   return { az: r.az + DRIFT * (p - 0.5) * r.dir, el: r.el, dist, targetY: r.targetY };
 }
 
-function fixedView(t) {
-  return { az: 30 + 5 * Math.sin(t * 0.11), el: 29 + 2 * Math.sin(t * 0.07 + 1), dist: 12.6, targetY: CAMERA_TARGET[1] };
+function fixedView() {
+  return { ...FIXED_SHOT, targetY: CAMERA_TARGET[1] };
 }
 
 export function cameraView(plan, t) {
-  if (!plan || plan.mode !== 'dynamic') return fixedView(t);
+  if (!plan || plan.mode !== 'dynamic') return fixedView();
   const rs = plan.rounds;
   let i = rs.length - 1;
   while (i > 0 && t < rs[i].start) i--;
-  const cur = roundView(rs[i], t);
-  if (i === 0) return cur;
-  const k = smooth((t - rs[i].start) / EASE_IN);
-  if (k >= 1) return cur;
-  const prev = roundView(rs[i - 1], Math.min(t, rs[i - 1].end));
-  const mix = (a, b) => a + (b - a) * k;
-  return { az: mix(prev.az, cur.az), el: mix(prev.el, cur.el), dist: mix(prev.dist, cur.dist), targetY: mix(prev.targetY, cur.targetY) };
+  // every round opens on a fresh item, so the new shot starts with it (a cut)
+  return roundView(rs[i], t);
 }
 
 // World-space camera position and look-at target for a view.

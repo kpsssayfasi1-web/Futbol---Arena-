@@ -8,34 +8,35 @@ import { releaseTimeForZ } from './timeline.js';
 
 export const GRAVITY = 15;
 export const COARSE_CELL_LIMIT = 12000;
-const NEEDLE_RATIO = 4;
+const FORWARD_TOSS = [0.04, 0.14]; // forward throw per unit of fall height: base + random
+const SIDE_TOSS = 0.16;
+const REPOSE = 0.95; // slope (height per cell) above which a piece slides on: a steep heap
+const MAX_HEAP = 0.85; // a heap never stands taller than this share of the item
 export const BOARD = { minX: -2.15, maxX: 2.15, minZ: -1.45, maxZ: 1.95 };
+
+// Cells per axis: the cuts in X and Z, and `layers` cube layers in Y (the
+// single horizontal pass yields cubic pieces; see cubeLayers in timeline.js).
+export function cellsOf(split, layers) {
+  return [split[0] + 1, layers ?? split[1] + 1, split[2] + 1];
+}
 
 // Display grid: the real grid when it fits the budget, otherwise a scaled one
 // (the counter still shows the real number of cubes).
-export function displayGrid(split, budget, info) {
-  const cells = split.map((n) => n + 1);
+export function displayGrid(split, budget, info, layers) {
+  const cells = cellsOf(split, layers);
   const total = cells[0] * cells[1] * cells[2];
   const ext = [0, 1, 2].map((k) => info.bbox.max[k] - info.bbox.min[k]);
   const fill = Math.min(1, info.volume / (ext[0] * ext[1] * ext[2]));
-  // Flat item (no horizontal cuts): once the real pieces turn into needles
-  // much taller than wide, draw near-cubic pieces instead (the counter keeps
-  // the real number of pieces).
-  const width = Math.min(ext[0] / cells[0], ext[2] / cells[2]);
-  if (split[1] === 0 && ext[1] / width > NEEDLE_RATIO) {
-    const edge = Math.max(width, Math.cbrt((ext[0] * ext[1] * ext[2] * fill) / budget));
-    const dims = [0, 1, 2].map((k) => Math.max(k === 1 ? 1 : 2, Math.min(k === 1 ? Infinity : cells[k], Math.floor(ext[k] / edge))));
-    return { dims, exact: false };
-  }
   if (total * fill <= budget) return { dims: cells, exact: true };
   const s = Math.cbrt(budget / (total * fill));
-  return { dims: cells.map((c) => Math.max(2, Math.floor(c * s))), exact: false };
+  return { dims: cells.map((c) => Math.max(c === 1 ? 1 : 2, Math.min(c, Math.floor(c * s)))), exact: false };
 }
 
-export function trueCubeCount(split, info, exactCount, exact) {
+export function trueCubeCount(split, info, exactCount, exact, layers) {
   if (exact) return exactCount;
   const ext = [0, 1, 2].map((k) => info.bbox.max[k] - info.bbox.min[k]);
-  return Math.round(estimateCellCount(info, ext[0] / (split[0] + 1), ext[1] / (split[1] + 1), ext[2] / (split[2] + 1)));
+  const cells = cellsOf(split, layers);
+  return Math.round(estimateCellCount(info, ext[0] / cells[0], ext[1] / cells[1], ext[2] / cells[2]));
 }
 
 // Cells that hold part of the object. Thin parts (leaves, stems, wicks) count
@@ -66,7 +67,7 @@ function collectCells(sdf, bbox, dims, coarse) {
   return { cubes, cs };
 }
 
-function makePile(cs, coarse, count, info) {
+function makePile(cs, coarse, count, info, maxHeight) {
   const base = Math.max(cs[0], cs[2]);
   const pc = coarse ? base * 1.05 : base * (count > 60000 ? 2 : 1.4);
   const nx = Math.max(4, Math.ceil((BOARD.maxX - BOARD.minX) / pc));
@@ -75,7 +76,7 @@ function makePile(cs, coarse, count, info) {
   for (let i = 0; i < nx; i++) {
     for (let k = 0; k < nz; k++) footprint[i * nz + k] = info.footprint(BOARD.minX + (i + 0.5) * pc, BOARD.minZ + (k + 0.5) * pc) ? 1 : 0;
   }
-  return { pc, nx, nz, height: new Float32Array(nx * nz), footprint };
+  return { pc, nx, nz, height: new Float32Array(nx * nz), footprint, maxHeight };
 }
 
 const NEIGHBORS = [
@@ -85,15 +86,17 @@ const NEIGHBORS = [
 function depositCube(pile, cube, clipZ, rand, coarse, boardY) {
   const { pc, nx, nz, height, footprint } = pile;
   const blocked = (i, k) => i < 0 || k < 0 || i >= nx || k >= nz || (footprint[i * nz + k] === 1 && BOARD.minZ + (k + 0.5) * pc < clipZ - pc * 0.5);
+  // Pieces drop almost straight down where they were cut: the heap keeps the
+  // item's footprint instead of spreading over the board.
   const above = Math.max(0, cube.home[1] - boardY);
-  const fwd = above * (0.3 + 0.55 * rand()) + 0.04;
-  const side = (rand() - 0.5) * above * 0.55 + cube.home[0] * 0.1;
+  const fwd = above * (FORWARD_TOSS[0] + FORWARD_TOSS[1] * rand()) + 0.01;
+  const side = (rand() - 0.5) * above * SIDE_TOSS;
   let i = Math.floor((cube.home[0] + side - BOARD.minX) / pc);
   let k = Math.floor((cube.home[2] + fwd - BOARD.minZ) / pc);
   i = Math.min(nx - 1, Math.max(0, i));
   k = Math.min(nz - 1, Math.max(0, k));
   for (let guard = 0; guard < nz && blocked(i, k); guard++) k = Math.min(nz - 1, k + 1);
-  const repose = pc * (coarse ? 0.7 : 0.6);
+  const repose = pc * (coarse ? 0.9 : REPOSE);
   for (let step = 0; step < 128; step++) {
     const h = height[i * nz + k];
     let best = -1;
@@ -105,7 +108,8 @@ function depositCube(pile, cube, clipZ, rand, coarse, boardY) {
       const b = k + dk;
       if (blocked(a, b)) continue;
       const drop = (h - height[a * nz + b]) / dist;
-      if (drop > repose && drop > bestDrop) {
+      const limit = h + cube.size[1] > pile.maxHeight ? 0 : repose; // full spot: slide to any lower one
+      if (drop > limit && drop > bestDrop) {
         bestDrop = drop;
         best = (n + off) & 7;
       }
@@ -135,7 +139,7 @@ export function flightDuration(homeY, restY, v0) {
 export function buildRoundCubes(round, { budget = 120000, seed = 1 } = {}) {
   const item = itemById(round.itemId);
   const info = objectInfo(item);
-  const grid = displayGrid(round.split, budget, info);
+  const grid = displayGrid(round.split, budget, info, round.layers);
   const coarse = grid.dims[0] * grid.dims[1] * grid.dims[2] <= COARSE_CELL_LIMIT;
   const { cubes, cs } = collectCells(shapeOf(item).sdf, round.bbox, grid.dims, coarse);
   const rand = mulberry32(hashSeed(seed, round.index, round.cuts, round.itemId));
@@ -143,7 +147,7 @@ export function buildRoundCubes(round, { budget = 120000, seed = 1 } = {}) {
     c.t0 = releaseTimeForZ(round, c.home[2]) + 0.015 + rand() * (coarse ? 0.07 : 0.1);
   }
   cubes.sort((a, b) => a.t0 - b.t0);
-  const pile = makePile(cs, coarse, cubes.length, info);
+  const pile = makePile(cs, coarse, cubes.length, info, MAX_HEAP * (round.bbox.max[1] - round.boardY));
   const zPlanes = round.phases[2].planes;
   const N = cubes.length;
   const out = {
@@ -152,7 +156,7 @@ export function buildRoundCubes(round, { budget = 120000, seed = 1 } = {}) {
     dims: grid.dims,
     cell: cs,
     exact: grid.exact,
-    trueCount: trueCubeCount(round.split, info, N, grid.exact),
+    trueCount: trueCubeCount(round.split, info, N, grid.exact, round.layers),
     home: new Float32Array(N * 3),
     size: new Float32Array(N * 3),
     rest: new Float32Array(N * 3),
