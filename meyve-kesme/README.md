@@ -1,9 +1,10 @@
 # 1000 Kesim Stüdyosu
 
 "Apple vs 1000 cuts" tarzı tatmin edici (satisfying / ASMR) Shorts videolarını tarayıcıda üreten Three.js stüdyosu.
-Video ~0,85 sn'lik "10 vs 1,000 CUTS" kartıyla açılır. Bir nesne tahtaya düşer, bıçak önce dikey, sonra yatay, en
-son önden arkaya dilimler; her son dilimde öndeki parça küplere ayrılıp yığına dökülür. Turlar 10 kesimden 1000'e
-(Efsane modunda 5000'e) çıkar, arada bekleme yoktur ve video son yığın oturur oturmaz biter.
+Video ~0,85 sn'lik açılış kartıyla başlar: alt alta "10", "vs", "1000", "CUTS". Bir nesne tahtaya düşer, bıçak
+önce dikey, sonra yatay, en son önden arkaya dilimler; her son dilimde öndeki parça küplere ayrılıp yığına
+dökülür. Turlar 10 kesimden 1000'e (Efsane modunda 5000'e) çıkar, arada bekleme yoktur ve video son yığın oturur
+oturmaz biter.
 
 ## Çalıştırma
 
@@ -18,14 +19,16 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
 
 ## Neler var
 
-- **52 nesne, 6 kategori**: Meyve (elma, karpuz, portakal, kivi, limon, şeftali, avokado, çilek, ananas, muz,
-  armut, nar, ejder meyvesi), Sebze (domates, kırmızı soğan, havuç, salatalık, balkabağı, patlıcan, kırmızı biber,
-  mor lahana, patates, mısır), Yiyecek (katlı pasta, donut, hamburger, suşi, delikli peynir, haşlanmış yumurta,
-  pizza, kurabiye, çikolata, ekmek, makaron), Obje (sabun, kinetik kum, gökkuşağı mum, altın külçe, zeka küpü,
-  şeker topu, oyuncak tuğla, zar), Figür (lastik ördek, kardan adam, oyuncak ayı, gülen surat, kalp, futbol topu,
+- **66 nesne, 6 kategori**: Meyve (elma, karpuz, portakal, kivi, limon, şeftali, avokado, çilek, ananas, muz,
+  armut, nar, ejder meyvesi, hindistan cevizi, mango, greyfurt, erik, misket limonu), Sebze (domates, kırmızı
+  soğan, havuç, salatalık, balkabağı, patlıcan, kırmızı biber, mor lahana, patates, mısır, pancar, mantar, kabak,
+  turp), Yiyecek (katlı pasta, donut, hamburger, suşi, delikli peynir, haşlanmış yumurta, pizza, kurabiye,
+  çikolata, ekmek, makaron, cupcake, tereyağı, sandviç), Obje (sabun, kinetik kum, gökkuşağı mum, altın külçe,
+  zeka küpü, şeker topu, oyuncak tuğla, zar, pastel boya, bulaşık süngeri), Figür (lastik ördek, kardan adam, oyuncak ayı, gülen surat, kalp, futbol topu,
   tenis topu, basketbol topu), Uzay (katmanlı Dünya, Ay). Yeni nesnelerin içi de gerçeğine benzer: narın
   zarlar arasındaki taneleri, mor lahananın beyaz damarlı yaprak katları, biberin boş içi ve çekirdek yatağı,
-  mısırın taneleri ve koçanı, tenis ve basketbol topunun içi boş kabuğu.
+  mısırın taneleri ve koçanı, tenis ve basketbol topunun içi boş kabuğu, hindistan cevizinin beyaz eti ve boş
+  içi, mangonun yassı çekirdeği, pancarın halkaları, sandviçin katları.
   Her biri kategorisinde ya da tüm katalogdan "karışık" oynatılabilir.
 - **Gerçek kesitler**: İçi katmanlı nesneler (Dünya'nın çekirdeği, soğan halkaları, pasta katları, yumurta sarısı,
   şeftali ve avokado çekirdeği, peynir delikleri) kesildikçe görünür. Az kesimli turlarda parçalar ışın izlemeyle
@@ -101,7 +104,7 @@ Tüm animasyon zamanın saf bir fonksiyonudur: aynı ayarlarla her render birebi
 | Dosya | Görev |
 | --- | --- |
 | `js/sdf.js`, `js/mesher.js` | Şekil dili (JS ve GLSL'e derlenir), şekilden mesh üretimi |
-| `js/catalog/*` | 52 nesne: şekil, renk, ses profili; önceden hesaplanmış ölçümler (`meta.js`) |
+| `js/catalog/*` | 66 nesne: şekil, renk, ses profili; önceden hesaplanmış ölçümler (`meta.js`) |
 | `js/timeline.js` | Turlar, fazlar ve her kesimin zamanı (ince nesne kuralı dahil) |
 | `js/camera.js` | Tur başına kamera açıları ve geçişler |
 | `js/cubes-data.js`, `js/cubes-mesh.js` | Küp ızgarası, yığın fiziği, GPU'da küp uçuşu ve üç çizim modu |

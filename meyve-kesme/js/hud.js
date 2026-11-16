@@ -122,40 +122,34 @@ class Label {
   }
 }
 
-// "10 vs 1,000" on one line (numbers white, "vs" gold), "CUTS" in gold below.
-function drawIntro(g, w, h, { from, to, vs, word }) {
-  let size = 250;
-  const line = () => {
-    g.font = `800 ${size}px ${FONT}`;
-    const a = g.measureText(from).width;
-    const c = g.measureText(to).width;
-    g.font = `800 ${size * 0.5}px ${FONT}`;
-    const b = g.measureText(` ${vs} `).width;
-    return { a, b, c, total: a + b + c };
-  };
-  let m = line();
-  if (m.total > w - 80) {
-    size *= (w - 80) / m.total;
-    m = line();
-  }
-  const base = h * 0.52;
-  let x = (w - m.total) / 2;
-  g.textAlign = 'left';
-  g.fillStyle = '#ffffff';
-  g.font = `800 ${size}px ${FONT}`;
-  g.fillText(from, x, base);
-  x += m.a;
-  g.fillStyle = GOLD;
-  g.font = `800 ${size * 0.5}px ${FONT}`;
-  g.fillText(` ${vs} `, x, base);
-  x += m.b;
-  g.fillStyle = '#ffffff';
-  g.font = `800 ${size}px ${FONT}`;
-  g.fillText(to, x, base);
+// The intro card, stacked and centred: numbers big and white, "vs" and the
+// word in gold:  10 / vs / 1000 / CUTS.
+const INTRO_STYLE = [
+  { size: 250, colour: '#ffffff', gap: 0 },
+  { size: 120, colour: GOLD, gap: 40 },
+  { size: 250, colour: '#ffffff', gap: 30 },
+  { size: 150, colour: GOLD, gap: 40 },
+];
+function drawIntro(g, w, h, { lines }) {
   g.textAlign = 'center';
-  g.fillStyle = GOLD;
-  g.font = `800 ${Math.round(size * 0.62)}px ${FONT}`;
-  g.fillText(word, w / 2, base + size * 0.78);
+  g.textBaseline = 'alphabetic';
+  // cap height ~0.72 of the font size; shrink a line if it is too wide
+  const rows = lines.map((text, i) => {
+    const st = INTRO_STYLE[i] || INTRO_STYLE[3];
+    let size = st.size;
+    g.font = `800 ${size}px ${FONT}`;
+    const width = g.measureText(text).width;
+    if (width > w - 80) size *= (w - 80) / width;
+    return { text, size, colour: st.colour, gap: st.gap };
+  });
+  const total = rows.reduce((sum, r) => sum + r.size * 0.72 + r.gap, 0);
+  let y = (h - total) / 2;
+  for (const r of rows) {
+    y += r.gap + r.size * 0.72;
+    g.font = `800 ${r.size}px ${FONT}`;
+    g.fillStyle = r.colour;
+    g.fillText(r.text, w / 2, y);
+  }
 }
 
 export class Hud {
@@ -169,11 +163,11 @@ export class Hud {
     this.topLabel.mesh.position.set(W / 2, H - 330, 0);
     this.bottomLabel = new Label(1000, 260);
     this.bottomLabel.mesh.position.set(W / 2, H - 1700, 0);
-    // intro card: a dark scrim over the whole frame and the "10 vs 1,000 CUTS" title
+    // intro card: a dark scrim over the whole frame and the 10 / vs / 1000 / CUTS title
     this.scrim = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false }));
     this.scrim.position.set(W / 2, H / 2, -0.5);
-    this.intro = new Label(1080, 760);
-    this.intro.mesh.position.set(W / 2, H / 2 + 60, 0);
+    this.intro = new Label(1080, 1100);
+    this.intro.mesh.position.set(W / 2, H / 2 + 40, 0);
     this.vignette = this.makeVignette();
     this.scene.add(this.vignette, this.cuts.mesh, this.cubes.mesh, this.topLabel.mesh, this.bottomLabel.mesh, this.scrim, this.intro.mesh);
     this.popAt = -10;
@@ -241,7 +235,7 @@ export class Hud {
     this.intro.mesh.visible = !!intro && introAlpha > 0.01;
     if (this.intro.mesh.visible) {
       this.intro.mesh.material.opacity = introAlpha;
-      this.intro.draw(`${intro.from}|${intro.to}|${intro.word}`, (g, w, h) => drawIntro(g, w, h, intro));
+      this.intro.draw(intro.lines.join('|'), (g, w, h) => drawIntro(g, w, h, intro));
     }
   }
 

@@ -5,6 +5,7 @@ import { FOODS } from './foods.js';
 import { OBJECTS, FIGURES, SPACE } from './objects.js';
 import { EXTRA_FRUITS, EXTRA_VEGGIES } from './produce-extra.js';
 import { EXTRA_FOODS, EXTRA_OBJECTS, EXTRA_FIGURES } from './goods-extra.js';
+import { MORE_FRUITS, MORE_VEGGIES, MORE_FOODS, MORE_OBJECTS } from './more-items.js';
 
 export const CATEGORIES = [
   { id: 'fruit', tr: 'Meyve', en: 'Fruit', trPlural: 'Meyveler', enPlural: 'Fruits' },
@@ -16,8 +17,9 @@ export const CATEGORIES = [
 ];
 
 export const ITEMS = [
-  ...FRUITS, ...EXTRA_FRUITS, ...VEGGIES, ...EXTRA_VEGGIES, ...FOODS, ...EXTRA_FOODS,
-  ...OBJECTS, ...EXTRA_OBJECTS, ...FIGURES, ...EXTRA_FIGURES, ...SPACE,
+  ...FRUITS, ...EXTRA_FRUITS, ...MORE_FRUITS, ...VEGGIES, ...EXTRA_VEGGIES, ...MORE_VEGGIES,
+  ...FOODS, ...EXTRA_FOODS, ...MORE_FOODS, ...OBJECTS, ...EXTRA_OBJECTS, ...MORE_OBJECTS,
+  ...FIGURES, ...EXTRA_FIGURES, ...SPACE,
 ];
 const BY_ID = new Map(ITEMS.map((it) => [it.id, it]));
 

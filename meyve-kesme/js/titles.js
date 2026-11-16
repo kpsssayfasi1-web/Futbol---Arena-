@@ -19,12 +19,11 @@ function subject(settings, timeline, lang) {
   return { name: lang === 'tr' ? it.tr : it.en, plural: false, proper: !!it.proper };
 }
 
-// The opening card: first and last round's cuts, e.g. "10 vs 1,000 CUTS".
+// The opening card, one line each: first round's cuts, "vs", last round's
+// cuts (no thousands separator) and the word, e.g. 10 / vs / 1000 / CUTS.
 export function introText(timeline, lang = 'en') {
-  const tr = lang === 'tr';
-  const locale = tr ? 'tr-TR' : 'en-US';
   const rs = timeline.rounds;
-  return { from: rs[0].cuts.toLocaleString(locale), to: rs[rs.length - 1].cuts.toLocaleString(locale), vs: 'vs', word: tr ? 'KESİM' : 'CUTS' };
+  return { lines: [String(rs[0].cuts), 'vs', String(rs[rs.length - 1].cuts), lang === 'tr' ? 'KESİM' : 'CUTS'] };
 }
 
 export function hookText(settings, timeline) {
