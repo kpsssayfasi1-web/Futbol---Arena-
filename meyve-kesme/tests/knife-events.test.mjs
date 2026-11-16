@@ -194,7 +194,7 @@ test('knife on board: a natural wooden "tok" carried by the low mids, for every 
 test('each knife has its own tok: cleaver deepest, santoku brightest', () => {
   const bank = eventBank('crisp');
   const pitch = (k) => peakFreq(bank[hitType(k)][0]);
-  const bright = (k) => centroid(bank[hitType(k)][0]);
+  const bright = (k) => bank[hitType(k)].reduce((sum, b) => sum + centroid(b), 0) / bank[hitType(k)].length;
   assert.ok(pitch('cleaver') >= 250 && pitch('cleaver') <= 420, `cleaver ${pitch('cleaver')} Hz`);
   assert.ok(pitch('chef') >= 420 && pitch('chef') <= 620, `chef ${pitch('chef')} Hz`);
   assert.ok(pitch('santoku') >= 600 && pitch('santoku') <= 850, `santoku ${pitch('santoku')} Hz`);
@@ -320,4 +320,60 @@ test('round events use the hit sound of the chosen knife', () => {
   assert.equal(cleaver.length, chef.length);
   assert.ok(!roundEvents(round, 'cleaver').some((e) => e.type === 'thock'));
   for (const e of cleaver) assert.ok(e.rate >= 0.97 - 1e-9 && e.rate <= 1.03 + 1e-9, `${e.rate}`);
+});
+
+// Whistle detector: in every 20 ms window that carries real energy, look for a
+// spectral peak above 1.5 kHz that is both loud (within 26 dB of the window's
+// strongest component) and narrow (far above the median of its +-400 Hz
+// neighbourhood). Returns the worst such prominence.
+function whistle(buf, lo = 1500, hi = 12000) {
+  const n = Math.round(0.02 * SAMPLE_RATE);
+  const step = 25;
+  const wins = [];
+  for (let s = 0; s + n <= buf.length; s += n) {
+    let e = 0;
+    for (let i = 0; i < n; i++) e += buf[s + i] * buf[s + i];
+    wins.push([s, e]);
+  }
+  const loud = Math.max(...wins.map((w) => w[1]));
+  let worst = 0;
+  for (const [s, e] of wins) {
+    if (e < loud * 1e-3) continue;
+    const freqs = [];
+    const mags = [];
+    for (let f = 100; f < hi; f += step) {
+      let re = 0;
+      let im = 0;
+      const w = (2 * Math.PI * f) / SAMPLE_RATE;
+      for (let i = 0; i < n; i++) {
+        const v = buf[s + i] * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / n));
+        re += v * Math.cos(w * i);
+        im += v * Math.sin(w * i);
+      }
+      freqs.push(f);
+      mags.push(Math.hypot(re, im));
+    }
+    const top = Math.max(...mags);
+    for (let i = 0; i < mags.length; i++) {
+      if (freqs[i] < lo || mags[i] < top * 0.05) continue;
+      if (mags[i] < mags[i - 1] || mags[i] < (mags[i + 1] ?? 0)) continue;
+      const near = [];
+      for (let j = i - 16; j <= i + 16; j++) if (j >= 0 && j < mags.length && Math.abs(j - i) > 3) near.push(mags[j]);
+      near.sort((x, y) => x - y);
+      worst = Math.max(worst, mags[i] / Math.max(near[near.length >> 1], 1e-12));
+    }
+  }
+  return worst;
+}
+
+test('no whistle: cut, slice and knife-hit sounds carry no lasting pure tone above 1.5 kHz', () => {
+  for (const p of PROFILES) {
+    const bank = eventBank(p);
+    for (const type of ['cut', 'slice', ...KNIFE_SOUNDS.map(hitType)]) {
+      for (const buf of bank[type].filter((_, i) => i % 3 === 0)) {
+        const w = whistle(buf);
+        assert.ok(w < 10, `${p} ${type}: narrow tonal peak ${w.toFixed(1)}x its neighbourhood`);
+      }
+    }
+  }
 });

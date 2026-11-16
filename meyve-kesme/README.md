@@ -41,7 +41,9 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   - **Şef bıçağı**: orta tok, ~530 Hz, ~40 ms'de söner.
   - **Satır**: ağır ve derin tok, ~330 Hz; uzun temas ve tahtanın altındaki tezgâhın hafif gümlemesi, ~70 ms.
   - **Santoku**: hafif, kuru ve net tok, ~720 Hz, ~30 ms.
-  Bıçağın kendi çınlaması çok hafiftir. Yatay kesimde yalnızca kayma sesi vardır; küpler düşerken ses çıkmaz.
+  Seslerde ıslık gibi duyulan saf tonlar yoktur: bıçak çınlaması, kayan dar bantlı "fıss", lastik
+  gıcırtısı ve perdeli çıtlamalar kaldırıldı; 1,5 kHz üstü yalnızca perdesiz gürültüdür (testle denetlenir).
+  Yatay kesimde yalnızca kayma sesi vardır; küpler düşerken ses çıkmaz.
   Her nesnenin kendi kesim dokusu var (çıtır, sulu, yumuşak, çatırtılı, metal, kum, lastik, taş).
 - **Arka fon müziği**: Referans videodaki küçük caz grubu tarzında altı stil, hepsi kontrbas, elektrikli piyano,
   vibrafon / pizzicato ve hafif davulla, temiz mastering ve küçük oda yankısıyla:

@@ -112,34 +112,39 @@ function boardBody(rand, n, { count = 40, lo = 160, hi = 3800, tune = 1, tilt = 
 //   cleaver - heavy, deep "tok" around 330 Hz: a long contact and a little
 //             thump of the counter under the board (the blade's weight),
 //   santoku - light, dry, crisp tok around 720 Hz.
-// The blade itself only rings very faintly. Gone within ~120 ms.
+// No ringing blade tone (a lasting pure tone reads as a whistle). Gone within
+// ~120 ms.
 export const KNIFE_HITS = {
-  chef: { f0: 520, ratios: [1, 1.58, 2.24, 3.05], loss: 0.035, contact: 0.35, click: 0.25, clickBand: 2300, thump: 0, ring: [3150, 5230], ringGain: 0.02 },
-  cleaver: { f0: 330, ratios: [1, 1.62, 2.31, 3.2], loss: 0.032, contact: 0.7, click: 0.16, clickBand: 1500, thump: 0.3, ring: [1850, 2950], ringGain: 0.025 },
-  santoku: { f0: 720, ratios: [1, 1.55, 2.2, 2.9], loss: 0.04, contact: 0.25, click: 0.3, clickBand: 3000, thump: 0, ring: [3900, 6100], ringGain: 0.015 },
+  chef: { f0: 520, ratios: [1, 1.58, 2.24, 3.05], loss: 0.035, contact: 0.35, click: 0.25, clickBand: 2300, thump: 0, grain: [1900, 0.14] },
+  cleaver: { f0: 330, ratios: [1, 1.62, 2.31, 3.2], loss: 0.032, contact: 0.7, click: 0.16, clickBand: 1500, thump: 0.3, grain: [1400, 0.1] },
+  santoku: { f0: 720, ratios: [1, 1.55, 2.2, 2.9], loss: 0.04, contact: 0.25, click: 0.3, clickBand: 3000, thump: 0, grain: [2600, 0.24] },
 };
 export const KNIFE_SOUNDS = Object.keys(KNIFE_HITS);
 // Bank key of a knife's hit sound ("thock" is the chef's knife).
 export const hitType = (knife) => (knife && knife !== 'chef' && KNIFE_HITS[knife] ? `thock_${knife}` : 'thock');
 
 const TOK_AMPS = [1, 0.5, 0.3, 0.16];
+const TOK_MAX_HZ = 1400;
 function knifeHit(rand, k) {
   const n = len(0.2);
   const tune = 0.97 + rand() * 0.06;
   const f0 = k.f0 * tune;
   // the slab's low modes: the pitch of the tok
-  const tok = modes(n, k.ratios.map((r, i) => ({ f: f0 * r * (0.99 + rand() * 0.02), a: TOK_AMPS[i] * (0.85 + rand() * 0.3), tau: 1 / (Math.PI * f0 * r * k.loss) })));
+  // (only modes below ~1.4 kHz: a pitched mode higher up would whistle)
+  const low = k.ratios.map((r, i) => ({ f: f0 * r * (0.99 + rand() * 0.02), a: TOK_AMPS[i] * (0.85 + rand() * 0.3), tau: 1 / (Math.PI * f0 * r * k.loss) })).filter((m) => m.f < TOK_MAX_HZ);
+  const tok = modes(n, low);
   // dense woody body above it, a little quieter
-  const body = normalize(boardBody(rand, n, { lo: f0 * 0.9, hi: 2600, tilt: 0.6, tune, loss: 0.05 }));
+  const body = normalize(boardBody(rand, n, { lo: f0 * 0.9, hi: TOK_MAX_HZ, tilt: 0.6, tune, loss: 0.05 }));
   const out = normalize(tok);
   add(out, body, 0.35);
+  // the wood's upper grain as short, unpitched noise
+  add(out, normalize(env(filter(noise(n, rand), 'bandpass', k.grain[0] * tune, 0.6), (t) => Math.min(1, t / 0.001) * Math.exp(-t / 0.012))), k.grain[1]);
   soften(out, k.contact);
   normalize(out, 1);
   // the edge touching down: a very short click
   add(out, normalize(env(filter(noise(len(0.01), rand), 'bandpass', k.clickBand * tune, 0.8), (t) => Math.exp(-t / 0.0012))), k.click);
   // a heavy blade also thumps the counter under the board
   if (k.thump > 0) add(out, modes(n, [{ f: 105 * tune, a: 1, tau: 0.03 }, { f: 165 * tune, a: 0.5, tau: 0.02 }]), k.thump);
-  add(out, modes(n, k.ring.map((f, i) => ({ f: f * tune, a: 1 / (1 + i), tau: 0.04, ph: rand() * TAU }))), k.ringGain);
   normalize(out, 1);
   for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.5);
   filter(out, 'highpass', 60, 0.7);
@@ -166,17 +171,18 @@ const CUT_PROFILES = {
   juicy: { rate: 600, band: 1900, q: 0.8, wet: 0.55, dur: 0.24 },
   soft: { rate: 160, band: 1100, q: 0.7, wet: 0.35, dur: 0.22 },
   snap: { rate: 70, band: 4200, q: 1.2, wet: 0.0, dur: 0.16, snaps: 3 },
-  metal: { rate: 40, band: 5200, q: 6, wet: 0.0, dur: 0.32, scrape: true },
+  metal: { rate: 40, band: 5200, q: 2, wet: 0.0, dur: 0.32, scrape: true },
   sand: { rate: 4200, band: 5200, q: 0.5, wet: 0.0, dur: 0.26 },
-  rubber: { rate: 120, band: 900, q: 1.0, wet: 0.2, dur: 0.22, squeak: true },
+  rubber: { rate: 120, band: 900, q: 1.0, wet: 0.2, dur: 0.22 },
   rock: { rate: 900, band: 1500, q: 0.7, wet: 0.0, dur: 0.24 },
 };
 
-// The blade's rush of air: bright band-passed noise rising to the contact at
-// `at` seconds, then cut off. Brighter and louder as the knife speeds up.
+// The blade's rush of air: broadband noise (2-9 kHz) swelling up to the
+// contact at `at` seconds, then cut off. No sweeping resonant band: a narrow
+// band gliding upwards is heard as a whistle.
 function swish(n, rand, at, release = 0.005) {
-  const out = filter(noise(n, rand), 'bandpass', (t) => 3600 + 6800 * Math.min(1, t / at) ** 1.5, 0.85);
-  filter(out, 'highpass', 2400, 0.7);
+  const out = filter(noise(n, rand), 'highpass', 2000, 0.6);
+  filter(out, 'lowpass', 9000, 0.6);
   return env(out, (t) => (t < at ? (t / at) ** 2.2 : Math.exp(-(t - at) / release)));
 }
 
@@ -189,17 +195,8 @@ function crunch(rand, p, n) {
     env(wet, (t) => 0.5 + 0.5 * Math.sin(TAU * bub * t) ** 2);
     add(out, normalize(wet), p.wet);
   }
-  if (p.snaps) for (let s = 0; s < p.snaps; s++) add(out, modes(len(0.05), [{ f: 2500 + rand() * 3000, a: 1, tau: 0.008 }]), 0.6, Math.floor(rand() * n * 0.7));
-  if (p.scrape) add(out, normalize(env(filter(noise(n, rand), 'bandpass', (t) => 3500 + 3000 * (t / (n / SR)), 9), (t) => Math.sin((Math.PI * t * SR) / n))), 0.7);
-  if (p.squeak) {
-    const f0 = 800 + rand() * 500;
-    let ph = 0;
-    for (let i = 0; i < n; i++) {
-      const t = i / SR;
-      ph += (TAU * f0 * (1 + 0.04 * Math.sin(TAU * 9 * t))) / SR;
-      out[i] += 0.25 * Math.sin(ph) * Math.sin((Math.PI * i) / n) ** 2;
-    }
-  }
+  if (p.snaps) for (let s = 0; s < p.snaps; s++) add(out, normalize(env(filter(noise(len(0.03), rand), 'bandpass', 2500 + rand() * 3000, 0.9), (t) => Math.exp(-t / 0.004))), 0.6, Math.floor(rand() * n * 0.7));
+  if (p.scrape) add(out, normalize(env(filter(noise(n, rand), 'bandpass', (t) => 3500 + 3000 * (t / (n / SR)), 1.5), (t) => Math.sin((Math.PI * t * SR) / n))), 0.7);
   return normalize(out);
 }
 
