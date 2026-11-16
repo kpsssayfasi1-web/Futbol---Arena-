@@ -101,25 +101,40 @@ function boardBody(rand, n, { count = 40, lo = 160, hi = 3800, tune = 1, tilt = 
   return modes(n, list);
 }
 
-// The knife's edge striking the board through the item, built as a thick "tok":
-// - the slab's own low-mid knock (strong modes around 330 and 520 Hz, the pitch
-//   people hear as "tok", reproduced even by phone speakers),
-// - the dense woody body of the board above it,
-// - the counter underneath answering with a short, deep thump,
-// - the hard steel-on-wood contact: a very short "tak" at the onset,
-// - a faint ring of the blade. Saturation adds weight and glues it together.
+// The knife meeting the board, modelled on the reference Shorts: most of the
+// energy is a bright, crisp "shk" between 3 and 13 kHz (the edge biting the
+// wood) carrying the blade's own partials, a close pair near 4.5 kHz and a
+// cluster around 6.6-7.3 kHz, which ring for about a tenth of a second. A
+// faint 1 kHz blade mode and a thin, very short knock near 450 Hz give it body
+// without the heavy "tok" of a thick board. Gone within ~150 ms.
+export const BLADE_PARTIALS = [
+  { f: 4441, a: 1, tau: 0.05 },
+  { f: 4570, a: 0.85, tau: 0.045 },
+  { f: 6645, a: 0.6, tau: 0.04 },
+  { f: 6820, a: 0.75, tau: 0.04 },
+  { f: 6996, a: 0.65, tau: 0.035 },
+  { f: 7137, a: 0.55, tau: 0.035 },
+  { f: 7242, a: 0.4, tau: 0.03 },
+];
 function thock(rand) {
   const n = len(0.22);
-  const tune = 0.92 + rand() * 0.16;
-  // The body is kept above 170 Hz; the low end comes only from the counter thump.
-  const out = normalize(filter(soften(boardBody(rand, n, { lo: 110, hi: 3000, tilt: 0.45, tune }), 0.4), 'highpass', 170, 0.7));
-  add(out, modes(n, [{ f: 215 * tune, a: 0.55, tau: 0.03 }, { f: 330 * tune, a: 1, tau: 0.03 }, { f: 525 * tune, a: 0.7, tau: 0.022 }, { f: 790 * tune, a: 0.6, tau: 0.016 }, { f: 1180 * tune, a: 0.4, tau: 0.011 }]), 0.8);
-  add(out, modes(n, [{ f: 118 * tune, a: 1, tau: 0.025 }, { f: 72, a: 0.5, tau: 0.03 }]), 0.2);
-  add(out, normalize(env(filter(noise(len(0.012), rand), 'bandpass', 2600 * tune, 0.7), (t) => Math.exp(-t / 0.0015))), 0.9);
-  add(out, modes(n, [3150, 5230, 7900].map((f, i) => ({ f: f * (0.97 + rand() * 0.06), a: 0.5 / (1 + i), tau: 0.05 / (1 + i * 0.5) }))), 0.03);
-  normalize(out, 1);
-  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.8);
-  filter(out, 'highpass', 40, 0.7);
+  const tune = 0.985 + rand() * 0.03;
+  // edge biting into wood: bright broadband noise held for ~30 ms, then decaying
+  const bite = filter(noise(n, rand), 'bandpass', 6500 * tune, 0.45);
+  filter(bite, 'highpass', 2800, 0.7);
+  filter(bite, 'lowpass', 10500, 0.7);
+  env(bite, (t) => Math.min(1, t / 0.003) * (t < 0.03 ? 1 - t * 4 : 0.88 * Math.exp(-(t - 0.03) / 0.022)));
+  const out = normalize(bite, 1);
+  const ring = modes(n, BLADE_PARTIALS.map((p) => ({ f: p.f * tune, a: p.a, tau: p.tau, ph: rand() * TAU })));
+  env(ring, (t) => Math.min(1, t / 0.001));
+  add(out, normalize(ring), 0.8);
+  // body: the blade's 1 kHz mode and a little 1-3 kHz grit, longer than the bite
+  add(out, normalize(modes(n, [{ f: 1043 * tune, a: 1, tau: 0.07, ph: rand() * TAU }])), 0.12);
+  add(out, normalize(env(filter(noise(n, rand), 'bandpass', 1900 * tune, 0.8), (t) => Math.min(1, t / 0.003) * Math.exp(-t / 0.05))), 0.45);
+  // thin, short knock of the board
+  add(out, normalize(filter(modes(n, [{ f: 457 * tune, a: 1, tau: 0.016 }, { f: 690 * tune, a: 0.6, tau: 0.011 }]), 'highpass', 300, 0.7)), 0.55);
+  const fade = len(0.04);
+  env(out, (t) => (t * SR > n - fade ? (n - t * SR) / fade : 1));
   return normalize(out, 0.95);
 }
 

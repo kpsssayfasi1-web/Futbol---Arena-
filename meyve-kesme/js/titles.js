@@ -1,4 +1,4 @@
-// Opening question and ready-to-paste Shorts title, description and hashtags.
+// Intro card text and ready-to-paste Shorts title, description and hashtags.
 import { itemById, CATEGORIES } from './catalog/index.js';
 
 const lowerTr = (s) => s.toLocaleLowerCase('tr-TR');
@@ -17,6 +17,14 @@ function subject(settings, timeline, lang) {
   }
   const it = itemById(timeline.rounds[0].itemId);
   return { name: lang === 'tr' ? it.tr : it.en, plural: false, proper: !!it.proper };
+}
+
+// The opening card: first and last round's cuts, e.g. "10 vs 1,000 CUTS".
+export function introText(timeline, lang = 'en') {
+  const tr = lang === 'tr';
+  const locale = tr ? 'tr-TR' : 'en-US';
+  const rs = timeline.rounds;
+  return { from: rs[0].cuts.toLocaleString(locale), to: rs[rs.length - 1].cuts.toLocaleString(locale), vs: 'vs', word: tr ? 'KESİM' : 'CUTS' };
 }
 
 export function hookText(settings, timeline) {

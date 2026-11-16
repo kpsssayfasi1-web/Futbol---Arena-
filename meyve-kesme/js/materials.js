@@ -53,10 +53,10 @@ function bodyMaterial(item, cut) {
         objMap(vObjPos, oPart);
         float fLines = cutLines(vObjPos, true);
         vec3 fCol = gl_FrontFacing ? itemSkin(vObjPos, oPart) : itemInner(vObjPos, 0.2, oPart) * 0.75;
-        diffuseColor.rgb = fCol * (1.0 - 0.5 * fLines);`,
+        diffuseColor.rgb = fCol * (1.0 - 0.62 * fLines);`,
       ...PROPS('oPart', '1.0'),
       normal_fragment_begin: `$ORIGINAL
-        if (gl_FrontFacing) normal = bumpNormal(-vViewPosition, normal, itemBump(vObjPos, oPart) - fLines * 0.12, 1.0);`,
+        if (gl_FrontFacing) normal = bumpNormal(-vViewPosition, normal, itemBump(vObjPos, oPart) - fLines * 0.05, 1.0);`,
     },
   });
 }

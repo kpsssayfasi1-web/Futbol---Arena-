@@ -98,3 +98,16 @@ test('flat items: needle-like pieces are drawn as near-cubes, the count stays re
   const cell = [0, 1, 2].map((k) => (info.bbox.max[k] - info.bbox.min[k]) / big.dims[k]);
   assert.ok(cell[1] / Math.min(cell[0], cell[2]) < 2, 'roughly cubic');
 });
+
+test('the video ends right after the last pile has settled', () => {
+  for (const item of ['apple', 'watermelon', 'pizza']) {
+    const tl = buildTimeline({ rounds: [10, 1000], item });
+    const r = tl.rounds[1];
+    const d = buildRoundCubes(r, { budget: 20000 });
+    let landed = 0;
+    for (let i = 0; i < d.motion.length; i += 4) landed = Math.max(landed, d.motion[i] + d.motion[i + 1]);
+    assert.ok(r.end >= landed + 0.1, `${item}: pile still falling at the end`);
+    assert.ok(r.end - landed <= 0.5, `${item}: ${(r.end - landed).toFixed(2)} s of still frames`);
+    assert.equal(tl.duration, r.end);
+  }
+});

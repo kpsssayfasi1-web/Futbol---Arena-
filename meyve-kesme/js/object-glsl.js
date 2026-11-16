@@ -179,14 +179,20 @@ float axisLines(float coord, int axis, float pix, vec3 p) {
     isDone = axis == 1 ? (p.x > uActive.z) : (p.y > uActive.z);
   }
   if (!isDone) return 0.0;
-  // Anti-aliased line about 1.5 px wide. When lines get closer than ~30 px
-  // they fade out: dense stripes would only alias into moire.
+  // A cut reads as a dark groove (as in the reference Shorts): a crisp core
+  // about 2 px wide with a soft shadow trailing on the side away from the key
+  // light. When grooves get closer than ~20 px the individual lines would only
+  // alias into moire, so they blend into their average darkening instead of
+  // vanishing: a densely cut area still looks cut.
   float spacing = stepW / max(pix, 1e-6);
-  float vis = smoothstep(12.0, 34.0, spacing);
-  if (vis <= 0.0) return 0.0;
-  float dist = abs(u - k) * stepW;
-  float w = max(0.003, pix * 1.5);
-  return vis * (1.0 - smoothstep(0.0, w, dist));
+  float w = max(0.003, pix * 0.9);
+  float sd = (u - k) * stepW; // signed distance across the groove
+  float core = 1.0 - smoothstep(w - pix * 0.75, w + pix * 0.75, abs(sd));
+  float side = axis == 0 ? sd : -sd; // light comes from -x / +z
+  float shade = step(0.0, side) * exp(-side / (w * 2.5)) * 0.45;
+  float line = max(core, shade);
+  float mean = min(0.6, (w * 2.0 + w * 2.5 * 0.45) / stepW);
+  return mix(mean, line, smoothstep(7.0, 20.0, spacing));
 }
 float cutLines(vec3 p, bool withZ) {
   vec3 pix = fwidth(p);

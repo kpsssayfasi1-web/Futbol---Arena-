@@ -15,9 +15,9 @@ export const TIMING = {
   settle: 0.12, // knife starts its approach while the item squashes
   phaseGap: 0.04,
   tail: 0.62, // last cut -> next round starts
-  finalHold: 2.6, // the final pile and total stay on screen
+  finalHold: 0.7, // last cut -> end: the final pile settles and the video ends
   outro: 0.4, // previous pile shrinks while the next item drops
-  hook: 1.7, // opening question on screen
+  intro: 0.85, // "10 vs 1,000 CUTS" card at the very start
   accel: 1, // even beat within a phase (< 1 would speed up)
 };
 

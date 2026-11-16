@@ -42,6 +42,7 @@ void cubePose(out vec3 center, out mat3 R, out float scale) {
 
 const SHARED_VARYINGS = /* glsl */ `
 varying vec3 vHome;
+varying float vAboveBoard;
 varying vec3 vLocal;
 #ifdef CUBE_BAKED
 flat varying vec4 vBake;
@@ -67,6 +68,7 @@ vec3 cLp = position * aSize;
 vec3 transformed = cCenter + cR * (cLp * cScale);
 vHome = aHome + cLp;
 vLocal = position;
+vAboveBoard = transformed.y + uGroupOffset.y;
 #ifdef CUBE_BAKED
 ivec2 bt = ivec2(gl_InstanceID % ${BAKE_W}, gl_InstanceID / ${BAKE_W});
 vBake = texelFetch(uBake, bt, 0);
@@ -138,7 +140,11 @@ float cM1 = max(cE.x, max(cE.y, cE.z));
 float cM3 = min(cE.x, min(cE.y, cE.z));
 float cM2 = cE.x + cE.y + cE.z - cM1 - cM3;
 float cW = min(0.5, fwidth(cM2) * 1.5 + 0.05);
-if (!cSkinHit) cCol *= 1.0 - 0.26 * smoothstep(1.0 - cW, 1.0, cM2);
+// dark gaps between neighbouring cubes, as in the reference Shorts
+if (!cSkinHit) cCol *= 1.0 - 0.36 * smoothstep(1.0 - cW, 1.0, cM2);
+// ambient occlusion of the heap: the deeper inside (closer to the board), the
+// less sky light reaches a cube
+cCol *= 0.58 + 0.42 * smoothstep(0.0, 0.16, vAboveBoard);
 float fH = 0.0;
 if (!cSkinHit) cCol = fleshShade(cCol, vHome, cSkin, fH);
 diffuseColor.rgb = cCol;

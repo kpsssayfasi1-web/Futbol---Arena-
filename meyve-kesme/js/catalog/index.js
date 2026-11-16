@@ -3,6 +3,8 @@ import { FRUITS } from './fruits.js';
 import { VEGGIES } from './veggies.js';
 import { FOODS } from './foods.js';
 import { OBJECTS, FIGURES, SPACE } from './objects.js';
+import { EXTRA_FRUITS, EXTRA_VEGGIES } from './produce-extra.js';
+import { EXTRA_FOODS, EXTRA_OBJECTS, EXTRA_FIGURES } from './goods-extra.js';
 
 export const CATEGORIES = [
   { id: 'fruit', tr: 'Meyve', en: 'Fruit', trPlural: 'Meyveler', enPlural: 'Fruits' },
@@ -13,7 +15,10 @@ export const CATEGORIES = [
   { id: 'space', tr: 'Uzay', en: 'Space', trPlural: 'Gezegenler', enPlural: 'Planets' },
 ];
 
-export const ITEMS = [...FRUITS, ...VEGGIES, ...FOODS, ...OBJECTS, ...FIGURES, ...SPACE];
+export const ITEMS = [
+  ...FRUITS, ...EXTRA_FRUITS, ...VEGGIES, ...EXTRA_VEGGIES, ...FOODS, ...EXTRA_FOODS,
+  ...OBJECTS, ...EXTRA_OBJECTS, ...FIGURES, ...EXTRA_FIGURES, ...SPACE,
+];
 const BY_ID = new Map(ITEMS.map((it) => [it.id, it]));
 
 export function itemById(id) {

@@ -191,11 +191,22 @@ button { cursor: pointer; }
       <p class="note">Değişen açılar: her tur kendi açısından başlar, kesim boyunca yavaşça yaklaşır.</p>
     </div>
     <div class="group">
+      <div class="label">Sahne</div>
+      <div class="seg" id="sceneSeg"></div>
+    </div>
+    <div class="group">
+      <div class="label">Bıçak</div>
+      <div class="seg" id="knifeSeg"></div>
+    </div>
+    <div class="group">
       <div class="label">Müzik</div>
       <div class="seg" id="musicSeg">
         <button type="button" data-value="jazz">Gizemli Caz</button>
         <button type="button" data-value="pizzicato">Sinsi Pizzicato</button>
         <button type="button" data-value="noir">Gece Cazı</button>
+        <button type="button" data-value="swing">Hızlı Swing</button>
+        <button type="button" data-value="bossa">Bossa Nova</button>
+        <button type="button" data-value="cool">Cool Caz</button>
         <button type="button" data-value="custom">Kendi müziğim</button>
         <button type="button" data-value="off">Yok (yalnızca kesim sesi)</button>
       </div>
@@ -210,7 +221,6 @@ button { cursor: pointer; }
         <button type="button" data-value="tr">KESİM · KÜP</button>
         <button type="button" data-value="en">CUTS · CUBES</button>
       </div>
-      <div class="toggles"><label><input type="checkbox" id="hookToggle"> Açılış sorusu ("Bu elma 1000 kesime dayanabilir mi?")</label></div>
     </div>
     <div class="group">
       <label class="label" for="handleInput">Kanal adı (videoda görünür)</label>

@@ -150,17 +150,18 @@ function powerShare(buf, lo, hi) {
   return inside / total;
 }
 
-test('board knock: a thick, short tok carried by the low mids', () => {
+test('knife hit follows the reference: a bright metallic "shk", little low end', () => {
   for (const buf of eventBank('crisp').thock) {
-    const c = centroid(buf);
-    assert.ok(c > 500 && c < 2200, `centroid ${c.toFixed(0)} Hz`);
-    const tok = powerShare(buf, 150, 1200);
-    assert.ok(tok > 0.55, `150-1200 Hz share ${tok.toFixed(2)}`);
-    assert.ok(powerShare(buf, 20, 150) < 0.4, 'the sub thump does not dominate');
+    const bright = powerShare(buf, 3000, 12000);
+    assert.ok(bright > 0.6, `3-12 kHz share ${bright.toFixed(2)}`);
+    assert.ok(powerShare(buf, 20, 400) < 0.06, `low end ${powerShare(buf, 20, 400).toFixed(3)}`);
+    // the blade's partials near 4.5 kHz and 6.6-7.3 kHz stand out of the noise
+    const ring = powerShare(buf, 4350, 4700) + powerShare(buf, 6550, 7350);
+    assert.ok(ring > 0.25, `metallic partials ${ring.toFixed(2)}`);
     const e = frames(buf, 10);
-    const total = e.reduce((s, v) => s + v, 0);
-    const late = e.slice(12).reduce((s, v) => s + v, 0);
-    assert.ok(late / total < 0.02, `tail after 120 ms ${(late / total).toFixed(3)}`);
+    const total = e.reduce((sum, v) => sum + v, 0);
+    const late = e.slice(15).reduce((sum, v) => sum + v, 0);
+    assert.ok(late / total < 0.03, `tail after 150 ms ${(late / total).toFixed(3)}`);
     assert.ok(e.indexOf(Math.max(...e)) <= 1, 'attack within the first 20 ms');
   }
 });
@@ -178,7 +179,7 @@ test('music: every style composes a full-length, non-silent, unclipped track', (
     assert.ok(song.events.some((e) => ['vibes', 'jazzPizz'].includes(e.inst)), `${s.id} has a lead`);
     assert.ok(song.events.some((e) => e.inst === 'upright'), `${s.id} has a bass`);
   }
-  assert.deepEqual(MUSIC_STYLES.map((s) => s.id), ['jazz', 'pizzicato', 'noir']);
+  assert.deepEqual(MUSIC_STYLES.map((s) => s.id), ['jazz', 'pizzicato', 'noir', 'swing', 'bossa', 'cool']);
   const m = renderMusic({ style: 'noir', seed: 2, duration: 6 });
   assert.ok(m.left.length >= 6 * m.sampleRate);
   const peak = peakOf(m.left);
@@ -234,6 +235,19 @@ test('jazz presets differ in tempo and feel', () => {
   assert.ok(!piz.events.some((e) => e.inst === 'snare'));
 });
 
+test('new styles: fast swing, straight-eighth bossa and a slow cool ballad', () => {
+  const song = (style) => compose({ style, seed: 1, duration: 12 });
+  assert.ok(song('swing').bpm > song('pizzicato').bpm, 'swing is the fastest');
+  assert.ok(song('cool').bpm < song('noir').bpm, 'cool is the slowest');
+  assert.equal(song('bossa').swing, 0.5, 'bossa plays straight eighths');
+  assert.ok(song('swing').swing > 0.6);
+  for (const style of ['swing', 'bossa', 'cool']) {
+    const m = renderMusic({ style, seed: 2, duration: 4 });
+    const peak = peakOf(m.left);
+    assert.ok(m.left.every(Number.isFinite) && peak > 0.3 && peak <= 0.86, `${style} peak ${peak}`);
+  }
+});
+
 test('flat items: the knife goes straight from the last vertical chop to the front-to-back chops', () => {
   const flat = buildTimeline({ rounds: [10], item: 'donut' }).rounds[0];
   const at = (t) => knifePose(flat, roundState(flat, t), t);
@@ -262,4 +276,11 @@ test('capPeak leaves a mix below the ceiling untouched', () => {
   const ch = Float32Array.from([0.1, -0.5, 0.8]);
   assert.equal(capPeak([ch], -1), 1);
   assert.deepEqual(Array.from(ch), Array.from(Float32Array.from([0.1, -0.5, 0.8])));
+});
+
+test('a heavier knife rings lower: hit playback rate follows the knife pitch', () => {
+  const normal = roundEvents(round).filter((e) => e.type === 'thock');
+  const cleaver = roundEvents(round, 0.8).filter((e) => e.type === 'thock');
+  assert.equal(cleaver.length, normal.length);
+  for (const e of cleaver) assert.ok(e.rate >= 0.8 * 0.97 - 1e-9 && e.rate <= 0.8 * 1.03 + 1e-9, `${e.rate}`);
 });

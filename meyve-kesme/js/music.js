@@ -12,6 +12,9 @@ export const MUSIC_STYLES = [
   { id: 'jazz', tr: 'Gizemli Caz', en: 'Sneaky Jazz' },
   { id: 'pizzicato', tr: 'Sinsi Pizzicato', en: 'Sneaky Pizzicato' },
   { id: 'noir', tr: 'Gece Cazı', en: 'Late Night Jazz' },
+  { id: 'swing', tr: 'Hızlı Swing', en: 'Fast Swing' },
+  { id: 'bossa', tr: 'Bossa Nova', en: 'Bossa Nova' },
+  { id: 'cool', tr: 'Cool Caz', en: 'Cool Jazz' },
 ];
 
 export function compose({ style = 'jazz', seed = 1, duration = 60 }) {

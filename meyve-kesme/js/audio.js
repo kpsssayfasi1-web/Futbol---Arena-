@@ -162,7 +162,7 @@ export async function renderOfflineAudio({ events, banks, music, volumes, durati
   if (music) {
     const src = startBed(ctx, graph.music, music.buffer, 0, 0, music.loop);
     if (music.loop) src.stop(duration);
-    graph.music.gain.setValueAtTime(volumes.music, Math.max(0, duration - 1.6));
+    graph.music.gain.setValueAtTime(volumes.music, Math.max(0, duration - 1.0));
     graph.music.gain.linearRampToValueAtTime(0, duration);
   }
   const mix = await ctx.startRendering();

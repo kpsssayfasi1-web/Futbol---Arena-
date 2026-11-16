@@ -4,7 +4,7 @@ import { buildCameraPlan } from './camera.js';
 import { ObjectModel } from './object-mesh.js';
 import { createCutUniforms, objectMaterials, precompile } from './materials.js';
 import { CubePile, cubeMaterialsFor, DETAILED_LIMIT } from './cubes-mesh.js';
-import { Knife } from './knife.js';
+import { Knife, KNIVES } from './knife.js';
 import { Hud } from './hud.js';
 import { buildTimeline, ROUND_PRESETS, roundIndexAt, roundState, TIMING } from './timeline.js';
 import { knifePose } from './knife-pose.js';
@@ -17,7 +17,7 @@ import { AudioEngine, renderOfflineAudio, toBuffer } from './audio.js';
 import { roundEvents, eventsInWindow } from './events.js';
 import { LiveRecorder, saveFile } from './recorder.js';
 import { exportMp4 } from './exporter.js';
-import { hookText } from './titles.js';
+import { introText } from './titles.js';
 
 const FAST_STROKE = 0.1;
 const SHUTTER = 1 / 30;
@@ -36,11 +36,11 @@ export class App {
     this.canvas = canvas;
     this.settings = settings;
     this.hooks = hooks;
-    Object.assign(this, createStage(canvas, { shadowSize: settings.shadowSize || (isMobileDevice() ? 1024 : 2048) }));
+    Object.assign(this, createStage(canvas, { shadowSize: settings.shadowSize || (isMobileDevice() ? 1024 : 2048), sceneId: settings.scene }));
     this.cut = createCutUniforms();
     this.model = new ObjectModel(this.cut);
     this.scene.add(this.model.root);
-    this.knife = new Knife();
+    this.knife = new Knife(settings.knife);
     this.scene.add(this.knife.group);
     this.hud = new Hud();
     this.shared = { uProj: { value: this.camera.projectionMatrix } };
@@ -237,11 +237,23 @@ export class App {
     this.model.retain(keep);
   }
 
+  knifePitch() {
+    return KNIVES[this.settings.knife]?.pitch ?? 1;
+  }
+
+  // Kitchen set and knife can change at any time; the knife also changes the
+  // pitch of its hits, so the cached knife sounds are dropped.
+  applyLook() {
+    this.setScene(this.settings.scene);
+    this.knife.setType(this.settings.knife);
+    this.events.clear();
+  }
+
   eventsFor(from, to) {
     const out = [];
     for (const r of this.timeline.rounds) {
       if (r.end < from - 1 || r.start > to) continue;
-      if (!this.events.has(r.index)) this.events.set(r.index, roundEvents(r));
+      if (!this.events.has(r.index)) this.events.set(r.index, roundEvents(r, this.knifePitch()));
       out.push(...eventsInWindow(this.events.get(r.index), from, to));
     }
     return out;
@@ -297,9 +309,10 @@ export class App {
       at = prev.end;
     }
     const cubes = pile ? displayedCubeTotal(pile.data, at) : 0;
-    const hookOn = this.settings.hook !== false && ri === 0 && T < TIMING.hook;
-    const hookAlpha = hookOn ? Math.min(1, T / 0.12 + 0.01) * Math.min(1, (TIMING.hook - T) / 0.3) : 0;
-    return { cuts, cubesText: formatCount(cubes, pile ? !pile.data.exact : false, labels.locale), labels, handle: this.settings.handle, t: T, hook: hookOn ? hookText(this.settings, this.timeline) : '', hookAlpha };
+    // the intro card holds, then fades out over its last 0.15 s while the counters fade in
+    const introAlpha = Math.max(0, Math.min(1, (TIMING.intro - T) / 0.15));
+    const intro = introAlpha > 0 ? introText(this.timeline, this.settings.lang === 'tr' ? 'tr' : 'en') : null;
+    return { cuts, cubesText: formatCount(cubes, pile ? !pile.data.exact : false, labels.locale), labels, handle: this.settings.handle, t: T, intro, introAlpha };
   }
 
   renderAt(T) {
@@ -484,7 +497,7 @@ export class App {
     const events = [];
     for (const r of this.timeline.rounds) {
       await this.requestBank(itemById(r.itemId).sound?.cut || 'crisp');
-      events.push(...roundEvents(r));
+      events.push(...roundEvents(r, this.knifePitch()));
     }
     events.sort((a, b) => a.t - b.t);
     return renderOfflineAudio({ events, banks: this.audio.banks, music: this.settings.music === 'off' ? null : this.audio.music, volumes: this.audio.volumes, duration });

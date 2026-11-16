@@ -96,7 +96,7 @@ class GlyphText {
   }
 }
 
-// Static text (labels, handle, opening question), redrawn only when it changes.
+// Static text (labels, handle, intro card), redrawn only when it changes.
 class Label {
   constructor(width, height) {
     this.canvas = document.createElement('canvas');
@@ -122,19 +122,40 @@ class Label {
   }
 }
 
-function wrapLines(g, text, maxWidth) {
-  const words = text.split(' ');
-  const lines = [];
-  let line = '';
-  for (const w of words) {
-    const test = line ? `${line} ${w}` : w;
-    if (g.measureText(test).width > maxWidth && line) {
-      lines.push(line);
-      line = w;
-    } else line = test;
+// "10 vs 1,000" on one line (numbers white, "vs" gold), "CUTS" in gold below.
+function drawIntro(g, w, h, { from, to, vs, word }) {
+  let size = 250;
+  const line = () => {
+    g.font = `800 ${size}px ${FONT}`;
+    const a = g.measureText(from).width;
+    const c = g.measureText(to).width;
+    g.font = `800 ${size * 0.5}px ${FONT}`;
+    const b = g.measureText(` ${vs} `).width;
+    return { a, b, c, total: a + b + c };
+  };
+  let m = line();
+  if (m.total > w - 80) {
+    size *= (w - 80) / m.total;
+    m = line();
   }
-  if (line) lines.push(line);
-  return lines;
+  const base = h * 0.52;
+  let x = (w - m.total) / 2;
+  g.textAlign = 'left';
+  g.fillStyle = '#ffffff';
+  g.font = `800 ${size}px ${FONT}`;
+  g.fillText(from, x, base);
+  x += m.a;
+  g.fillStyle = GOLD;
+  g.font = `800 ${size * 0.5}px ${FONT}`;
+  g.fillText(` ${vs} `, x, base);
+  x += m.b;
+  g.fillStyle = '#ffffff';
+  g.font = `800 ${size}px ${FONT}`;
+  g.fillText(to, x, base);
+  g.textAlign = 'center';
+  g.fillStyle = GOLD;
+  g.font = `800 ${Math.round(size * 0.62)}px ${FONT}`;
+  g.fillText(word, w / 2, base + size * 0.78);
 }
 
 export class Hud {
@@ -148,10 +169,13 @@ export class Hud {
     this.topLabel.mesh.position.set(W / 2, H - 330, 0);
     this.bottomLabel = new Label(1000, 260);
     this.bottomLabel.mesh.position.set(W / 2, H - 1700, 0);
-    this.hook = new Label(1000, 330);
-    this.hook.mesh.position.set(W / 2, H - 1420, 0);
+    // intro card: a dark scrim over the whole frame and the "10 vs 1,000 CUTS" title
+    this.scrim = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0, depthTest: false, depthWrite: false, toneMapped: false }));
+    this.scrim.position.set(W / 2, H / 2, -0.5);
+    this.intro = new Label(1080, 760);
+    this.intro.mesh.position.set(W / 2, H / 2 + 60, 0);
     this.vignette = this.makeVignette();
-    this.scene.add(this.vignette, this.cuts.mesh, this.cubes.mesh, this.topLabel.mesh, this.bottomLabel.mesh, this.hook.mesh);
+    this.scene.add(this.vignette, this.cuts.mesh, this.cubes.mesh, this.topLabel.mesh, this.bottomLabel.mesh, this.scrim, this.intro.mesh);
     this.popAt = -10;
     this.lastCuts = 0;
   }
@@ -183,7 +207,7 @@ export class Hud {
     return m;
   }
 
-  update({ cuts, cubesText, labels, handle, t, hook, hookAlpha }) {
+  update({ cuts, cubesText, labels, handle, t, intro, introAlpha = 0 }) {
     if (cuts !== this.lastCuts) {
       if (cuts > this.lastCuts) this.popAt = t;
       this.lastCuts = cuts;
@@ -206,15 +230,18 @@ export class Hud {
         g.fillText(handle, w / 2, 37);
       }
     });
-    this.hook.mesh.visible = !!hook && hookAlpha > 0.01;
-    if (this.hook.mesh.visible) {
-      this.hook.mesh.material.opacity = hookAlpha;
-      this.hook.draw(hook, (g, w, h) => {
-        g.font = `800 76px ${FONT}`;
-        g.fillStyle = '#ffffff';
-        const lines = wrapLines(g, hook, w - 80);
-        lines.forEach((line, i) => g.fillText(line, w / 2, h / 2 - ((lines.length - 1) * 88) / 2 + i * 88 + 26));
-      });
+    // counters fade in as the intro card fades out
+    const counters = 1 - introAlpha;
+    for (const m of [this.cuts.mesh, this.cubes.mesh, this.topLabel.mesh, this.bottomLabel.mesh]) {
+      m.material.opacity = counters;
+      m.visible = counters > 0.01;
+    }
+    this.scrim.material.opacity = 0.45 * introAlpha;
+    this.scrim.visible = introAlpha > 0.01;
+    this.intro.mesh.visible = !!intro && introAlpha > 0.01;
+    if (this.intro.mesh.visible) {
+      this.intro.mesh.material.opacity = introAlpha;
+      this.intro.draw(`${intro.from}|${intro.to}|${intro.word}`, (g, w, h) => drawIntro(g, w, h, intro));
     }
   }
 
@@ -224,7 +251,7 @@ export class Hud {
     this.cubes.text = null;
     this.topLabel.key = null;
     this.bottomLabel.key = null;
-    this.hook.key = null;
+    this.intro.key = null;
   }
 
   render(renderer) {

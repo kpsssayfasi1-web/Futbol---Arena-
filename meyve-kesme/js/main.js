@@ -6,11 +6,14 @@ import { roundIndexAt } from './timeline.js';
 import { CATEGORIES, ITEMS, itemById, itemsInCategory, isValidSelection } from './catalog/index.js';
 import { shortsCopy } from './titles.js';
 import { displayedCubeTotal } from './cubes-data.js';
+import { SETS, SET_IDS } from './sets.js';
+import { KNIVES, KNIFE_IDS } from './knife.js';
 
 const $ = (id) => document.getElementById(id);
 const STORAGE_KEY = 'kesim-studyosu-settings-v3';
-const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'jazz', musicVolume: 0.2, hook: true, seed: 1, camera: 'dynamic' };
-const MUSIC = ['jazz', 'pizzicato', 'noir', 'custom', 'off'];
+const DEFAULTS = { item: 'apple', preset: 'classic', speed: '1', lang: 'en', handle: '', quality: 'auto', sound: true, loop: false, music: 'jazz', musicVolume: 0.2, seed: 1, camera: 'dynamic', scene: 'classic', knife: 'chef' };
+const STYLES = ['jazz', 'pizzicato', 'noir', 'swing', 'bossa', 'cool'];
+const MUSIC = [...STYLES, 'custom', 'off'];
 const params = new URLSearchParams(location.search);
 
 function loadSettings() {
@@ -21,9 +24,8 @@ function loadSettings() {
     saved = {};
   }
   const s = { ...DEFAULTS, ...saved };
-  for (const key of ['item', 'preset', 'speed', 'lang', 'quality', 'handle', 'music', 'seed', 'camera']) if (params.has(key)) s[key] = params.get(key);
+  for (const key of ['item', 'preset', 'speed', 'lang', 'quality', 'handle', 'music', 'seed', 'camera', 'scene', 'knife']) if (params.has(key)) s[key] = params.get(key);
   if (params.has('sound')) s.sound = params.get('sound') !== '0';
-  if (params.has('hook')) s.hook = params.get('hook') !== '0';
   if (params.has('shadow')) s.shadowSize = Math.min(4096, Math.max(256, Number(params.get('shadow')) || 1024));
   s.speed = String(Math.min(2, Math.max(0.5, Number(s.speed) || 1)));
   s.handle = String(s.handle || '').trim().slice(0, 32);
@@ -32,6 +34,8 @@ function loadSettings() {
   if (!['tr', 'en'].includes(s.lang)) s.lang = DEFAULTS.lang;
   if (!['auto', 'low', 'medium', 'high'].includes(s.quality)) s.quality = DEFAULTS.quality;
   if (!['dynamic', 'fixed'].includes(s.camera)) s.camera = DEFAULTS.camera;
+  if (!SET_IDS.includes(s.scene)) s.scene = DEFAULTS.scene;
+  if (!KNIFE_IDS.includes(s.knife)) s.knife = DEFAULTS.knife;
   if (!isValidSelection(s.item)) s.item = DEFAULTS.item;
   if (!['classic', 'short', 'legend'].includes(s.preset)) s.preset = DEFAULTS.preset;
   // A custom track is not stored, so a reload falls back to the default style.
@@ -160,6 +164,12 @@ bindSeg('presetSeg', 'preset', () => {
 });
 bindSeg('speedSeg', 'speed', rebuild);
 bindSeg('cameraSeg', 'camera', () => app.refreshCamera());
+// scene and knife buttons come from their tables
+for (const [id, table] of [['sceneSeg', SETS], ['knifeSeg', KNIVES]]) {
+  $(id).innerHTML = Object.entries(table).map(([v, d]) => `<button type="button" data-value="${v}">${d.tr}</button>`).join('');
+}
+bindSeg('sceneSeg', 'scene', () => app.applyLook());
+bindSeg('knifeSeg', 'knife', () => app.applyLook());
 bindSeg('langSeg', 'lang', () => {
   app.hud.invalidate();
   updateInfo(true);
@@ -201,12 +211,6 @@ $('variantBtn').addEventListener('click', () => {
   rebuild();
 });
 
-$('hookToggle').checked = settings.hook !== false;
-$('hookToggle').addEventListener('change', (e) => {
-  settings.hook = e.target.checked;
-  saveSettings(settings);
-  app.hud.invalidate();
-});
 $('handleInput').value = settings.handle;
 $('handleInput').addEventListener('input', (e) => {
   settings.handle = e.target.value.trim().slice(0, 32);
@@ -352,8 +356,8 @@ $('batchBtn').addEventListener('click', async () => {
   const original = { ...settings };
   const pool = activeCat === 'all' ? ITEMS : itemsInCategory(activeCat);
   const picks = [...pool].sort(() => Math.random() - 0.5).slice(0, 3);
-  // The three jazz styles rotate so the videos sound different.
-  const styles = ['jazz', 'pizzicato', 'noir'];
+  // The jazz styles rotate so the videos sound different.
+  const styles = STYLES;
   const keepMusic = ['off', 'custom'].includes(settings.music);
   cancelled = false;
   $('exportModal').hidden = false;

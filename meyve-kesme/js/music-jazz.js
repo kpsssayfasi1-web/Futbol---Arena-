@@ -1,7 +1,7 @@
 // Small-band jazz composer, modelled on the reference Shorts soundtrack: a
 // minor key swing led by an upright bass with chromatic approach notes,
 // rootless off-beat comping, a sparse staccato vibraphone / pizzicato melody
-// and a quiet kit. Three presets share it ("Gizemli Caz" is the reference
+// and a quiet kit. Six presets share it ("Gizemli Caz" is the reference
 // style; the others change tempo, key, feel and lead). Seeded, deterministic.
 import { mulberry32, hashSeed } from './rng.js';
 
@@ -56,6 +56,24 @@ export const JAZZ_PRESETS = {
     bpm: [118, 128], firstKey: 60, keys: [60, 65, 62, 67], swing: 0.67,
     comp: [[[0, 1.6]], [[1.5, 1.8]], [[0, 0.7], [2.5, 1.3]]],
     leadA: 'vibes', leadB: 'vibes', short: 0.75, twoFeel: false, kit: 'brush', ride: 0.65, pickup: 0.08,
+  },
+  // Up-tempo swing: driving walking bass, tight vibes, busier comping.
+  swing: {
+    bpm: [168, 178], firstKey: 65, keys: [65, 62, 67, 60], swing: 0.63,
+    comp: [[[0.5, 0.3], [1.5, 0.3], [3.5, 0.3]], [[1.5, 0.35], [2.5, 0.3]], ...COMP],
+    leadA: 'vibes', leadB: 'jazzPizz', pizzGain: 1.1, short: 0.32, twoFeel: false, kit: 'brush', ride: 1.1, pickup: 0.25,
+  },
+  // Bossa: straight eighths, root-fifth bass, syncopated comping, soft ride.
+  bossa: {
+    bpm: [128, 136], firstKey: 57, keys: [57, 62, 60, 64], swing: 0.5,
+    comp: [[[0, 0.4], [1.5, 0.4], [3, 0.6]], [[0.5, 0.4], [2, 0.4], [3.5, 0.4]]],
+    leadA: 'vibes', leadB: 'vibes', short: 0.6, twoFeel: true, twoFeelAll: true, kit: 'snap', ride: 0.55, pickup: 0.05,
+  },
+  // Cool ballad: slow and airy, pizzicato lead, long comping chords.
+  cool: {
+    bpm: [96, 106], firstKey: 62, keys: [62, 58, 65, 60], swing: 0.66,
+    comp: [[[0, 2.5]], [[1.5, 2.2]], [[0, 1.2], [2, 1.8]]],
+    leadA: 'jazzPizz', leadB: 'vibes', pizzGain: 1.15, short: 0.9, twoFeel: false, kit: 'brush', ride: 0.5, pickup: 0.04,
   },
 };
 export const JAZZ_KEYS = JAZZ_PRESETS.jazz.keys;
@@ -163,7 +181,7 @@ export function composeJazz({ seed = 1, duration = 60, style = 'jazz' }) {
     const pb = ((body % 8) + 8) % 8;
     const chords = prog[pb];
     const nextBar = (pb + 1) % 8 === 0 && section !== 'B' && form[Math.floor((body + 1) / 8) % form.length] === 'B' ? PROG_B[0] : prog[(pb + 1) % 8];
-    const bassLine = P.twoFeel && section === 'A' ? twoBar : walkBar;
+    const bassLine = P.twoFeel && (section === 'A' || P.twoFeelAll) ? twoBar : walkBar;
     bassPrev = bassLine(chords, key + nextBar[0][0], key, rand, bassPrev, (b, midi, vel, len = 0.82) => events.push({ inst: 'upright', t: at(bar, b), dur: beat * len, midi, vel }));
     if (rand() < P.pickup) events.push({ inst: 'upright', t: at(bar, 3 + 2 / 3), dur: beat * 0.25, midi: bassPrev + (rand() < 0.5 ? 2 : -1), vel: 0.45 });
     drums(events, bar, at, beat, body, rand, P, section);
@@ -188,7 +206,7 @@ export function composeJazz({ seed = 1, duration = 60, style = 'jazz' }) {
       melPrev = notes[notes.length - 1].midi;
     }
   }
-  return { events, beat, barDur, key, bpm, style: id };
+  return { events, beat, barDur, key, bpm, swing: P.swing, style: id };
 }
 
 function drums(events, bar, at, beat, body, rand, P, section) {
