@@ -10,12 +10,11 @@ import { BLADE_LENGTH } from './knife-pose.js';
 const GHOSTS = 12;
 const L = BLADE_LENGTH;
 
-// tr/en: UI names. pitch: playback rate of the knife-on-board hit (a heavier
-// blade rings lower).
+// tr/en: UI names. Each knife's board hit is synthesised in sfx.js (KNIFE_HITS).
 export const KNIVES = {
-  chef: { tr: 'Şef bıçağı', en: "Chef's knife", pitch: 1 },
-  cleaver: { tr: 'Satır', en: 'Cleaver', pitch: 0.8 },
-  santoku: { tr: 'Santoku', en: 'Santoku', pitch: 1.08 },
+  chef: { tr: 'Şef bıçağı', en: "Chef's knife" },
+  cleaver: { tr: 'Satır', en: 'Cleaver' },
+  santoku: { tr: 'Santoku', en: 'Santoku' },
 };
 export const KNIFE_IDS = Object.keys(KNIVES);
 

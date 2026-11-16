@@ -101,39 +101,49 @@ function boardBody(rand, n, { count = 40, lo = 160, hi = 3800, tune = 1, tilt = 
   return modes(n, list);
 }
 
-// The knife meeting the board, modelled on the reference Shorts: most of the
-// energy is a bright, crisp "shk" between 3 and 13 kHz (the edge biting the
-// wood) carrying the blade's own partials, a close pair near 4.5 kHz and a
-// cluster around 6.6-7.3 kHz, which ring for about a tenth of a second. A
-// faint 1 kHz blade mode and a thin, very short knock near 450 Hz give it body
-// without the heavy "tok" of a thick board. Gone within ~150 ms.
-export const BLADE_PARTIALS = [
-  { f: 4441, a: 1, tau: 0.05 },
-  { f: 4570, a: 0.85, tau: 0.045 },
-  { f: 6645, a: 0.6, tau: 0.04 },
-  { f: 6820, a: 0.75, tau: 0.04 },
-  { f: 6996, a: 0.65, tau: 0.035 },
-  { f: 7137, a: 0.55, tau: 0.035 },
-  { f: 7242, a: 0.4, tau: 0.03 },
-];
-function thock(rand) {
-  const n = len(0.22);
-  const tune = 0.985 + rand() * 0.03;
-  // edge biting into wood: bright broadband noise held for ~30 ms, then decaying
-  const bite = filter(noise(n, rand), 'bandpass', 6500 * tune, 0.45);
-  filter(bite, 'highpass', 2800, 0.7);
-  filter(bite, 'lowpass', 10500, 0.7);
-  env(bite, (t) => Math.min(1, t / 0.003) * (t < 0.03 ? 1 - t * 4 : 0.88 * Math.exp(-(t - 0.03) / 0.022)));
-  const out = normalize(bite, 1);
-  const ring = modes(n, BLADE_PARTIALS.map((p) => ({ f: p.f * tune, a: p.a, tau: p.tau, ph: rand() * TAU })));
-  env(ring, (t) => Math.min(1, t / 0.001));
-  add(out, normalize(ring), 0.8);
-  // body: the blade's 1 kHz mode and a little 1-3 kHz grit, longer than the bite
-  add(out, normalize(modes(n, [{ f: 1043 * tune, a: 1, tau: 0.07, ph: rand() * TAU }])), 0.12);
-  add(out, normalize(env(filter(noise(n, rand), 'bandpass', 1900 * tune, 0.8), (t) => Math.min(1, t / 0.003) * Math.exp(-t / 0.05))), 0.45);
-  // thin, short knock of the board
-  add(out, normalize(filter(modes(n, [{ f: 457 * tune, a: 1, tau: 0.016 }, { f: 690 * tune, a: 0.6, tau: 0.011 }]), 'highpass', 300, 0.7)), 0.55);
-  const fade = len(0.04);
+// The knife meeting the wooden board: a natural "tok". The edge strikes a
+// thick hardwood slab, whose low bending modes (an inharmonic set above a
+// fundamental of a few hundred Hz, loss factor ~0.035) ring for a few tens of
+// milliseconds and carry the pitch people hear as "tok"; a dense woody body
+// of higher modes gives it the grain of real wood. How long the steel stays in
+// contact sets how bright the knock is (a short contact excites higher modes),
+// and a very short click marks the edge touching down. Each knife has its own:
+//   chef    - medium tok around 520 Hz,
+//   cleaver - heavy, deep "tok" around 330 Hz: a long contact and a little
+//             thump of the counter under the board (the blade's weight),
+//   santoku - light, dry, crisp tok around 720 Hz.
+// The blade itself only rings very faintly. Gone within ~120 ms.
+export const KNIFE_HITS = {
+  chef: { f0: 520, ratios: [1, 1.58, 2.24, 3.05], loss: 0.035, contact: 0.35, click: 0.25, clickBand: 2300, thump: 0, ring: [3150, 5230], ringGain: 0.02 },
+  cleaver: { f0: 330, ratios: [1, 1.62, 2.31, 3.2], loss: 0.032, contact: 0.7, click: 0.16, clickBand: 1500, thump: 0.3, ring: [1850, 2950], ringGain: 0.025 },
+  santoku: { f0: 720, ratios: [1, 1.55, 2.2, 2.9], loss: 0.04, contact: 0.25, click: 0.3, clickBand: 3000, thump: 0, ring: [3900, 6100], ringGain: 0.015 },
+};
+export const KNIFE_SOUNDS = Object.keys(KNIFE_HITS);
+// Bank key of a knife's hit sound ("thock" is the chef's knife).
+export const hitType = (knife) => (knife && knife !== 'chef' && KNIFE_HITS[knife] ? `thock_${knife}` : 'thock');
+
+const TOK_AMPS = [1, 0.5, 0.3, 0.16];
+function knifeHit(rand, k) {
+  const n = len(0.2);
+  const tune = 0.97 + rand() * 0.06;
+  const f0 = k.f0 * tune;
+  // the slab's low modes: the pitch of the tok
+  const tok = modes(n, k.ratios.map((r, i) => ({ f: f0 * r * (0.99 + rand() * 0.02), a: TOK_AMPS[i] * (0.85 + rand() * 0.3), tau: 1 / (Math.PI * f0 * r * k.loss) })));
+  // dense woody body above it, a little quieter
+  const body = normalize(boardBody(rand, n, { lo: f0 * 0.9, hi: 2600, tilt: 0.6, tune, loss: 0.05 }));
+  const out = normalize(tok);
+  add(out, body, 0.35);
+  soften(out, k.contact);
+  normalize(out, 1);
+  // the edge touching down: a very short click
+  add(out, normalize(env(filter(noise(len(0.01), rand), 'bandpass', k.clickBand * tune, 0.8), (t) => Math.exp(-t / 0.0012))), k.click);
+  // a heavy blade also thumps the counter under the board
+  if (k.thump > 0) add(out, modes(n, [{ f: 105 * tune, a: 1, tau: 0.03 }, { f: 165 * tune, a: 0.5, tau: 0.02 }]), k.thump);
+  add(out, modes(n, k.ring.map((f, i) => ({ f: f * tune, a: 1 / (1 + i), tau: 0.04, ph: rand() * TAU }))), k.ringGain);
+  normalize(out, 1);
+  for (let i = 0; i < n; i++) out[i] = Math.tanh(out[i] * 1.5);
+  filter(out, 'highpass', 60, 0.7);
+  const fade = len(0.03);
   env(out, (t) => (t * SR > n - fade ? (n - t * SR) / fade : 1));
   return normalize(out, 0.95);
 }
@@ -258,7 +268,7 @@ export function eventBank(profile = 'crisp') {
   // cut / slice lists hold one block of variants per contact length.
   const byContact = (contacts, k, fn) => contacts.flatMap((c) => Array.from({ length: k }, () => fn(rand, profile, c)));
   const bank = {
-    thock: many(6, thock),
+    ...Object.fromEntries(KNIFE_SOUNDS.map((k) => [hitType(k), many(6, (r) => knifeHit(r, KNIFE_HITS[k]))])),
     cut: byContact(CUT_CONTACTS, CUT_VARIANTS, cutSound),
     slice: byContact(SLICE_CONTACTS, SLICE_VARIANTS, slice),
     drop: many(2, drop),

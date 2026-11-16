@@ -4,7 +4,7 @@ import { buildTimeline, roundState } from '../js/timeline.js';
 import { knifePose, slerp, quatMul, quatAxisAngle, AXIS_QUAT } from '../js/knife-pose.js';
 import { roundEvents, eventsInWindow, pickContact } from '../js/events.js';
 import { runJob } from '../js/work.js';
-import { eventBank, PROFILES, filter, normalize, capPeak, SAMPLE_RATE } from '../js/sfx.js';
+import { eventBank, PROFILES, filter, normalize, capPeak, SAMPLE_RATE, KNIFE_SOUNDS, hitType } from '../js/sfx.js';
 import { renderMusic, compose, MUSIC_STYLES } from '../js/music.js';
 
 const tl = buildTimeline({ rounds: [10] });
@@ -150,20 +150,55 @@ function powerShare(buf, lo, hi) {
   return inside / total;
 }
 
-test('knife hit follows the reference: a bright metallic "shk", little low end', () => {
-  for (const buf of eventBank('crisp').thock) {
-    const bright = powerShare(buf, 3000, 12000);
-    assert.ok(bright > 0.6, `3-12 kHz share ${bright.toFixed(2)}`);
-    assert.ok(powerShare(buf, 20, 400) < 0.06, `low end ${powerShare(buf, 20, 400).toFixed(3)}`);
-    // the blade's partials near 4.5 kHz and 6.6-7.3 kHz stand out of the noise
-    const ring = powerShare(buf, 4350, 4700) + powerShare(buf, 6550, 7350);
-    assert.ok(ring > 0.25, `metallic partials ${ring.toFixed(2)}`);
-    const e = frames(buf, 10);
-    const total = e.reduce((sum, v) => sum + v, 0);
-    const late = e.slice(15).reduce((sum, v) => sum + v, 0);
-    assert.ok(late / total < 0.03, `tail after 150 ms ${(late / total).toFixed(3)}`);
-    assert.ok(e.indexOf(Math.max(...e)) <= 1, 'attack within the first 20 ms');
+// Strongest frequency between lo and hi Hz in the first 60 ms.
+function peakFreq(buf, lo = 150, hi = 2000) {
+  const n = Math.min(buf.length, Math.round(0.06 * SAMPLE_RATE));
+  let best = lo;
+  let bestP = -1;
+  for (let f = lo; f <= hi; f += 5) {
+    let re = 0;
+    let im = 0;
+    const w = (2 * Math.PI * f) / SAMPLE_RATE;
+    for (let i = 0; i < n; i++) {
+      re += buf[i] * Math.cos(w * i);
+      im += buf[i] * Math.sin(w * i);
+    }
+    const pw = re * re + im * im;
+    if (pw > bestP) {
+      bestP = pw;
+      best = f;
+    }
   }
+  return best;
+}
+
+test('knife on board: a natural wooden "tok" carried by the low mids, for every knife', () => {
+  const bank = eventBank('crisp');
+  for (const knife of KNIFE_SOUNDS) {
+    const list = bank[hitType(knife)];
+    assert.ok(list && list.length >= 4, knife);
+    for (const buf of list) {
+      assert.ok(buf.every(Number.isFinite));
+      const tok = powerShare(buf, 150, 1500);
+      assert.ok(tok > 0.6, `${knife}: 150-1500 Hz share ${tok.toFixed(2)}`);
+      assert.ok(powerShare(buf, 3000, 12000) < 0.15, `${knife}: no bright metallic hiss`);
+      const e = frames(buf, 10);
+      const total = e.reduce((sum, v) => sum + v, 0);
+      const late = e.slice(12).reduce((sum, v) => sum + v, 0);
+      assert.ok(late / total < 0.03, `${knife}: tail after 120 ms ${(late / total).toFixed(3)}`);
+      assert.ok(e.indexOf(Math.max(...e)) <= 1, `${knife}: attack within the first 20 ms`);
+    }
+  }
+});
+
+test('each knife has its own tok: cleaver deepest, santoku brightest', () => {
+  const bank = eventBank('crisp');
+  const pitch = (k) => peakFreq(bank[hitType(k)][0]);
+  const bright = (k) => centroid(bank[hitType(k)][0]);
+  assert.ok(pitch('cleaver') >= 250 && pitch('cleaver') <= 420, `cleaver ${pitch('cleaver')} Hz`);
+  assert.ok(pitch('chef') >= 420 && pitch('chef') <= 620, `chef ${pitch('chef')} Hz`);
+  assert.ok(pitch('santoku') >= 600 && pitch('santoku') <= 850, `santoku ${pitch('santoku')} Hz`);
+  assert.ok(bright('cleaver') < bright('chef') && bright('chef') < bright('santoku'), 'brightness follows the blade');
 });
 
 test('falling cubes make no sound: the cube job carries no landing track', () => {
@@ -278,9 +313,11 @@ test('capPeak leaves a mix below the ceiling untouched', () => {
   assert.deepEqual(Array.from(ch), Array.from(Float32Array.from([0.1, -0.5, 0.8])));
 });
 
-test('a heavier knife rings lower: hit playback rate follows the knife pitch', () => {
-  const normal = roundEvents(round).filter((e) => e.type === 'thock');
-  const cleaver = roundEvents(round, 0.8).filter((e) => e.type === 'thock');
-  assert.equal(cleaver.length, normal.length);
-  for (const e of cleaver) assert.ok(e.rate >= 0.8 * 0.97 - 1e-9 && e.rate <= 0.8 * 1.03 + 1e-9, `${e.rate}`);
+test('round events use the hit sound of the chosen knife', () => {
+  const chef = roundEvents(round).filter((e) => e.type === 'thock');
+  const cleaver = roundEvents(round, 'cleaver').filter((e) => e.type === hitType('cleaver'));
+  assert.ok(chef.length > 0);
+  assert.equal(cleaver.length, chef.length);
+  assert.ok(!roundEvents(round, 'cleaver').some((e) => e.type === 'thock'));
+  for (const e of cleaver) assert.ok(e.rate >= 0.97 - 1e-9 && e.rate <= 1.03 + 1e-9, `${e.rate}`);
 });

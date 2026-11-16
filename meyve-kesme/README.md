@@ -34,12 +34,15 @@ MP4 oluşturma güvenli bağlantı ister (https veya localhost).
   şeftali ve avokado çekirdeği, peynir delikleri) kesildikçe görünür. Az kesimli turlarda parçalar ışın izlemeyle
   gerçek kabuk şekliyle çizilir.
 - **Doğru sayaç**: Ekranda çizilen küp sayısı kaliteye göre sınırlanır, sayaç gerçek ızgaradaki sayıyı gösterir.
-- **Bıçak sesi** (referans Shorts'a göre ayarlandı): Bıçağın tahtaya değdiği an parlak, çıtır bir "şık"tır.
-  Enerjinin ~%80'i 3–13 kHz arasındadır, ~30 ms sürer ve ~60 ms'de 10 dB düşer. İçinde bıçağın 4,4–4,6 kHz ve
-  6,6–7,2 kHz civarındaki metalik kısmi tonları ~0,1 sn çınlar; altta zayıf, kısa bir 450 Hz tahta vuruşu ve
-  hafif 1 kHz gövde vardır. Vuruştan önceki "fıss" çok kısıktır. Satır daha pes (×0,8), santoku biraz daha tiz
-  (×1,08) çınlar. Yatay kesimde yalnızca kayma sesi vardır; küpler düşerken ses çıkmaz. Her nesnenin kendi
-  kesim dokusu var (çıtır, sulu, yumuşak, çatırtılı, metal, kum, lastik, taş).
+- **Bıçak sesi**: Bıçak tahtaya her değdiğinde doğal bir ahşap "tok" duyulur. Ses fiziksel bir modelle
+  üretilir: kalın tahtanın birkaç yüz Hz'deki düşük titreşim modları tokun perdesini verir, üstündeki sık ahşap
+  modları tahta dokusunu, çeliğin tahtaya değme süresi ise parlaklığını belirler. Çok kısa bir temas tıkı da
+  vardır. Her bıçağın kendi sesi var (`KNIFE_HITS`):
+  - **Şef bıçağı**: orta tok, ~530 Hz, ~40 ms'de söner.
+  - **Satır**: ağır ve derin tok, ~330 Hz; uzun temas ve tahtanın altındaki tezgâhın hafif gümlemesi, ~70 ms.
+  - **Santoku**: hafif, kuru ve net tok, ~720 Hz, ~30 ms.
+  Bıçağın kendi çınlaması çok hafiftir. Yatay kesimde yalnızca kayma sesi vardır; küpler düşerken ses çıkmaz.
+  Her nesnenin kendi kesim dokusu var (çıtır, sulu, yumuşak, çatırtılı, metal, kum, lastik, taş).
 - **Arka fon müziği**: Referans videodaki küçük caz grubu tarzında altı stil, hepsi kontrbas, elektrikli piyano,
   vibrafon / pizzicato ve hafif davulla, temiz mastering ve küçük oda yankısıyla:
   - **Gizemli Caz** (varsayılan): minör, ~148 BPM swing, yürüyen kontrbas, vibrafon melodi, fırçalı davul.
@@ -109,7 +112,7 @@ Tüm animasyon zamanın saf bir fonksiyonudur: aynı ayarlarla her render birebi
 | `js/camera.js` | Tur başına kamera açıları ve geçişler |
 | `js/cubes-data.js`, `js/cubes-mesh.js` | Küp ızgarası, yığın fiziği, GPU'da küp uçuşu ve üç çizim modu |
 | `js/materials.js`, `js/object-glsl.js` | Nesne başına shader programları |
-| `js/sfx.js` | Kesim, kayma ve bıçak vuruşu sesi sentezi |
+| `js/sfx.js` | Kesim, kayma ve bıçağa özgü tahta "tok" sesi sentezi |
 | `js/scene.js`, `js/sets.js`, `js/textures.js` | Işıklar, değiştirilebilir sahneler, prosedürel dokular |
 | `js/knife.js`, `js/knife-pose.js` | Bıçak modelleri (şef, satır, santoku) ve kesim hareketi |
 | `js/hud.js` | Sayaçlar ve açılış kartı |

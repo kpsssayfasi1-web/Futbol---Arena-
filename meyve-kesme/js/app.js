@@ -4,7 +4,7 @@ import { buildCameraPlan } from './camera.js';
 import { ObjectModel } from './object-mesh.js';
 import { createCutUniforms, objectMaterials, precompile } from './materials.js';
 import { CubePile, cubeMaterialsFor, DETAILED_LIMIT } from './cubes-mesh.js';
-import { Knife, KNIVES } from './knife.js';
+import { Knife } from './knife.js';
 import { Hud } from './hud.js';
 import { buildTimeline, ROUND_PRESETS, roundIndexAt, roundState, TIMING } from './timeline.js';
 import { knifePose } from './knife-pose.js';
@@ -237,12 +237,8 @@ export class App {
     this.model.retain(keep);
   }
 
-  knifePitch() {
-    return KNIVES[this.settings.knife]?.pitch ?? 1;
-  }
-
-  // Kitchen set and knife can change at any time; the knife also changes the
-  // pitch of its hits, so the cached knife sounds are dropped.
+  // Kitchen set and knife can change at any time; each knife has its own hit
+  // sound, so the cached knife events are dropped.
   applyLook() {
     this.setScene(this.settings.scene);
     this.knife.setType(this.settings.knife);
@@ -253,7 +249,7 @@ export class App {
     const out = [];
     for (const r of this.timeline.rounds) {
       if (r.end < from - 1 || r.start > to) continue;
-      if (!this.events.has(r.index)) this.events.set(r.index, roundEvents(r, this.knifePitch()));
+      if (!this.events.has(r.index)) this.events.set(r.index, roundEvents(r, this.settings.knife));
       out.push(...eventsInWindow(this.events.get(r.index), from, to));
     }
     return out;
@@ -497,7 +493,7 @@ export class App {
     const events = [];
     for (const r of this.timeline.rounds) {
       await this.requestBank(itemById(r.itemId).sound?.cut || 'crisp');
-      events.push(...roundEvents(r, this.knifePitch()));
+      events.push(...roundEvents(r, this.settings.knife));
     }
     events.sort((a, b) => a.t - b.t);
     return renderOfflineAudio({ events, banks: this.audio.banks, music: this.settings.music === 'off' ? null : this.audio.music, volumes: this.audio.volumes, duration });

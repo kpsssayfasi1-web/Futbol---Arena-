@@ -3,7 +3,7 @@
 // silent on purpose.
 import { mulberry32, hashSeed } from './rng.js';
 import { itemById } from './catalog/index.js';
-import { CUT_CONTACTS, SLICE_CONTACTS, CUT_VARIANTS, SLICE_VARIANTS } from './sfx.js';
+import { CUT_CONTACTS, SLICE_CONTACTS, CUT_VARIANTS, SLICE_VARIANTS, hitType } from './sfx.js';
 
 const MIN_GAP = 0.034; // at most ~30 knife sounds per second
 const DENSE = 0.14; // cut interval below which strokes blend together
@@ -17,7 +17,8 @@ export function pickContact(contacts, wanted) {
   return { block, rate, lead: contacts[block] / rate };
 }
 
-export function roundEvents(round, pitch = 1) {
+export function roundEvents(round, knife = 'chef') {
+  const hit = hitType(knife);
   const rand = mulberry32(hashSeed('sound', round.index, round.cuts, round.itemId));
   const profile = itemById(round.itemId).sound?.cut || 'crisp';
   const out = [];
@@ -46,7 +47,7 @@ export function roundEvents(round, pitch = 1) {
         out.push({ t: t - lead, type: 'slice', gain: 0.8 * swishGain, rate, variant, profile });
       } else {
         out.push({ t: t - lead, type: 'cut', gain: 0.22 * swishGain, rate, variant, profile });
-        out.push({ t, type: 'thock', gain: 1.0 * knockGain, rate: pitch * (0.97 + rand() * 0.06), variant: Math.floor(rand() * 6), profile });
+        out.push({ t, type: hit, gain: 1.0 * knockGain, rate: 0.97 + rand() * 0.06, variant: Math.floor(rand() * 6), profile });
       }
     }
   }
